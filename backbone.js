@@ -40,9 +40,6 @@
   // restored later on, if `noConflict` is used.
   var previousBackbone = root.Backbone;
 
-  // Create a local reference to a common array method we'll want to use later.
-  var slice = Array.prototype.slice;
-
   // Current version of the library. Keep in sync with `package.json`.
   Backbone.VERSION = '1.6.1';
 
@@ -97,7 +94,7 @@
     if (name && typeof name === 'object') {
       // Handle event maps.
       if (callback !== void 0 && 'context' in opts && opts.context === void 0) opts.context = callback;
-      for (names = _.keys(name); i < names.length ; i++) {
+      for (names = Object.keys(name); i < names.length ; i++) {
         events = eventsApi(iteratee, events, names[i], name[names[i]], opts);
       }
     } else if (name && eventSplitter.test(name)) {
@@ -201,7 +198,7 @@
     var listeningTo = this._listeningTo;
     if (!listeningTo) return this;
 
-    var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+    var ids = obj ? [obj._listenId] : Object.keys(listeningTo);
     for (var i = 0; i < ids.length; i++) {
       var listening = listeningTo[ids[i]];
 
@@ -226,13 +223,13 @@
 
     // Delete all event listeners and "drop" events.
     if (!name && !context && !callback) {
-      for (names = _.keys(listeners); i < names.length; i++) {
+      for (names = Object.keys(listeners || {}); i < names.length; i++) {
         listeners[names[i]].cleanup();
       }
       return;
     }
 
-    names = name ? [name] : _.keys(events);
+    names = name ? [name] : Object.keys(events);
     for (; i < names.length; i++) {
       name = names[i];
       var handlers = events[name];
@@ -302,13 +299,8 @@
   // passed the same arguments as `trigger` is, apart from the event name
   // (unless you're listening on `"all"`, which will cause your callback to
   // receive the true name of the event as the first argument).
-  Events.trigger = function(name) {
+  Events.trigger = function(name, ...args) {
     if (!this._events) return this;
-
-    var length = Math.max(0, arguments.length - 1);
-    var args = Array(length);
-    for (var i = 0; i < length; i++) args[i] = arguments[i + 1];
-
     eventsApi(triggerApi, this._events, name, void 0, args);
     return this;
   };
@@ -395,9 +387,8 @@
 
   // Create a new model with the specified attributes. A client id (`cid`)
   // is automatically generated and assigned for you.
-  var Model = Backbone.Model = function(attributes, options) {
+  var Model = Backbone.Model = function(attributes, options = {}) {
     var attrs = attributes || {};
-    options || (options = {});
     this.preinitialize.apply(this, arguments);
     this.cid = _.uniqueId(this.cidPrefix);
     this.attributes = {};
@@ -407,7 +398,7 @@
 
     // Just _.defaults would work fine, but the additional _.extends
     // is in there for historical reasons. See #3843.
-    attrs = _.defaults(_.extend({}, defaults, attrs), defaults);
+    attrs = _.defaults({...defaults, ...attrs}, defaults);
 
     this.set(attrs, options);
     this.changed = {};
@@ -474,19 +465,17 @@
     // Set a hash of model attributes on the object, firing `"change"`. This is
     // the core primitive operation of a model, updating the data and notifying
     // anyone who needs to know about the change in state. The heart of the beast.
-    set: function(key, val, options) {
+    set: function(key, val, options = {}) {
       if (key == null) return this;
 
       // Handle both `"key", value` and `{key: value}` -style arguments.
       var attrs;
       if (typeof key === 'object') {
         attrs = key;
-        options = val;
+        options = val || {};
       } else {
         (attrs = {})[key] = val;
       }
-
-      options || (options = {});
 
       // Run validation.
       if (!this._validate(attrs, options)) return false;
@@ -554,14 +543,14 @@
     // Remove an attribute from the model, firing `"change"`. `unset` is a noop
     // if the attribute doesn't exist.
     unset: function(attr, options) {
-      return this.set(attr, void 0, _.extend({}, options, {unset: true}));
+      return this.set(attr, void 0, {...options, unset: true});
     },
 
     // Clear all attributes on the model, firing `"change"`.
     clear: function(options) {
       var attrs = {};
       for (var key in this.attributes) attrs[key] = void 0;
-      return this.set(attrs, _.extend({}, options, {unset: true}));
+      return this.set(attrs, {...options, unset: true});
     },
 
     // Determine if the model has changed since the last `"change"` event.
@@ -607,14 +596,13 @@
     // Fetch the model from the server, merging the response with the model's
     // local attributes. Any changed attributes will trigger a "change" event.
     fetch: function(options) {
-      options = _.extend({parse: true}, options);
-      var model = this;
+      options = {parse: true, ...options};
       var success = options.success;
-      options.success = function(resp) {
-        var serverAttrs = options.parse ? model.parse(resp, options) : resp;
-        if (!model.set(serverAttrs, options)) return false;
-        if (success) success.call(options.context, model, resp, options);
-        model.trigger('sync', model, resp, options);
+      options.success = (resp) => {
+        var serverAttrs = options.parse ? this.parse(resp, options) : resp;
+        if (!this.set(serverAttrs, options)) return false;
+        if (success) success.call(options.context, this, resp, options);
+        this.trigger('sync', this, resp, options);
       };
       wrapError(this, options);
       return this.sync('read', this, options);
@@ -633,7 +621,7 @@
         (attrs = {})[key] = val;
       }
 
-      options = _.extend({validate: true, parse: true}, options);
+      options = {validate: true, parse: true, ...options};
       var wait = options.wait;
 
       // If we're not waiting and attributes exist, save acts as
@@ -647,22 +635,21 @@
 
       // After a successful server-side save, the client is (optionally)
       // updated with the server-side state.
-      var model = this;
       var success = options.success;
       var attributes = this.attributes;
-      options.success = function(resp) {
+      options.success = (resp) => {
         // Ensure attributes are restored during synchronous saves.
-        model.attributes = attributes;
-        var serverAttrs = options.parse ? model.parse(resp, options) : resp;
-        if (wait) serverAttrs = _.extend({}, attrs, serverAttrs);
-        if (serverAttrs && !model.set(serverAttrs, options)) return false;
-        if (success) success.call(options.context, model, resp, options);
-        model.trigger('sync', model, resp, options);
+        this.attributes = attributes;
+        var serverAttrs = options.parse ? this.parse(resp, options) : resp;
+        if (wait) serverAttrs = {...attrs, ...serverAttrs};
+        if (serverAttrs && !this.set(serverAttrs, options)) return false;
+        if (success) success.call(options.context, this, resp, options);
+        this.trigger('sync', this, resp, options);
       };
       wrapError(this, options);
 
       // Set temporary attributes if `{wait: true}` to properly find new ids.
-      if (attrs && wait) this.attributes = _.extend({}, attributes, attrs);
+      if (attrs && wait) this.attributes = {...attributes, ...attrs};
 
       var method = this.isNew() ? 'create' : options.patch ? 'patch' : 'update';
       if (method === 'patch' && !options.attrs) options.attrs = attrs;
@@ -678,20 +665,19 @@
     // Optimistically removes the model from its collection, if it has one.
     // If `wait: true` is passed, waits for the server to respond before removal.
     destroy: function(options) {
-      options = options ? _.clone(options) : {};
-      var model = this;
+      options = {...options || {}};
       var success = options.success;
       var wait = options.wait;
 
-      var destroy = function() {
-        model.stopListening();
-        model.trigger('destroy', model, model.collection, options);
+      var destroy = () => {
+        this.stopListening();
+        this.trigger('destroy', this, this.collection, options);
       };
 
-      options.success = function(resp) {
+      options.success = (resp) => {
         if (wait) destroy();
-        if (success) success.call(options.context, model, resp, options);
-        if (!model.isNew()) model.trigger('sync', model, resp, options);
+        if (success) success.call(options.context, this, resp, options);
+        if (!this.isNew()) this.trigger('sync', this, resp, options);
       };
 
       var xhr = false;
@@ -736,17 +722,17 @@
 
     // Check if the model is currently in a valid state.
     isValid: function(options) {
-      return this._validate({}, _.extend({}, options, {validate: true}));
+      return this._validate({}, {...options, validate: true});
     },
 
     // Run validation against the next complete set of model attributes,
     // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
     _validate: function(attrs, options) {
       if (!options.validate || !this.validate) return true;
-      attrs = _.extend({}, this.attributes, attrs);
+      attrs = {...this.attributes, ...attrs};
       var error = this.validationError = this.validate(attrs, options) || null;
       if (!error) return true;
-      this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
+      this.trigger('invalid', this, error, {...options, validationError: error});
       return false;
     }
 
@@ -765,14 +751,13 @@
   // Create a new **Collection**, perhaps to contain a specific type of `model`.
   // If a `comparator` is specified, the Collection will maintain
   // its models in sort order, as they're added and removed.
-  var Collection = Backbone.Collection = function(models, options) {
-    options || (options = {});
+  var Collection = Backbone.Collection = function(models, options = {}) {
     this.preinitialize.apply(this, arguments);
     if (options.model) this.model = options.model;
     if (options.comparator !== void 0) this.comparator = options.comparator;
     this._reset();
     this.initialize.apply(this, arguments);
-    if (models) this.reset(models, _.extend({silent: true}, options));
+    if (models) this.reset(models, {silent: true, ...options});
   };
 
   // Default options for `Collection#set`.
@@ -809,7 +794,7 @@
     // The JSON representation of a Collection is an array of the
     // models' attributes.
     toJSON: function(options) {
-      return this.map(function(model) { return model.toJSON(options); });
+      return this.map(model => model.toJSON(options));
     },
 
     // Proxy `Backbone.sync` by default.
@@ -821,13 +806,13 @@
     // Models or raw JavaScript objects to be converted to Models, or any
     // combination of the two.
     add: function(models, options) {
-      return this.set(models, _.extend({merge: false}, options, addOptions));
+      return this.set(models, {...{merge: false}, ...options, ...addOptions});
     },
 
     // Remove a model, or a list of models from the set.
     remove: function(models, options) {
-      options = _.extend({}, options);
-      var singular = !_.isArray(models);
+      options = {...options};
+      var singular = !Array.isArray(models);
       models = singular ? [models] : models.slice();
       var removed = this._removeModels(models, options);
       if (!options.silent && removed.length) {
@@ -844,12 +829,12 @@
     set: function(models, options) {
       if (models == null) return;
 
-      options = _.extend({}, setOptions, options);
+      options = {...setOptions, ...options};
       if (options.parse && !this._isModel(models)) {
         models = this.parse(models, options) || [];
       }
 
-      var singular = !_.isArray(models);
+      var singular = !Array.isArray(models);
       models = singular ? [models] : models.slice();
 
       var at = options.at;
@@ -869,7 +854,7 @@
 
       var sort = false;
       var sortable = this.comparator && at == null && options.sort !== false;
-      var sortAttr = _.isString(this.comparator) ? this.comparator : null;
+      var sortAttr = typeof this.comparator === 'string' ? this.comparator : null;
 
       // Turn bare objects into model references, and prevent invalid models
       // from being added.
@@ -961,20 +946,20 @@
     // any granular `add` or `remove` events. Fires `reset` when finished.
     // Useful for bulk operations and optimizations.
     reset: function(models, options) {
-      options = options ? _.clone(options) : {};
+      options = {...options || {}};
       for (var i = 0; i < this.models.length; i++) {
         this._removeReference(this.models[i], options);
       }
       options.previousModels = this.models;
       this._reset();
-      models = this.add(models, _.extend({silent: true}, options));
+      models = this.add(models, {silent: true, ...options});
       if (!options.silent) this.trigger('reset', this, options);
       return models;
     },
 
     // Add a model to the end of the collection.
     push: function(model, options) {
-      return this.add(model, _.extend({at: this.length}, options));
+      return this.add(model, {at: this.length, ...options});
     },
 
     // Remove a model from the end of the collection.
@@ -985,7 +970,7 @@
 
     // Add a model to the beginning of the collection.
     unshift: function(model, options) {
-      return this.add(model, _.extend({at: 0}, options));
+      return this.add(model, {at: 0, ...options});
     },
 
     // Remove a model from the beginning of the collection.
@@ -996,7 +981,7 @@
 
     // Slice out a sub-array of models from the collection.
     slice: function() {
-      return slice.apply(this.models, arguments);
+      return this.models.slice(...arguments);
     },
 
     // Get a model from the set by id, cid, model object with id or cid
@@ -1037,13 +1022,13 @@
     sort: function(options) {
       var comparator = this.comparator;
       if (!comparator) throw new Error('Cannot sort a set without a comparator');
-      options || (options = {});
+      options = options || {};
 
       var length = comparator.length;
-      if (_.isFunction(comparator)) comparator = comparator.bind(this);
+      if (typeof comparator === 'function') comparator = comparator.bind(this);
 
       // Run sort based on type of `comparator`.
-      if (length === 1 || _.isString(comparator)) {
+      if (length === 1 || typeof comparator === 'string') {
         this.models = this.sortBy(comparator);
       } else {
         this.models.sort(comparator);
@@ -1061,14 +1046,13 @@
     // collection when they arrive. If `reset: true` is passed, the response
     // data will be passed through the `reset` method instead of `set`.
     fetch: function(options) {
-      options = _.extend({parse: true}, options);
+      options = {parse: true, ...options};
       var success = options.success;
-      var collection = this;
-      options.success = function(resp) {
+      options.success = (resp) => {
         var method = options.reset ? 'reset' : 'set';
-        collection[method](resp, options);
-        if (success) success.call(options.context, collection, resp, options);
-        collection.trigger('sync', collection, resp, options);
+        this[method](resp, options);
+        if (success) success.call(options.context, this, resp, options);
+        this.trigger('sync', this, resp, options);
       };
       wrapError(this, options);
       return this.sync('read', this, options);
@@ -1078,17 +1062,16 @@
     // collection immediately, unless `wait: true` is passed, in which case we
     // wait for the server to agree.
     create: function(model, options) {
-      options = options ? _.clone(options) : {};
+      options = {...options || {}};
       var wait = options.wait;
       model = this._prepareModel(model, options);
       if (!model) return false;
       if (!wait) this.add(model, options);
-      var collection = this;
       var success = options.success;
-      options.success = function(m, resp, callbackOpts) {
+      options.success = (m, resp, callbackOpts) => {
         if (wait) {
-          m.off('error', collection._forwardPristineError, collection);
-          collection.add(m, callbackOpts);
+          m.off('error', this._forwardPristineError, this);
+          this.add(m, callbackOpts);
         }
         if (success) success.call(callbackOpts.context, m, resp, callbackOpts);
       };
@@ -1156,8 +1139,7 @@
         if (!attrs.collection) attrs.collection = this;
         return attrs;
       }
-      options = options ? _.clone(options) : {};
-      options.collection = this;
+      options = {...options || {}, collection: this};
 
       var model;
       if (this.model.prototype) {
@@ -1168,7 +1150,7 @@
       }
 
       if (!model.validationError) return model;
-      this.trigger('invalid', this, model.validationError, options);
+      this.trigger('invalid', this, model.validationError, {...options, validationError: model.validationError});
       return false;
     },
 
@@ -1434,7 +1416,7 @@
       this.undelegateEvents();
       for (var key in events) {
         var method = events[key];
-        if (!_.isFunction(method)) method = this[method];
+        if (typeof method !== 'function') method = this[method];
         if (!method) continue;
         var match = key.match(delegateEventSplitter);
         this.delegate(match[1], match[2], method.bind(this));
@@ -1484,7 +1466,7 @@
     // an element from the `id`, `className` and `tagName` properties.
     _ensureElement: function() {
       if (!this.el) {
-        var attrs = _.extend({}, _.result(this, 'attributes'));
+        var attrs = {..._.result(this, 'attributes')};
         if (this.id) attrs.id = _.result(this, 'id');
         if (this.className) attrs['class'] = _.result(this, 'className');
         this.setElement(this._createElement(_.result(this, 'tagName')));
@@ -1524,9 +1506,7 @@
         return base[method](this[attribute], cb(iteratee, this), defaultVal, context);
       };
       default: return function() {
-        var args = slice.call(arguments);
-        args.unshift(this[attribute]);
-        return base[method].apply(base, args);
+        return base[method](this[attribute], ...arguments);
       };
     }
   };
@@ -1539,9 +1519,9 @@
 
   // Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
   var cb = function(iteratee, instance) {
-    if (_.isFunction(iteratee)) return iteratee;
+    if (typeof iteratee === 'function') return iteratee;
     if (_.isObject(iteratee) && !instance._isModel(iteratee)) return modelMatcher(iteratee);
-    if (_.isString(iteratee)) return function(model) { return model.get(iteratee); };
+    if (typeof iteratee === 'string') return function(model) { return model.get(iteratee); };
     return iteratee;
   };
   var modelMatcher = function(attrs) {
@@ -1612,10 +1592,10 @@
     var type = methodMap[method];
 
     // Default options, unless specified.
-    _.defaults(options || (options = {}), {
-      emulateHTTP: Backbone.emulateHTTP,
-      emulateJSON: Backbone.emulateJSON
-    });
+    // Must mutate (not replace) `options` so that `options.xhr` set below
+    // is visible to callbacks that closed over the same object in sync callers.
+    if (!options) options = {};
+    _.defaults(options, {emulateHTTP: Backbone.emulateHTTP, emulateJSON: Backbone.emulateJSON});
 
     // Default JSON-request options.
     var params = {type: type, dataType: 'json'};
@@ -1663,7 +1643,7 @@
     };
 
     // Make the request, allowing the user to override any Ajax options.
-    var xhr = options.xhr = Backbone.ajax(_.extend(params, options));
+    var xhr = options.xhr = Backbone.ajax(Object.assign(params, options));
     model.trigger('request', model, xhr, options);
     return xhr;
   };
@@ -1746,8 +1726,7 @@
 
   // Routers map faux-URLs to actions, and fire events when routes are
   // matched. Creating a new one sets its `routes` hash, if not set statically.
-  var Router = Backbone.Router = function(options) {
-    options || (options = {});
+  var Router = Backbone.Router = function(options = {}) {
     this.preinitialize.apply(this, arguments);
     if (options.routes) this.routes = options.routes;
     this._bindRoutes();
@@ -1779,8 +1758,8 @@
     //     });
     //
     route: function(route, name, callback) {
-      if (!_.isRegExp(route)) route = this._routeToRegExp(route);
-      if (_.isFunction(name)) {
+      if (!(route instanceof RegExp)) route = this._routeToRegExp(route);
+      if (typeof name === 'function') {
         callback = name;
         name = '';
       }
@@ -1947,7 +1926,7 @@
 
       // Figure out the initial configuration. Do we need an iframe?
       // Is pushState desired ... is it available?
-      this.options          = _.extend({root: '/'}, this.options, options);
+      this.options          = {root: '/', ...this.options, ...options};
       this.root             = this.options.root;
       this._trailingSlash   = this.options.trailingSlash;
       this._wantsHashChange = this.options.hashChange !== false;

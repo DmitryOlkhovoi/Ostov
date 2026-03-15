@@ -12,6 +12,7 @@ module.exports = function(config) {
         'test/vendor/json2.js',
         'test/vendor/mini-$.js',
         'utils.js',
+        'test/vendor/test-utils.js',
         'backbone.js',
         'debug-info.js',
         'test/setup/*.js',
