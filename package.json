@@ -28,7 +28,7 @@
   },
   "scripts": {
     "test": "karma start && coffee test/model.coffee && npm run lint",
-    "build": "uglifyjs backbone.js --mangle --source-map url=backbone-min.js.map -o backbone-min.js",
+    "build": "uglifyjs utils.js backbone.js --mangle --source-map url=backbone-min.js.map -o backbone-min.js",
     "build-debug": "npx rollup -e backbone -f umd -g backbone:Backbone -n Backbone.debugInfo -o debug-info.js --no-strict modules/debug-info.js",
     "alias-sourcemap": "cpy --rename=backbone-min.map backbone-min.js.map .",
     "doc": "docco backbone.js && docco examples/todos/todos.js examples/backbone.localStorage.js",
