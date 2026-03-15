@@ -12,9 +12,7 @@
     "browser"
   ],
   "author": "Jeremy Ashkenas",
-  "dependencies": {
-    "underscore": ">=1.8.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "coffeescript": "^2.7.0",
     "cpy-cli": "^5.0.0",
@@ -48,6 +46,7 @@
   },
   "files": [
     "backbone.js",
+    "utils.js",
     "backbone-min.js",
     "backbone-min.js.map",
     "backbone-min.map",

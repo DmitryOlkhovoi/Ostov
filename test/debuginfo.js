@@ -26,8 +26,8 @@
     var info = Backbone.debugInfo();
     assert.strictEqual(info.backbone, Backbone.VERSION, 'includes Backbone version');
     assert.strictEqual(info.distribution, 'MARK_DEVELOPMENT', 'distribution mark sticks to development');
-    assert.strictEqual(info._, _.VERSION, 'includes Underscore version');
-    assert.strictEqual(info.$, $.fn.jquery, 'includes jQuery version');
+    assert.strictEqual(info._, _.VERSION, 'includes utils version');
+    assert.strictEqual(info.$, Backbone.$ ? 'custom' : false, 'reports $ state');
     if (typeof navigator !== 'undefined') {
       assert.ok(typeof info.navigator === 'object');
       assert.strictEqual(info.navigator.userAgent, navigator.userAgent, 'includes user agent');

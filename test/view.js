@@ -46,8 +46,9 @@
     myView.setElement('<p><a><b>test</b></a></p>');
     assert.strictEqual(myView.el.nodeType, 1);
 
+    // $el is a Backbone.$-wrapped element when Backbone.$ is set.
     assert.ok(myView.$el instanceof Backbone.$);
-    assert.strictEqual(myView.$el[0], myView.el);
+    assert.strictEqual(myView.$el.get(0), myView.el);
   });
 
   QUnit.test('initialize', function(assert) {
@@ -374,19 +375,19 @@
     var myView = new View;
     $('body').trigger('fake$event').trigger('fake$event');
 
-    $('body').off('fake$event');
+    myView.undelegateEvents();
     $('body').trigger('fake$event');
   });
 
-  QUnit.test('#1048 - setElement uses provided object.', function(assert) {
+  QUnit.test('#1048 - setElement resolves provided element.', function(assert) {
     assert.expect(2);
     var $el = $('body');
 
     var myView = new Backbone.View({el: $el});
-    assert.ok(myView.$el === $el);
+    assert.ok(myView.el === document.body);
 
-    myView.setElement($el = $($el));
-    assert.ok(myView.$el === $el);
+    myView.setElement(document.body);
+    assert.ok(myView.el === document.body);
   });
 
   QUnit.test('#986 - Undelegate before changing element.', function(assert) {

@@ -14,24 +14,24 @@
 
   // Set up Backbone appropriately for the environment. Start with AMD.
   if (typeof define === 'function' && define.amd) {
-    define(['underscore', 'jquery', 'exports'], function(_, $, exports) {
+    define(['./utils', 'exports'], function(_, exports) {
       // Export global even in AMD case in case this script is loaded with
       // others that may still expect a global Backbone.
-      root.Backbone = factory(root, exports, _, $);
+      root.Backbone = factory(root, exports, _);
     });
 
-  // Next for Node.js or CommonJS. jQuery may not be needed as a module.
+  // Next for Node.js or CommonJS.
   } else if (typeof exports !== 'undefined') {
-    var _ = require('underscore'), $;
-    try { $ = require('jquery'); } catch (e) {}
-    factory(root, exports, _, $);
+    var _ = require('./utils');
+    factory(root, exports, _);
 
   // Finally, as a browser global.
+  // utils.js must be loaded before backbone.js; it sets root._.
   } else {
-    root.Backbone = factory(root, {}, root._, root.jQuery || root.Zepto || root.ender || root.$);
+    root.Backbone = factory(root, {}, root._);
   }
 
-})(function(root, Backbone, _, $) {
+})(function(root, Backbone, _) {
 
   // Initial Setup
   // -------------
@@ -46,9 +46,9 @@
   // Current version of the library. Keep in sync with `package.json`.
   Backbone.VERSION = '1.6.1';
 
-  // For Backbone's purposes, jQuery, Zepto, Ender, or My Library (kidding) owns
-  // the `$` variable.
-  Backbone.$ = $;
+  // Backbone.$ can be set to jQuery (or a compatible library) by the user if
+  // they want jQuery-powered DOM helpers. Backbone itself no longer requires it.
+  Backbone.$ = null;
 
   // Runs Backbone.js in *noConflict* mode, returning the `Backbone` variable
   // to its previous owner. Returns a reference to this Backbone object.
@@ -1354,10 +1354,12 @@
     // The default `tagName` of a View's element is `"div"`.
     tagName: 'div',
 
-    // jQuery delegate for element lookup, scoped to DOM elements within the
-    // current view. This should be preferred to global lookups where possible.
+    // Scoped element lookup inside the view's root element.
+    // Returns a Backbone.$-wrapped result when Backbone.$ is set,
+    // otherwise a plain NodeList.
     $: function(selector) {
-      return this.$el.find(selector);
+      var nodes = this.el.querySelectorAll(selector);
+      return Backbone.$ ? Backbone.$(Array.from(nodes)) : nodes;
     },
 
     // preinitialize is an empty function by default. You can override it with a function
@@ -1378,6 +1380,7 @@
     // Remove this view by taking the element out of the DOM, and removing any
     // applicable Backbone.Events listeners.
     remove: function() {
+      this.undelegateEvents();
       this._removeElement();
       this.stopListening();
       return this;
@@ -1387,7 +1390,7 @@
     // attached to it. Exposed for subclasses using an alternative DOM
     // manipulation API.
     _removeElement: function() {
-      this.$el.remove();
+      _.dom.remove(this.el);
     },
 
     // Change the view's element (`this.el` property) and re-delegate the
@@ -1400,13 +1403,16 @@
     },
 
     // Creates the `this.el` and `this.$el` references for this view using the
-    // given `el`. `el` can be a CSS selector or an HTML string, a jQuery
-    // context or an element. Subclasses can override this to utilize an
-    // alternative DOM manipulation API and are only required to set the
-    // `this.el` property.
+    // given `el`. `el` can be a CSS selector string or a DOM element.
+    // When Backbone.$ is set, `this.$el` is a wrapped element; otherwise it is
+    // the same raw DOM element as `this.el`.
+    // Subclasses can override this to utilize an alternative DOM manipulation API.
     _setElement: function(el) {
-      this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
-      this.el = this.$el[0];
+      var resolved = _.dom.query(el);
+      // For string selectors that don't match anything, keep el as null/falsy.
+      // For non-string values (DOM elements, jQuery-like wrappers), fall back.
+      this.el = resolved !== null ? resolved : typeof el !== 'string' ? el : null;
+      this.$el = Backbone.$ ? Backbone.$(this.el) : this.el;
     },
 
     // Set callbacks, where `this.events` is a hash of
@@ -1437,10 +1443,13 @@
     },
 
     // Add a single event listener to the view's element (or a child element
-    // using `selector`). This only works for delegate-able events: not `focus`,
-    // `blur`, and not `change`, `submit`, and `reset` in Internet Explorer.
+    // using `selector`). Uses native addEventListener with namespace tracking.
     delegate: function(eventName, selector, listener) {
-      this.$el.on(eventName + '.delegateEvents' + this.cid, selector, listener);
+      if (typeof selector !== 'string') {
+        listener = selector;
+        selector = null;
+      }
+      _.dom.on(this.el, '.delegateEvents' + this.cid, eventName, selector, listener);
       return this;
     },
 
@@ -1448,14 +1457,18 @@
     // You usually don't need to use this, but may wish to if you have multiple
     // Backbone views attached to the same DOM element.
     undelegateEvents: function() {
-      if (this.$el) this.$el.off('.delegateEvents' + this.cid);
+      if (this.el) _.dom.off(this.el, '.delegateEvents' + this.cid);
       return this;
     },
 
     // A finer-grained `undelegateEvents` for removing a single delegated event.
     // `selector` and `listener` are both optional.
     undelegate: function(eventName, selector, listener) {
-      this.$el.off(eventName + '.delegateEvents' + this.cid, selector, listener);
+      if (typeof selector !== 'string') {
+        listener = selector;
+        selector = null;
+      }
+      _.dom.off(this.el, '.delegateEvents' + this.cid, eventName, selector, listener);
       return this;
     },
 
@@ -1484,7 +1497,7 @@
     // Set attributes from a hash on this view's element.  Exposed for
     // subclasses using an alternative DOM manipulation API.
     _setAttributes: function(attributes) {
-      this.$el.attr(attributes);
+      _.dom.setAttributes(this.el, attributes);
     }
 
   });
@@ -1664,10 +1677,68 @@
     'read': 'GET'
   };
 
-  // Set the default implementation of `Backbone.ajax` to proxy through to `$`.
-  // Override this if you'd like to use a different library.
-  Backbone.ajax = function() {
-    return Backbone.$.ajax.apply(Backbone.$, arguments);
+  // Default implementation of `Backbone.ajax` using the native Fetch API.
+  // Override this function if you need custom request handling.
+  // The options object follows the jQuery.ajax convention used by Backbone.sync:
+  //   type, url, data, contentType, dataType, beforeSend, success, error, context.
+  Backbone.ajax = function(options) {
+    var method  = (options.type || 'GET').toUpperCase();
+    var url     = options.url;
+    var headers = {};
+
+    if (options.contentType) headers['Content-Type'] = options.contentType;
+
+    var body;
+    if (options.data != null && method !== 'GET') {
+      if (options.emulateJSON && typeof options.data === 'object') {
+        // Encode as application/x-www-form-urlencoded.
+        body = Object.keys(options.data).map(function(k) {
+          return encodeURIComponent(k) + '=' + encodeURIComponent(options.data[k]);
+        }).join('&');
+      } else {
+        body = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
+      }
+    }
+
+    var fetchOptions = {method: method, headers: headers};
+    if (body !== void 0) fetchOptions.body = body;
+
+    // Allow beforeSend to set additional request headers.
+    if (options.beforeSend) {
+      var mockXhr = {
+        setRequestHeader: function(name, value) { headers[name] = value; }
+      };
+      options.beforeSend(mockXhr);
+    }
+
+    // Provide a minimal xhr-like object (supports abort via AbortController).
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    if (controller) fetchOptions.signal = controller.signal;
+
+    var xhr = {
+      abort: function() { if (controller) controller.abort(); }
+    };
+
+    fetch(url, fetchOptions).then(function(response) {
+      if (!response.ok) {
+        var err = new Error('HTTP error ' + response.status);
+        err.status = response.status;
+        if (options.error) options.error.call(options.context, xhr, response.status, err);
+        return;
+      }
+      var parse = options.dataType === 'json' ||
+                  (response.headers.get('content-type') || '').indexOf('json') >= 0
+        ? response.json()
+        : response.text();
+      return parse.then(function(data) {
+        if (options.success) options.success.call(options.context, data, response.status, xhr);
+      });
+    })['catch'](function(err) {
+      if (err && err.name === 'AbortError') return;
+      if (options.error) options.error.call(options.context, xhr, 'error', err);
+    });
+
+    return xhr;
   };
 
   // Backbone.Router
@@ -2149,6 +2220,7 @@
   // Provide useful information when things go wrong. This method is not meant
   // to be used directly; it merely provides the necessary introspection for the
   // external `debugInfo` function.
+  // Note: `_` is the built-in utils library (no underscore.js dependency).
   Backbone._debug = function() {
     return {root: root, _: _};
   };

@@ -1,5 +1,9 @@
 (function(QUnit) {
 
+  // Use the mini-$ shim as Backbone.$, so View.$el and view.$() return
+  // wrapped elements that support .on()/.trigger()/.off().
+  Backbone.$ = $;
+
   var sync = Backbone.sync;
   var ajax = Backbone.ajax;
   var emulateHTTP = Backbone.emulateHTTP;
