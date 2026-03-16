@@ -1,8 +1,7 @@
 // Vitest setup file — replaces the old QUnit/Karma environment.
 // Provides global Backbone, _, and $ for all test files.
 
-import Backbone from '../../dist/backbone.js';
-import _ from '../../dist/utils.js';
+import Backbone, { _ } from '../../dist/backbone.js';
 
 // --- Mini-$ shim (from test/vendor/mini-$.js) ---
 function $(selector) {

@@ -2285,5 +2285,5 @@ Backbone._debug = (): { root: any; _: any } => {
 // Set on globalThis for noConflict support
 root.Backbone = Backbone;
 
-export { Model, Collection, View, Router, History, Events };
+export { _, Model, Collection, View, Router, History, Events };
 export default Backbone;

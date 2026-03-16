@@ -1,3 +1,4 @@
+import _ from './utils.js';
 interface EventsHash {
     [event: string]: EventHandler[];
 }
@@ -274,5 +275,5 @@ interface BackboneStatic extends EventsMixin {
     [key: string]: any;
 }
 declare const Backbone: BackboneStatic;
-export { Model, Collection, View, Router, History, Events };
+export { _, Model, Collection, View, Router, History, Events };
 export default Backbone;
