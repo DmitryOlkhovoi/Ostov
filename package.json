@@ -11,7 +11,7 @@
     "client",
     "browser"
   ],
-  "author": "Jeremy Ashkenas",
+  "author": "Olkhovoy Dmitry",
   "dependencies": {},
   "devDependencies": {
     "coffeescript": "^2.7.0",

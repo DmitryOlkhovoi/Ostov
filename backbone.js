@@ -134,14 +134,16 @@
   // for easier unbinding later.
   Events.listenTo = function(obj, name, callback) {
     if (!obj) return this;
-    const id = obj._listenId || (obj._listenId = _.uniqueId('l'));
-    const listeningTo = this._listeningTo || (this._listeningTo = {});
+    obj._listenId ??= _.uniqueId('l');
+    const id = obj._listenId;
+    this._listeningTo ??= {};
+    const listeningTo = this._listeningTo;
     let listening = _listening = listeningTo[id];
 
     // This object is not listening to any other events on `obj` yet.
     // Setup the necessary references to track the listening callbacks.
     if (!listening) {
-      this._listenId || (this._listenId = _.uniqueId('l'));
+      this._listenId ??= _.uniqueId('l');
       listening = _listening = listeningTo[id] = new Listening(this, obj);
     }
 
@@ -159,7 +161,8 @@
   // The reducing API that adds a callback to the `events` object.
   const onApi = (events, name, callback, options) => {
     if (callback) {
-      const handlers = events[name] || (events[name] = []);
+      events[name] ??= [];
+      const handlers = events[name];
       const context = options.context, ctx = options.ctx, listening = options.listening;
       if (listening) listening.count++;
 
@@ -248,8 +251,7 @@
         ) {
           remaining.push(handler);
         } else {
-          const listening = handler.listening;
-          if (listening) listening.off(name, callback);
+          handler.listening?.off(name, callback);
         }
       }
 
@@ -501,7 +503,7 @@
       if (!silent) {
         if (changes.length) this._pending = options;
         for (let i = 0; i < changes.length; i++) {
-          this.trigger('change:' + changes[i], this, current[changes[i]], options);
+          this.trigger(`change:${changes[i]}`, this, current[changes[i]], options);
         }
       }
 
@@ -581,7 +583,7 @@
       options.success = (resp) => {
         const serverAttrs = options.parse ? this.parse(resp, options) : resp;
         if (!this.set(serverAttrs, options)) return false;
-        if (success) success.call(options.context, this, resp, options);
+        success?.call(options.context, this, resp, options);
         this.trigger('sync', this, resp, options);
       };
       wrapError(this, options);
@@ -623,7 +625,7 @@
         let serverAttrs = options.parse ? this.parse(resp, options) : resp;
         if (wait) serverAttrs = {...attrs, ...serverAttrs};
         if (serverAttrs && !this.set(serverAttrs, options)) return false;
-        if (success) success.call(options.context, this, resp, options);
+        success?.call(options.context, this, resp, options);
         this.trigger('sync', this, resp, options);
       };
       wrapError(this, options);
@@ -656,7 +658,7 @@
 
       options.success = (resp) => {
         if (wait) destroy();
-        if (success) success.call(options.context, this, resp, options);
+        success?.call(options.context, this, resp, options);
         if (!this.isNew()) this.trigger('sync', this, resp, options);
       };
 
@@ -921,9 +923,7 @@
     // Useful for bulk operations and optimizations.
     reset(models, options) {
       options = {...options || {}};
-      for (let i = 0; i < this.models.length; i++) {
-        this._removeReference(this.models[i], options);
-      }
+      for (const model of this.models) this._removeReference(model, options);
       options.previousModels = this.models;
       this._reset();
       models = this.add(models, {silent: true, ...options});
@@ -1025,7 +1025,7 @@
       options.success = (resp) => {
         const method = options.reset ? 'reset' : 'set';
         this[method](resp, options);
-        if (success) success.call(options.context, this, resp, options);
+        success?.call(options.context, this, resp, options);
         this.trigger('sync', this, resp, options);
       };
       wrapError(this, options);
@@ -1591,7 +1591,7 @@
     options.error = function(xhr, textStatus, errorThrown) {
       options.textStatus = textStatus;
       options.errorThrown = errorThrown;
-      if (error) error.call(options.context, xhr, textStatus, errorThrown);
+      error?.call(options.context, xhr, textStatus, errorThrown);
     };
 
     // Make the request, allowing the user to override any Ajax options.
@@ -1625,14 +1625,14 @@
       if (options.emulateJSON && typeof options.data === 'object') {
         // Encode as application/x-www-form-urlencoded.
         body = Object.keys(options.data).map((k) => {
-          return encodeURIComponent(k) + '=' + encodeURIComponent(options.data[k]);
+          return `${encodeURIComponent(k)}=${encodeURIComponent(options.data[k])}`;
         }).join('&');
       } else {
         body = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
       }
     }
 
-    const fetchOptions = {method: method, headers: headers};
+    const fetchOptions = {method, headers};
     if (body !== void 0) fetchOptions.body = body;
 
     // Allow beforeSend to set additional request headers.
@@ -1648,14 +1648,14 @@
     if (controller) fetchOptions.signal = controller.signal;
 
     const xhr = {
-      abort: () => { if (controller) controller.abort(); }
+      abort: () => controller?.abort()
     };
 
     fetch(url, fetchOptions).then((response) => {
       if (!response.ok) {
-        const err = new Error('HTTP error ' + response.status);
+        const err = new Error(`HTTP error ${response.status}`);
         err.status = response.status;
-        if (options.error) options.error.call(options.context, xhr, response.status, err);
+        options.error?.call(options.context, xhr, response.status, err);
         return;
       }
       const parse = options.dataType === 'json' ||
@@ -1663,11 +1663,11 @@
         ? response.json()
         : response.text();
       return parse.then((data) => {
-        if (options.success) options.success.call(options.context, data, response.status, xhr);
+        options.success?.call(options.context, data, response.status, xhr);
       });
     })['catch']((err) => {
-      if (err && err.name === 'AbortError') return;
-      if (options.error) options.error.call(options.context, xhr, 'error', err);
+      if (err?.name === 'AbortError') return;
+      options.error?.call(options.context, xhr, 'error', err);
     });
 
     return xhr;
@@ -1712,7 +1712,7 @@
       Backbone.history.route(route, (fragment) => {
         const args = router._extractParameters(route, fragment);
         if (router.execute(callback, args, name) !== false) {
-          router.trigger.apply(router, ['route:' + name].concat(args));
+          router.trigger(`route:${name}`, ...args);
           router.trigger('route', name, args);
           Backbone.history.trigger('route', router, name, args);
         }
