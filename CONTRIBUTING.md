@@ -1,12 +1,12 @@
-## How to Open a Backbone.js Ticket
+## How to Open a Ostov.js Ticket
 
 * Do not use tickets to ask for help with (debugging) your application. Ask on
 the [mailing list](https://groups.google.com/forum/#!forum/backbonejs),
 in the IRC channel (`#documentcloud` on Freenode), or if you understand your
-specific problem, on [StackOverflow](http://stackoverflow.com/questions/tagged/backbone.js).
+specific problem, on [StackOverflow](http://stackoverflow.com/questions/tagged/ostov.js).
 
 * Before you open a ticket or send a pull request,
-[search](https://github.com/jashkenas/backbone/issues) for previous
+[search](https://github.com/jashkenas/ostov/issues) for previous
 discussions about the same feature or issue. Add to the earlier ticket if you
 find one.
 
@@ -15,9 +15,9 @@ find one.
 the `index.html`.
 
 * Use the same coding style as the rest of the
-[codebase](https://github.com/jashkenas/backbone/blob/master/backbone.js).
+[codebase](https://github.com/jashkenas/ostov/blob/master/ostov.js).
 
 * In your pull request, do not regenerate the annotated sources or rebuild the
-minified `backbone-min.js` file. We'll do that before cutting a new release.
+minified `ostov-min.js` file. We'll do that before cutting a new release.
 
 * All pull requests should be made to the `master` branch.

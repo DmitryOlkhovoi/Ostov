@@ -1,26 +1,26 @@
 /**
- * Backbone localStorage Adapter
+ * Ostov localStorage Adapter
  * Version 1.1.0
  *
- * https://github.com/jeromegn/Backbone.localStorage
+ * https://github.com/jeromegn/Ostov.localStorage
  */
 (function (root, factory) {
    if (typeof define === "function" && define.amd) {
       // AMD. Register as an anonymous module.
-      define(["underscore","backbone"], function(_, Backbone) {
+      define(["underscore","ostov"], function(_, Ostov) {
         // Use global variables if the locals are undefined.
-        return factory(_ || root._, Backbone || root.Backbone);
+        return factory(_ || root._, Ostov || root.Ostov);
       });
    } else {
-      // RequireJS isn't being used. Assume underscore and backbone are loaded in script tags
-      factory(_, Backbone);
+      // RequireJS isn't being used. Assume underscore and ostov are loaded in script tags
+      factory(_, Ostov);
    }
-}(this, function(_, Backbone) {
-// A simple module to replace `Backbone.sync` with *localStorage*-based
+}(this, function(_, Ostov) {
+// A simple module to replace `Ostov.sync` with *localStorage*-based
 // persistence. Models are given GUIDS, and saved into a JSON object. Simple
 // as that.
 
-// Hold reference to Underscore.js and Backbone.js in the closure in order
+// Hold reference to Underscore.js and Ostov.js in the closure in order
 // to make things work even if they are removed from the global namespace
 
 // Generate four random hex digits.
@@ -35,14 +35,14 @@ function guid() {
 
 // Our Store is represented by a single JS object in *localStorage*. Create it
 // with a meaningful name, like the name you'd give a table.
-// window.Store is deprecated, use Backbone.LocalStorage instead
-Backbone.LocalStorage = window.Store = function(name) {
+// window.Store is deprecated, use Ostov.LocalStorage instead
+Ostov.LocalStorage = window.Store = function(name) {
   this.name = name;
   var store = this.localStorage().getItem(this.name);
   this.records = (store && store.split(",")) || [];
 };
 
-_.extend(Backbone.LocalStorage.prototype, {
+_.extend(Ostov.LocalStorage.prototype, {
 
   // Save the current state of the **Store** to *localStorage*.
   save: function() {
@@ -110,8 +110,8 @@ _.extend(Backbone.LocalStorage.prototype, {
 
 // localSync delegate to the model or collection's
 // *localStorage* property, which should be an instance of `Store`.
-// window.Store.sync and Backbone.localSync is deprecated, use Backbone.LocalStorage.sync instead
-Backbone.LocalStorage.sync = window.Store.sync = Backbone.localSync = function(method, model, options) {
+// window.Store.sync and Ostov.localSync is deprecated, use Ostov.LocalStorage.sync instead
+Ostov.LocalStorage.sync = window.Store.sync = Ostov.localSync = function(method, model, options) {
   var store = model.localStorage || model.collection.localStorage;
 
   var resp, errorMessage, syncDfd = $.Deferred && $.Deferred(); //If $ is having Deferred - use it.
@@ -164,21 +164,21 @@ Backbone.LocalStorage.sync = window.Store.sync = Backbone.localSync = function(m
   return syncDfd && syncDfd.promise();
 };
 
-Backbone.ajaxSync = Backbone.sync;
+Ostov.ajaxSync = Ostov.sync;
 
-Backbone.getSyncMethod = function(model) {
+Ostov.getSyncMethod = function(model) {
   if(model.localStorage || (model.collection && model.collection.localStorage)) {
-    return Backbone.localSync;
+    return Ostov.localSync;
   }
 
-  return Backbone.ajaxSync;
+  return Ostov.ajaxSync;
 };
 
-// Override 'Backbone.sync' to default to localSync,
-// the original 'Backbone.sync' is still available in 'Backbone.ajaxSync'
-Backbone.sync = function(method, model, options) {
-  return Backbone.getSyncMethod(model).apply(this, [method, model, options]);
+// Override 'Ostov.sync' to default to localSync,
+// the original 'Ostov.sync' is still available in 'Ostov.ajaxSync'
+Ostov.sync = function(method, model, options) {
+  return Ostov.getSyncMethod(model).apply(this, [method, model, options]);
 };
 
-return Backbone.LocalStorage;
+return Ostov.LocalStorage;
 }));

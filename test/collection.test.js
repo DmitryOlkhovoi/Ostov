@@ -2,16 +2,16 @@ import { describe, it, expect, beforeEach } from 'vitest';
 
 var a, b, c, d, e, col, otherCol;
 
-describe('Backbone.Collection', () => {
+describe('Ostov.Collection', () => {
 
   beforeEach(() => {
-    a         = new Backbone.Model({id: 3, label: 'a'});
-    b         = new Backbone.Model({id: 2, label: 'b'});
-    c         = new Backbone.Model({id: 1, label: 'c'});
-    d         = new Backbone.Model({id: 0, label: 'd'});
+    a         = new Ostov.Model({id: 3, label: 'a'});
+    b         = new Ostov.Model({id: 2, label: 'b'});
+    c         = new Ostov.Model({id: 1, label: 'c'});
+    d         = new Ostov.Model({id: 0, label: 'd'});
     e         = null;
-    col       = new Backbone.Collection([a, b, c, d]);
-    otherCol  = new Backbone.Collection();
+    col       = new Ostov.Collection([a, b, c, d]);
+    otherCol  = new Ostov.Collection();
   });
 
   it('new and sort', () => {
@@ -32,7 +32,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('String comparator.', () => {
-    var collection = new Backbone.Collection([
+    var collection = new Ostov.Collection([
       {id: 3},
       {id: 1},
       {id: 2}
@@ -41,7 +41,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('new and parse', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       parse(data) {
         return _.filter(data, function(datum) {
           return datum.a % 2 === 0;
@@ -56,10 +56,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('clone preserves model and comparator', () => {
-    class Model extends Backbone.Model {}
+    class Model extends Ostov.Model {}
     var comparator = function(model){ return model.id; };
 
-    var collection = new Backbone.Collection([{id: 1}], {
+    var collection = new Ostov.Collection([{id: 1}], {
       model: Model,
       comparator: comparator
     }).clone();
@@ -79,16 +79,16 @@ describe('Backbone.Collection', () => {
   });
 
   it('get with non-default ids', () => {
-    class MongoModel extends Backbone.Model {}
+    class MongoModel extends Ostov.Model {}
     MongoModel.prototype.idAttribute = '_id';
     var model = new MongoModel({_id: 100});
-    var collection = new Backbone.Collection([model], {model: MongoModel});
+    var collection = new Ostov.Collection([model], {model: MongoModel});
     expect(collection.get(100)).toBe(model);
     expect(collection.get(model.cid)).toBe(model);
     expect(collection.get(model)).toBe(model);
     expect(collection.get(101)).toBe(void 0);
 
-    var collection2 = new Backbone.Collection();
+    var collection2 = new Ostov.Collection();
     collection2.model = MongoModel;
     collection2.add(model.attributes);
     expect(collection2.get(model.clone())).toBe(collection2.first());
@@ -107,14 +107,14 @@ describe('Backbone.Collection', () => {
     expect(col.has(b.cid)).toBeTruthy();
     expect(col.has(c.cid)).toBeTruthy();
     expect(col.has(d.cid)).toBeTruthy();
-    var outsider = new Backbone.Model({id: 4});
+    var outsider = new Ostov.Model({id: 4});
     expect(col.has(outsider)).toBeFalsy();
     expect(col.has(outsider.id)).toBeFalsy();
     expect(col.has(outsider.cid)).toBeFalsy();
   });
 
   it('update index when id changes', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
     collection.add([
       {id: 0, name: 'one'},
       {id: 1, name: 'two'}
@@ -143,7 +143,7 @@ describe('Backbone.Collection', () => {
   it('add', () => {
     var added, opts, secondAdded;
     added = opts = secondAdded = null;
-    e = new Backbone.Model({id: 10, label: 'e'});
+    e = new Ostov.Model({id: 10, label: 'e'});
     otherCol.add(e);
     otherCol.on('add', function() {
       secondAdded = true;
@@ -160,17 +160,17 @@ describe('Backbone.Collection', () => {
     expect(secondAdded).toBeNull();
     expect(opts.amazing).toBeTruthy();
 
-    var f = new Backbone.Model({id: 20, label: 'f'});
-    var g = new Backbone.Model({id: 21, label: 'g'});
-    var h = new Backbone.Model({id: 22, label: 'h'});
-    var atCol = new Backbone.Collection([f, g, h]);
+    var f = new Ostov.Model({id: 20, label: 'f'});
+    var g = new Ostov.Model({id: 21, label: 'g'});
+    var h = new Ostov.Model({id: 22, label: 'h'});
+    var atCol = new Ostov.Collection([f, g, h]);
     expect(atCol.length).toBe(3);
     atCol.add(e, {at: 1});
     expect(atCol.length).toBe(4);
     expect(atCol.at(1)).toBe(e);
     expect(atCol.last()).toBe(h);
 
-    var coll = new Backbone.Collection(new Array(2));
+    var coll = new Ostov.Collection(new Array(2));
     var addCount = 0;
     coll.on('add', function(){
       addCount += 1;
@@ -184,7 +184,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('add multiple models', () => {
-    var collection = new Backbone.Collection([{at: 0}, {at: 1}, {at: 9}]);
+    var collection = new Ostov.Collection([{at: 0}, {at: 1}, {at: 9}]);
     collection.add([{at: 2}, {at: 3}, {at: 4}, {at: 5}, {at: 6}, {at: 7}, {at: 8}], {at: 2});
     for (var i = 0; i <= 5; i++) {
       expect(collection.at(i).get('at')).toBe(i);
@@ -192,39 +192,39 @@ describe('Backbone.Collection', () => {
   });
 
   it('add; at should have preference over comparator', () => {
-    class Col extends Backbone.Collection {
+    class Col extends Ostov.Collection {
       comparator(m1, m2) {
         return m1.id > m2.id ? -1 : 1;
       }
     }
 
     var collection = new Col([{id: 2}, {id: 3}]);
-    collection.add(new Backbone.Model({id: 1}), {at: 1});
+    collection.add(new Ostov.Model({id: 1}), {at: 1});
 
     expect(collection.pluck('id').join(' ')).toBe('3 1 2');
   });
 
   it('add; at should add to the end if the index is out of bounds', () => {
-    var collection = new Backbone.Collection([{id: 2}, {id: 3}]);
-    collection.add(new Backbone.Model({id: 1}), {at: 5});
+    var collection = new Ostov.Collection([{id: 2}, {id: 3}]);
+    collection.add(new Ostov.Model({id: 1}), {at: 5});
 
     expect(collection.pluck('id').join(' ')).toBe('2 3 1');
   });
 
   it("can't add model to collection twice", () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}, {id: 1}, {id: 2}, {id: 3}]);
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}, {id: 1}, {id: 2}, {id: 3}]);
     expect(collection.pluck('id').join(' ')).toBe('1 2 3');
   });
 
   it("can't add different model with same id to collection twice", () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.unshift({id: 101});
     collection.add({id: 101});
     expect(collection.length).toBe(1);
   });
 
   it('merge in duplicate models with {merge: true}', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.add([{id: 1, name: 'Moe'}, {id: 2, name: 'Curly'}, {id: 3, name: 'Larry'}]);
     collection.add({id: 1, name: 'Moses'});
     expect(collection.first().get('name')).toBe('Moe');
@@ -236,7 +236,7 @@ describe('Backbone.Collection', () => {
 
   it('add model to multiple collections', () => {
     var counter = 0;
-    var m = new Backbone.Model({id: 10, label: 'm'});
+    var m = new Ostov.Model({id: 10, label: 'm'});
     m.on('add', function(model, collection) {
       counter++;
       expect(m).toBe(model);
@@ -246,12 +246,12 @@ describe('Backbone.Collection', () => {
         expect(collection).toBe(col1);
       }
     });
-    var col1 = new Backbone.Collection([]);
+    var col1 = new Ostov.Collection([]);
     col1.on('add', function(model, collection) {
       expect(m).toBe(model);
       expect(col1).toBe(collection);
     });
-    var col2 = new Backbone.Collection([]);
+    var col2 = new Ostov.Collection([]);
     col2.on('add', function(model, collection) {
       expect(m).toBe(model);
       expect(col2).toBe(collection);
@@ -263,14 +263,14 @@ describe('Backbone.Collection', () => {
   });
 
   it('add model with parse', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       parse(obj) {
         obj.value += 1;
         return obj;
       }
     }
 
-    class Col extends Backbone.Collection {}
+    class Col extends Ostov.Collection {}
     Col.prototype.model = Model;
     var collection = new Col;
     collection.add({value: 1}, {parse: true});
@@ -278,7 +278,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('add with parse and merge', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
     collection.parse = function(attrs) {
       return _.map(attrs, function(model) {
         if (model.model) return model.model;
@@ -291,13 +291,13 @@ describe('Backbone.Collection', () => {
   });
 
   it('add model to collection with sort()-style comparator', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.comparator = function(m1, m2) {
       return m1.get('name') < m2.get('name') ? -1 : 1;
     };
-    var tom = new Backbone.Model({name: 'Tom'});
-    var rob = new Backbone.Model({name: 'Rob'});
-    var tim = new Backbone.Model({name: 'Tim'});
+    var tom = new Ostov.Model({name: 'Tom'});
+    var rob = new Ostov.Model({name: 'Rob'});
+    var tim = new Ostov.Model({name: 'Tim'});
     collection.add(tom);
     collection.add(rob);
     collection.add(tim);
@@ -307,7 +307,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('comparator that depends on `this`', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.negative = function(num) {
       return -num;
     };
@@ -351,17 +351,17 @@ describe('Backbone.Collection', () => {
   });
 
   it('add and remove return values', () => {
-    class Even extends Backbone.Model {
+    class Even extends Ostov.Model {
       validate(attrs) {
         if (attrs.id % 2 !== 0) return 'odd';
       }
     }
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.model = Even;
 
     var list = collection.add([{id: 2}, {id: 4}], {validate: true});
     expect(list.length).toBe(2);
-    expect(list[0] instanceof Backbone.Model).toBeTruthy();
+    expect(list[0] instanceof Ostov.Model).toBeTruthy();
     expect(list[1]).toBe(collection.last());
     expect(list[1].get('id')).toBe(4);
 
@@ -384,13 +384,13 @@ describe('Backbone.Collection', () => {
   });
 
   it('shift and pop', () => {
-    var collection = new Backbone.Collection([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
+    var collection = new Ostov.Collection([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
     expect(collection.shift().get('a')).toBe('a');
     expect(collection.pop().get('c')).toBe('c');
   });
 
   it('slice', () => {
-    var collection = new Backbone.Collection([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
+    var collection = new Ostov.Collection([{a: 'a'}, {b: 'b'}, {c: 'c'}]);
     var array = collection.slice(1, 3);
     expect(array.length).toBe(2);
     expect(array[0].get('b')).toBe('b');
@@ -398,8 +398,8 @@ describe('Backbone.Collection', () => {
 
   it('events are unbound on remove', () => {
     var counter = 0;
-    var dj = new Backbone.Model();
-    var emcees = new Backbone.Collection([dj]);
+    var dj = new Ostov.Model();
+    var emcees = new Ostov.Collection([dj]);
     emcees.on('change', function(){ counter++; });
     dj.set({name: 'Kool'});
     expect(counter).toBe(1);
@@ -415,13 +415,13 @@ describe('Backbone.Collection', () => {
       title: 'Othello'
     };
     var passed = false;
-    var m1 = new Backbone.Model(modelData);
-    var m2 = new Backbone.Model(modelData);
+    var m1 = new Ostov.Model(modelData);
+    var m2 = new Ostov.Model(modelData);
     m2.on('remove', function() {
       passed = true;
     });
-    var col1 = new Backbone.Collection([m1]);
-    var col2 = new Backbone.Collection([m2]);
+    var col1 = new Ostov.Collection([m1]);
+    var col2 = new Ostov.Collection([m2]);
     expect(m1).not.toBe(m2);
     expect(col1.length === 1).toBeTruthy();
     expect(col2.length === 1).toBeTruthy();
@@ -435,7 +435,7 @@ describe('Backbone.Collection', () => {
 
   it('remove same model in multiple collection', () => {
     var counter = 0;
-    var m = new Backbone.Model({id: 5, title: 'Othello'});
+    var m = new Ostov.Model({id: 5, title: 'Othello'});
     m.on('remove', function(model, collection) {
       counter++;
       expect(m).toBe(model);
@@ -445,12 +445,12 @@ describe('Backbone.Collection', () => {
         expect(collection).toBe(col2);
       }
     });
-    var col1 = new Backbone.Collection([m]);
+    var col1 = new Ostov.Collection([m]);
     col1.on('remove', function(model, collection) {
       expect(m).toBe(model);
       expect(col1).toBe(collection);
     });
-    var col2 = new Backbone.Collection([m]);
+    var col2 = new Ostov.Collection([m]);
     col2.on('remove', function(model, collection) {
       expect(m).toBe(model);
       expect(col2).toBe(collection);
@@ -468,10 +468,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('model destroy removes from all collections', () => {
-    var m = new Backbone.Model({id: 5, title: 'Othello'});
+    var m = new Ostov.Model({id: 5, title: 'Othello'});
     m.sync = function(method, model, options) { options.success(); };
-    var col1 = new Backbone.Collection([m]);
-    var col2 = new Backbone.Collection([m]);
+    var col1 = new Ostov.Collection([m]);
+    var col2 = new Ostov.Collection([m]);
     m.destroy();
     expect(col1.length === 0).toBeTruthy();
     expect(col2.length === 0).toBeTruthy();
@@ -479,10 +479,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('Collection: non-persisted model destroy removes from all collections', () => {
-    var m = new Backbone.Model({title: 'Othello'});
+    var m = new Ostov.Model({title: 'Othello'});
     m.sync = function(method, model, options) { throw 'should not be called'; };
-    var col1 = new Backbone.Collection([m]);
-    var col2 = new Backbone.Collection([m]);
+    var col1 = new Ostov.Collection([m]);
+    var col2 = new Ostov.Collection([m]);
     m.destroy();
     expect(col1.length === 0).toBeTruthy();
     expect(col2.length === 0).toBeTruthy();
@@ -490,7 +490,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('fetch', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
     collection.fetch();
     expect(globalThis.env.syncArgs.method).toBe('read');
@@ -502,7 +502,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('fetch with an error response triggers an error event', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
     collection.on('error', function() {
       expect(true).toBeTruthy();
     });
@@ -511,7 +511,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3283 - fetch with an error response calls error with context', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
     var obj = {};
     var options = {
       context: obj,
@@ -526,7 +526,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('ensure fetch only parses once', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     var counter = 0;
     collection.parse = function(models) {
       counter++;
@@ -539,7 +539,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('create', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
     var model = collection.create({label: 'f'}, {wait: true});
     expect(globalThis.env.syncArgs.method).toBe('create');
@@ -549,12 +549,12 @@ describe('Backbone.Collection', () => {
   });
 
   it('create with validate:true enforces validation', () => {
-    class ValidatingModel extends Backbone.Model {
+    class ValidatingModel extends Ostov.Model {
       validate(attrs) {
         return 'fail';
       }
     }
-    class ValidatingCollection extends Backbone.Collection {}
+    class ValidatingCollection extends Ostov.Collection {}
     ValidatingCollection.prototype.model = ValidatingModel;
     var collection = new ValidatingCollection();
     collection.on('invalid', function(coll, error, options) {
@@ -565,14 +565,14 @@ describe('Backbone.Collection', () => {
   });
 
   it('create will pass extra options to success callback', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       sync(method, model, options) {
         _.extend(options, {specialSync: true});
-        return Backbone.Model.prototype.sync.call(this, method, model, options);
+        return Ostov.Model.prototype.sync.call(this, method, model, options);
       }
     }
 
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.model = Model;
     Collection.prototype.url = '/test';
 
@@ -587,7 +587,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('create with wait:true should not call collection.parse', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       parse() {
         expect(false).toBeTruthy();
       }
@@ -601,12 +601,12 @@ describe('Backbone.Collection', () => {
   });
 
   it('a failing create returns model with errors', () => {
-    class ValidatingModel extends Backbone.Model {
+    class ValidatingModel extends Ostov.Model {
       validate(attrs) {
         return 'fail';
       }
     }
-    class ValidatingCollection extends Backbone.Collection {}
+    class ValidatingCollection extends Ostov.Collection {}
     ValidatingCollection.prototype.model = ValidatingModel;
     var collection = new ValidatingCollection();
     var m = collection.create({foo: 'bar'});
@@ -615,7 +615,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('failing create with wait:true triggers error event (#4262)', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
     collection.on('error', function() { expect(true).toBeTruthy(); });
     var model = collection.create({id: '1'}, {wait: true});
@@ -624,7 +624,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('successful create with wait:true triggers success event (#4262)', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
     collection.on('sync', function() { expect(true).toBeTruthy(); });
     var model = collection.create({id: '1'}, {wait: true});
@@ -633,7 +633,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('successful create with wait:true drops special error listener (#4284)', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
     collection.on('error', function() { expect(true).toBeTruthy(); });
     var model = collection.create({id: '1'}, {wait: true});
@@ -642,8 +642,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('failing create pre-existing with wait:true triggers once (#4262)', () => {
-    var model = new Backbone.Model;
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model;
+    var collection = new Ostov.Collection([model]);
     collection.url = '/test';
     collection.on('error', function() { expect(true).toBeTruthy(); });
     collection.create(model, {wait: true});
@@ -651,8 +651,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('successful create pre-existing with wait:true preserves other error bindings (#4262)', () => {
-    var model = new Backbone.Model;
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model;
+    var collection = new Ostov.Collection([model]);
     collection.url = '/test';
     model.on('error', function() { expect(true).toBeTruthy(); });
     collection.create(model, {wait: true});
@@ -661,7 +661,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('initialize', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       initialize() {
         this.one = 1;
       }
@@ -671,7 +671,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('preinitialize', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       preinitialize() {
         this.one = 1;
       }
@@ -681,12 +681,12 @@ describe('Backbone.Collection', () => {
   });
 
   it('preinitialize occurs before the collection is set up', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       preinitialize() {
         expect(this.model).not.toBe(FooModel);
       }
     }
-    class FooModel extends Backbone.Model {}
+    class FooModel extends Ostov.Model {}
     FooModel.prototype.id = 'foo';
     var coll = new Collection({}, {
       model: FooModel
@@ -699,8 +699,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('where and findWhere', () => {
-    var model = new Backbone.Model({a: 1});
-    var coll = new Backbone.Collection([
+    var model = new Ostov.Model({a: 1});
+    var coll = new Ostov.Collection([
       model,
       {a: 1},
       {a: 1, b: 2},
@@ -718,7 +718,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('mixin', () => {
-    Backbone.Collection.mixin({
+    Ostov.Collection.mixin({
       sum: function(models, iteratee) {
         return _.reduce(models, function(s, m) {
           return s + iteratee(m);
@@ -726,7 +726,7 @@ describe('Backbone.Collection', () => {
       }
     });
 
-    var coll = new Backbone.Collection([
+    var coll = new Ostov.Collection([
       {a: 1},
       {a: 1, b: 2},
       {a: 2, b: 2},
@@ -772,8 +772,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('Underscore methods with object-style and property-style iteratee', () => {
-    var model = new Backbone.Model({a: 4, b: 1, e: 3});
-    var coll = new Backbone.Collection([
+    var model = new Ostov.Model({a: 4, b: 1, e: 3});
+    var coll = new Ostov.Collection([
       {a: 1, b: 1},
       {a: 2, b: 1, c: 1},
       {a: 3, b: 1},
@@ -828,7 +828,7 @@ describe('Backbone.Collection', () => {
     expect(col.length).toBe(0);
     expect(resetCount).toBe(4);
 
-    var f = new Backbone.Model({id: 20, label: 'f'});
+    var f = new Ostov.Model({id: 20, label: 'f'});
     col.reset([undefined, f]);
     expect(col.length).toBe(2);
     expect(resetCount).toBe(5);
@@ -839,25 +839,25 @@ describe('Backbone.Collection', () => {
   });
 
   it('reset with different values', () => {
-    var collection = new Backbone.Collection({id: 1});
+    var collection = new Ostov.Collection({id: 1});
     collection.reset({id: 1, a: 1});
     expect(collection.get(1).get('a')).toBe(1);
   });
 
   it('same references in reset', () => {
-    var model = new Backbone.Model({id: 1});
-    var collection = new Backbone.Collection({id: 1});
+    var model = new Ostov.Model({id: 1});
+    var collection = new Ostov.Collection({id: 1});
     collection.reset(model);
     expect(collection.get(1)).toBe(model);
   });
 
   it('reset passes caller options', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       initialize(attrs, options) {
         this.modelParameter = options.modelParameter;
       }
     }
-    class _ResetCollection extends Backbone.Collection {}
+    class _ResetCollection extends Ostov.Collection {}
     _ResetCollection.prototype.model = Model;
     var collection = new _ResetCollection();
     collection.reset([{astring: 'green', anumber: 1}, {astring: 'blue', anumber: 2}], {modelParameter: 'model parameter'});
@@ -868,7 +868,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('reset does not alter options by reference', () => {
-    var collection = new Backbone.Collection([{id: 1}]);
+    var collection = new Ostov.Collection([{id: 1}]);
     var origOpts = {};
     collection.on('reset', function(coll, opts){
       expect(origOpts.previousModels).toBe(undefined);
@@ -887,15 +887,15 @@ describe('Backbone.Collection', () => {
   it('add does not alter arguments', () => {
     var attrs = {};
     var models = [attrs];
-    new Backbone.Collection().add(models);
+    new Ostov.Collection().add(models);
     expect(models.length).toBe(1);
     expect(attrs === models[0]).toBeTruthy();
   });
 
   it('#714: access `model.collection` in a brand new model.', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       set(attrs) {
         expect(attrs.prop).toBe('value');
         expect(this.collection).toBe(collection);
@@ -907,7 +907,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#574, remove its own reference to the .models array.', () => {
-    var collection = new Backbone.Collection([
+    var collection = new Ostov.Collection([
       {id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}
     ]);
     expect(collection.length).toBe(6);
@@ -916,13 +916,13 @@ describe('Backbone.Collection', () => {
   });
 
   it('#861, adding models to a collection which do not pass validation, with validate:true', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       validate(attrs) {
         if (attrs.id === 3) return "id can't be 3";
       }
     }
 
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.model = Model;
 
     var collection = new Collection;
@@ -933,9 +933,9 @@ describe('Backbone.Collection', () => {
   });
 
   it('Invalid models are discarded with validate:true.', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.on('test', function() { expect(true).toBeTruthy(); });
-    class _InvalidModel extends Backbone.Model {
+    class _InvalidModel extends Ostov.Model {
       validate(attrs){ if (!attrs.valid) return 'invalid'; }
     }
     collection.model = _InvalidModel;
@@ -949,8 +949,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('multiple copies of the same model', () => {
-    var collection = new Backbone.Collection();
-    var model = new Backbone.Model();
+    var collection = new Ostov.Collection();
+    var model = new Ostov.Model();
     collection.add([model, model]);
     expect(collection.length).toBe(1);
     collection.add([{id: 1}, {id: 1}]);
@@ -959,21 +959,21 @@ describe('Backbone.Collection', () => {
   });
 
   it('#964 - collection.get return inconsistent', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
     expect(collection.get(null) === undefined).toBeTruthy();
     expect(collection.get() === undefined).toBeTruthy();
   });
 
   it('#1112 - passing options.model sets collection.model', () => {
-    class Model extends Backbone.Model {}
-    var collection = new Backbone.Collection([{id: 1}], {model: Model});
+    class Model extends Ostov.Model {}
+    var collection = new Ostov.Collection([{id: 1}], {model: Model});
     expect(collection.model === Model).toBeTruthy();
     expect(collection.at(0) instanceof Model).toBeTruthy();
   });
 
   it('null and undefined are invalid ids.', () => {
-    var model = new Backbone.Model({id: 1});
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model({id: 1});
+    var collection = new Ostov.Collection([model]);
     model.set({id: null});
     expect(!collection.get('null')).toBeTruthy();
     model.set({id: 1});
@@ -982,7 +982,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('falsy comparator', () => {
-    class Col extends Backbone.Collection {
+    class Col extends Ostov.Collection {
       comparator(model){ return model.id; }
     }
     var collection = new Col();
@@ -996,8 +996,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1355 - `options` is passed to success callbacks', () => {
-    var m = new Backbone.Model({x: 1});
-    var collection = new Backbone.Collection();
+    var m = new Ostov.Model({x: 1});
+    var collection = new Ostov.Collection();
     var opts = {
       opts: true,
       success: function(coll, resp, options) {
@@ -1012,9 +1012,9 @@ describe('Backbone.Collection', () => {
   });
 
   it("#1412 - Trigger 'request' and 'sync' events.", () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
-    Backbone.ajax = function(settings){ settings.success(); };
+    Ostov.ajax = function(settings){ settings.success(); };
 
     collection.on('request', function(obj, xhr, options) {
       expect(obj === collection).toBeTruthy();
@@ -1036,9 +1036,9 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3283 - fetch, create calls success with context', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = '/test';
-    Backbone.ajax = function(settings) {
+    Ostov.ajax = function(settings) {
       settings.success.call(settings.context);
     };
     var obj = {};
@@ -1054,15 +1054,15 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1447 - create with wait adds model.', () => {
-    var collection = new Backbone.Collection;
-    var model = new Backbone.Model;
+    var collection = new Ostov.Collection;
+    var model = new Ostov.Model;
     model.sync = function(method, m, options){ options.success(); };
     collection.on('add', function(){ expect(true).toBeTruthy(); });
     collection.create(model, {wait: true});
   });
 
   it('#1448 - add sorts collection after merge.', () => {
-    var collection = new Backbone.Collection([
+    var collection = new Ostov.Collection([
       {id: 1, x: 1},
       {id: 2, x: 2}
     ]);
@@ -1072,7 +1072,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1655 - groupBy can be used with a string argument.', () => {
-    var collection = new Backbone.Collection([{x: 1}, {x: 2}]);
+    var collection = new Ostov.Collection([{x: 1}, {x: 2}]);
     var grouped = collection.groupBy('x');
     expect(_.keys(grouped).length).toBe(2);
     expect(grouped[1][0].get('x')).toBe(1);
@@ -1080,7 +1080,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1655 - sortBy can be used with a string argument.', () => {
-    var collection = new Backbone.Collection([{x: 3}, {x: 1}, {x: 2}]);
+    var collection = new Ostov.Collection([{x: 3}, {x: 1}, {x: 2}]);
     var values = _.map(collection.sortBy('x'), function(model) {
       return model.get('x');
     });
@@ -1088,7 +1088,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1604 - Removal during iteration.', () => {
-    var collection = new Backbone.Collection([{}, {}]);
+    var collection = new Ostov.Collection([{}, {}]);
     collection.on('add', function() {
       collection.at(0).destroy();
     });
@@ -1096,7 +1096,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1638 - `sort` during `add` triggers correctly.', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.comparator = function(model) { return model.get('x'); };
     var added = [];
     collection.on('add', function(model) {
@@ -1110,12 +1110,12 @@ describe('Backbone.Collection', () => {
 
   it('fetch parses models by default', () => {
     var model = {};
-    class _FetchParsesModel extends Backbone.Model {
+    class _FetchParsesModel extends Ostov.Model {
       parse(resp) {
         expect(resp).toBe(model);
       }
     }
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.url = 'test';
     Collection.prototype.model = _FetchParsesModel;
     new Collection().fetch();
@@ -1123,7 +1123,7 @@ describe('Backbone.Collection', () => {
   });
 
   it("`sort` shouldn't always fire on `add`", () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}, {id: 3}], {
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}, {id: 3}], {
       comparator: 'id'
     });
     collection.sort = function(){ expect(true).toBeTruthy(); };
@@ -1137,13 +1137,13 @@ describe('Backbone.Collection', () => {
     var model = {
       namespace: [{id: 1}, {id: 2}]
     };
-    class _ParseModel1 extends Backbone.Model {
+    class _ParseModel1 extends Ostov.Model {
       parse(m) {
         m.name = 'test';
         return m;
       }
     }
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       parse(m) {
         return m.namespace;
       }
@@ -1159,13 +1159,13 @@ describe('Backbone.Collection', () => {
     var model = {
       namespace: [{id: 1}, {id: 2}]
     };
-    class _ParseModel2 extends Backbone.Model {
+    class _ParseModel2 extends Ostov.Model {
       parse(m) {
         m.name = 'test';
         return m;
       }
     }
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       parse(m) {
         return m.namespace;
       }
@@ -1180,8 +1180,8 @@ describe('Backbone.Collection', () => {
 
 
   it('Reset includes previous models in triggered event.', () => {
-    var model = new Backbone.Model();
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model();
+    var collection = new Ostov.Collection([model]);
     collection.on('reset', function(coll, options) {
       expect(options.previousModels).toEqual([model]);
     });
@@ -1189,10 +1189,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('set', () => {
-    var m1 = new Backbone.Model();
-    var m2 = new Backbone.Model({id: 2});
-    var m3 = new Backbone.Model();
-    var collection = new Backbone.Collection([m1, m2]);
+    var m1 = new Ostov.Model();
+    var m2 = new Ostov.Model({id: 2});
+    var m3 = new Ostov.Model();
+    var collection = new Ostov.Collection([m1, m2]);
 
     // Test add/change/remove events
     collection.on('add', function(model) {
@@ -1242,9 +1242,9 @@ describe('Backbone.Collection', () => {
   });
 
   it('set with only cids', () => {
-    var m1 = new Backbone.Model;
-    var m2 = new Backbone.Model;
-    var collection = new Backbone.Collection;
+    var m1 = new Ostov.Model;
+    var m2 = new Ostov.Model;
+    var collection = new Ostov.Collection;
     collection.set([m1, m2]);
     expect(collection.length).toBe(2);
     collection.set([m1]);
@@ -1256,9 +1256,9 @@ describe('Backbone.Collection', () => {
   it('set with only idAttribute', () => {
     var m1 = {_id: 1};
     var m2 = {_id: 2};
-    class _IdAttrModel extends Backbone.Model {}
+    class _IdAttrModel extends Ostov.Model {}
     _IdAttrModel.prototype.idAttribute = '_id';
-    class Col extends Backbone.Collection {}
+    class Col extends Ostov.Collection {}
     Col.prototype.model = _IdAttrModel;
     var collection = new Col;
     collection.set([m1, m2]);
@@ -1270,10 +1270,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('set + merge with default values defined', () => {
-    class Model extends Backbone.Model {}
+    class Model extends Ostov.Model {}
     Model.prototype.defaults = {key: 'value'};
     var m = new Model({id: 1});
-    var collection = new Backbone.Collection([m], {model: Model});
+    var collection = new Ostov.Collection([m], {model: Model});
     expect(collection.first().get('key')).toBe('value');
 
     collection.set({id: 1, key: 'other'});
@@ -1285,14 +1285,14 @@ describe('Backbone.Collection', () => {
   });
 
   it('merge without mutation', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       initialize(attrs, options) {
         if (attrs.child) {
           this.set('child', new Model(attrs.child, options), options);
         }
       }
     }
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.model = Model;
     var data = [{id: 1, child: {id: 2}}];
     var collection = new Collection(data);
@@ -1304,8 +1304,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('`set` and model level `parse`', () => {
-    class Model extends Backbone.Model {}
-    class Collection extends Backbone.Collection {
+    class Model extends Ostov.Model {}
+    class Collection extends Ostov.Collection {
       parse(res) { return _.map(res.models, 'model'); }
     }
     Collection.prototype.model = Model;
@@ -1319,8 +1319,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('`set` data is only parsed once', () => {
-    var collection = new Backbone.Collection();
-    class _ParseOnceModel extends Backbone.Model {
+    var collection = new Ostov.Collection();
+    class _ParseOnceModel extends Ostov.Model {
       parse(data) {
         expect(data.parsed).toBe(void 0);
         data.parsed = true;
@@ -1332,10 +1332,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('`set` matches input order in the absence of a comparator', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     collection.set([{id: 3}, {id: 2}, {id: 1}]);
     expect(collection.models).toEqual([three, two, one]);
     collection.set([{id: 1}, {id: 2}]);
@@ -1351,7 +1351,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1894 - Push should not trigger a sort', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       sort() { expect(false).toBeTruthy(); }
     }
     Collection.prototype.comparator = 'id';
@@ -1359,16 +1359,16 @@ describe('Backbone.Collection', () => {
   });
 
   it('#2428 - push duplicate models, return the correct one', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     var model1 = collection.push({id: 101});
     var model2 = collection.push({id: 101});
     expect(model2.cid === model1.cid).toBeTruthy();
   });
 
   it('`set` with non-normal id', () => {
-    class _NonNormalIdModel extends Backbone.Model {}
+    class _NonNormalIdModel extends Ostov.Model {}
     _NonNormalIdModel.prototype.idAttribute = '_id';
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.model = _NonNormalIdModel;
     var collection = new Collection({_id: 1});
     collection.set([{_id: 1, a: 1}], {add: false});
@@ -1376,7 +1376,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1894 - `sort` can optionally be turned off', () => {
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
       sort() { expect(false).toBeTruthy(); }
     }
     Collection.prototype.comparator = 'id';
@@ -1384,7 +1384,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#1915 - `parse` data in the right order in `set`', () => {
-    class _ParseOrderCollection extends Backbone.Collection {
+    class _ParseOrderCollection extends Ostov.Collection {
       parse(data) {
         expect(data.status).toBe('ok');
         return data.data;
@@ -1397,7 +1397,7 @@ describe('Backbone.Collection', () => {
 
   it('#1939 - `parse` is passed `options`', () => {
     return new Promise((done) => {
-      class _ParseOptionsCollection extends Backbone.Collection {
+      class _ParseOptionsCollection extends Ostov.Collection {
         parse(data, options) {
           expect(options.xhr.someHeader).toBe('headerValue');
           return data;
@@ -1405,23 +1405,23 @@ describe('Backbone.Collection', () => {
       }
       _ParseOptionsCollection.prototype.url = '/';
       var collection = new _ParseOptionsCollection();
-      var ajax = Backbone.ajax;
-      Backbone.ajax = function(params) {
+      var ajax = Ostov.ajax;
+      Ostov.ajax = function(params) {
         _.defer(params.success, []);
         return {someHeader: 'headerValue'};
       };
       collection.fetch({
         success: function() { done(); }
       });
-      Backbone.ajax = ajax;
+      Ostov.ajax = ajax;
     });
   });
 
   it('fetch will pass extra options to success callback', () => {
-    class SpecialSyncCollection extends Backbone.Collection {
+    class SpecialSyncCollection extends Ostov.Collection {
       sync(method, collection, options) {
         _.extend(options, {specialSync: true});
-        return Backbone.Collection.prototype.sync.call(this, method, collection, options);
+        return Ostov.Collection.prototype.sync.call(this, method, collection, options);
       }
     }
     SpecialSyncCollection.prototype.url = '/test';
@@ -1437,7 +1437,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('`add` only `sort`s when necessary', () => {
-    class _SortNecessaryCollection extends Backbone.Collection {}
+    class _SortNecessaryCollection extends Ostov.Collection {}
     _SortNecessaryCollection.prototype.comparator = 'a';
     var collection = new _SortNecessaryCollection([{id: 1}, {id: 2}, {id: 3}]);
     collection.on('sort', function() { expect(true).toBeTruthy(); });
@@ -1450,7 +1450,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('`add` only `sort`s when necessary with comparator function', () => {
-    class _SortNecessaryFnCollection extends Backbone.Collection {
+    class _SortNecessaryFnCollection extends Ostov.Collection {
       comparator(m1, m2) {
         return m1.get('a') > m2.get('a') ? 1 : m1.get('a') < m2.get('a') ? -1 : 0;
       }
@@ -1466,10 +1466,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('Attach options to collection.', () => {
-    var Model = Backbone.Model;
+    var Model = Ostov.Model;
     var comparator = function(){};
 
-    var collection = new Backbone.Collection([], {
+    var collection = new Ostov.Collection([], {
       model: Model,
       comparator: comparator
     });
@@ -1481,7 +1481,7 @@ describe('Backbone.Collection', () => {
   it('Pass falsey for `models` for empty Col with `options`', () => {
     var opts = {a: 1, b: 2};
     _.forEach([undefined, null, false], function(falsey) {
-      class Collection extends Backbone.Collection {
+      class Collection extends Ostov.Collection {
         initialize(models, options) {
           expect(models).toBe(falsey);
           expect(options).toBe(opts);
@@ -1494,7 +1494,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('`add` overrides `set` flags', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
     collection.once('add', function(model, coll, options) {
       coll.add({id: 2}, options);
     });
@@ -1503,7 +1503,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#2606 - Collection#create, success arguments', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.url = 'test';
     collection.create({}, {
       success: function(model, resp, options) {
@@ -1515,9 +1515,9 @@ describe('Backbone.Collection', () => {
 
   it('#2612 - nested `parse` works with `Collection#set`', () => {
 
-    class Item extends Backbone.Model {
+    class Item extends Ostov.Model {
       preinitialize() {
-        this.subItems = new Backbone.Collection();
+        this.subItems = new Ostov.Collection();
       }
       parse(attrs) {
         this.subItems.set(attrs.subItems, {parse: true});
@@ -1525,10 +1525,10 @@ describe('Backbone.Collection', () => {
       }
     }
 
-    class Items extends Backbone.Collection {}
+    class Items extends Ostov.Collection {}
     Items.prototype.model = Item;
 
-    class Job extends Backbone.Model {
+    class Job extends Ostov.Model {
       preinitialize() {
         this.items = new Items();
       }
@@ -1595,10 +1595,10 @@ describe('Backbone.Collection', () => {
   it('_addReference binds all collection events & adds to the lookup hashes', () => {
     var calls = {add: 0, remove: 0};
 
-    class Collection extends Backbone.Collection {
+    class Collection extends Ostov.Collection {
 
       _addReference(model) {
-        Backbone.Collection.prototype._addReference.apply(this, arguments);
+        Ostov.Collection.prototype._addReference.apply(this, arguments);
         calls.add++;
         expect(model).toBe(this._byId[model.id]);
         expect(model).toBe(this._byId[model.cid]);
@@ -1606,7 +1606,7 @@ describe('Backbone.Collection', () => {
       }
 
       _removeReference(model) {
-        Backbone.Collection.prototype._removeReference.apply(this, arguments);
+        Ostov.Collection.prototype._removeReference.apply(this, arguments);
         calls.remove++;
         expect(this._byId[model.id]).toBe(void 0);
         expect(this._byId[model.cid]).toBe(void 0);
@@ -1624,7 +1624,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('Do not allow duplicate models to be `add`ed or `set`', () => {
-    var collection = new Backbone.Collection();
+    var collection = new Ostov.Collection();
 
     collection.add([{id: 1}, {id: 1}]);
     expect(collection.length).toBe(1);
@@ -1636,15 +1636,15 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3020: #set with {add: false} should not throw.', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.set([{id: 1}], {add: false});
     expect(collection.length).toBe(0);
     expect(collection.models.length).toBe(0);
   });
 
   it('create with wait, model instance, #3028', () => {
-    var collection = new Backbone.Collection();
-    var model = new Backbone.Model({id: 1});
+    var collection = new Ostov.Collection();
+    var model = new Ostov.Model({id: 1});
     model.sync = function(){
       expect(this.collection).toBe(collection);
     };
@@ -1652,8 +1652,8 @@ describe('Backbone.Collection', () => {
   });
 
   it('modelId', () => {
-    class Stooge extends Backbone.Model {}
-    class StoogeCollection extends Backbone.Collection {}
+    class Stooge extends Ostov.Model {}
+    class StoogeCollection extends Ostov.Collection {}
 
     // Default to using `id` if `model::idAttribute` and `Collection::model::idAttribute` not present.
     expect(StoogeCollection.prototype.modelId({id: 1})).toBe(1);
@@ -1670,9 +1670,9 @@ describe('Backbone.Collection', () => {
   });
 
   it('Polymorphic models work with "simple" constructors', () => {
-    class A extends Backbone.Model {}
-    class B extends Backbone.Model {}
-    class C extends Backbone.Collection {}
+    class A extends Ostov.Model {}
+    class B extends Ostov.Model {}
+    class C extends Ostov.Collection {}
     C.prototype.model = function(attrs) {
       return attrs.type === 'a' ? new A(attrs) : new B(attrs);
     };
@@ -1685,17 +1685,17 @@ describe('Backbone.Collection', () => {
   });
 
   it('Polymorphic models work with "advanced" constructors', () => {
-    class A extends Backbone.Model {}
+    class A extends Ostov.Model {}
     A.prototype.idAttribute = '_id';
-    class B extends Backbone.Model {}
+    class B extends Ostov.Model {}
     B.prototype.idAttribute = '_id';
-    class _AdvancedPolyModel extends Backbone.Model {
+    class _AdvancedPolyModel extends Ostov.Model {
       constructor(attrs) {
         return attrs.type === 'a' ? new A(attrs) : new B(attrs);
       }
     }
     _AdvancedPolyModel.prototype.idAttribute = '_id';
-    class C extends Backbone.Collection {}
+    class C extends Ostov.Collection {}
     C.prototype.model = _AdvancedPolyModel;
     var collection = new C([{_id: 1, type: 'a'}, {_id: 2, type: 'b'}]);
     expect(collection.length).toBe(2);
@@ -1704,7 +1704,7 @@ describe('Backbone.Collection', () => {
     expect(collection.at(1) instanceof B).toBeTruthy();
     expect(collection.at(1)).toBe(collection.get(2));
 
-    class C2 extends Backbone.Collection {
+    class C2 extends Ostov.Collection {
       modelId(attrs) {
         return attrs.type + '-' + attrs.id;
       }
@@ -1723,9 +1723,9 @@ describe('Backbone.Collection', () => {
 
   it('Collection with polymorphic models receives id from modelId using model instance idAttribute', () => {
     // When the polymorphic models use 'id' for the idAttribute, all is fine.
-    class C1 extends Backbone.Collection {}
+    class C1 extends Ostov.Collection {}
     C1.prototype.model = function(attrs) {
-      return new Backbone.Model(attrs);
+      return new Ostov.Model(attrs);
     };
     var c1 = new C1({id: 1});
     expect(c1.get(1).id).toBe(1);
@@ -1734,9 +1734,9 @@ describe('Backbone.Collection', () => {
     // If the polymorphic models define their own idAttribute,
     // the modelId method will use the model's idAttribute property before the
     // collection's model constructor's.
-    class M extends Backbone.Model {}
+    class M extends Ostov.Model {}
     M.prototype.idAttribute = '_id';
-    class C2 extends Backbone.Collection {}
+    class C2 extends Ostov.Collection {}
     C2.prototype.model = function(attrs) {
       return new M(attrs);
     };
@@ -1756,17 +1756,17 @@ describe('Backbone.Collection', () => {
     if (!$$iterator) {
       return;
     }
-    var collection = new Backbone.Collection([]);
+    var collection = new Ostov.Collection([]);
     expect(collection[$$iterator]).toBe(collection.values);
     var iterator = collection[$$iterator]();
     expect(iterator.next()).toEqual({value: void 0, done: true});
   });
 
   it('Collection.values iterates models in sorted order', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     var iterator = collection.values();
     expect(iterator.next().value).toBe(one);
     expect(iterator.next().value).toBe(two);
@@ -1775,10 +1775,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('Collection.keys iterates ids in sorted order', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     var iterator = collection.keys();
     expect(iterator.next().value).toBe(1);
     expect(iterator.next().value).toBe(2);
@@ -1787,10 +1787,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('Collection.entries iterates ids and models in sorted order', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     var iterator = collection.entries();
     expect(iterator.next().value).toEqual([1, one]);
     expect(iterator.next().value).toEqual([2, two]);
@@ -1799,7 +1799,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3039 #3951: adding at index fires with correct at', () => {
-    var collection = new Backbone.Collection([{val: 0}, {val: 4}]);
+    var collection = new Ostov.Collection([{val: 0}, {val: 4}]);
     collection.on('add', function(model, coll, options) {
       expect(model.get('val')).toBe(options.index);
     });
@@ -1808,7 +1808,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3039: index is not sent when at is not specified', () => {
-    var collection = new Backbone.Collection([{at: 0}]);
+    var collection = new Ostov.Collection([{at: 0}]);
     collection.on('add', function(model, coll, options) {
       expect(undefined).toBe(options.index);
     });
@@ -1816,10 +1816,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3199 - Order changing should trigger a sort', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     collection.on('sort', function() {
       expect(true).toBeTruthy();
     });
@@ -1827,10 +1827,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3199 - Adding a model should trigger a sort', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     collection.on('sort', function() {
       expect(true).toBeTruthy();
     });
@@ -1838,10 +1838,10 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3199 - Order not changing should not trigger a sort', () => {
-    var one = new Backbone.Model({id: 1});
-    var two = new Backbone.Model({id: 2});
-    var three = new Backbone.Model({id: 3});
-    var collection = new Backbone.Collection([one, two, three]);
+    var one = new Ostov.Model({id: 1});
+    var two = new Ostov.Model({id: 2});
+    var three = new Ostov.Model({id: 3});
+    var collection = new Ostov.Collection([one, two, three]);
     collection.on('sort', function() {
       expect(false).toBeTruthy();
     });
@@ -1849,7 +1849,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('add supports negative indexes', () => {
-    var collection = new Backbone.Collection([{id: 1}]);
+    var collection = new Ostov.Collection([{id: 1}]);
     collection.add([{id: 2}, {id: 3}], {at: -1});
     collection.add([{id: 2.5}], {at: -2});
     collection.add([{id: 0.5}], {at: -6});
@@ -1857,37 +1857,37 @@ describe('Backbone.Collection', () => {
   });
 
   it('#set accepts options.at as a string', () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}]);
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}]);
     collection.add([{id: 3}], {at: '1'});
     expect(collection.pluck('id')).toEqual([1, 3, 2]);
   });
 
   it('adding multiple models triggers `update` event once', () => {
-    var collection = new Backbone.Collection;
+    var collection = new Ostov.Collection;
     collection.on('update', function() { expect(true).toBeTruthy(); });
     collection.add([{id: 1}, {id: 2}, {id: 3}]);
   });
 
   it('removing models triggers `update` event once', () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}, {id: 3}]);
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}, {id: 3}]);
     collection.on('update', function() { expect(true).toBeTruthy(); });
     collection.remove([{id: 1}, {id: 2}]);
   });
 
   it('remove does not trigger `update` when nothing removed', () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}]);
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}]);
     collection.on('update', function() { expect(false).toBeTruthy(); });
     collection.remove([{id: 3}]);
   });
 
   it('set triggers `set` event once', () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}]);
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}]);
     collection.on('update', function() { expect(true).toBeTruthy(); });
     collection.set([{id: 1}, {id: 3}]);
   });
 
   it('set does not trigger `update` event when nothing added nor removed', () => {
-    var collection = new Backbone.Collection([{id: 1}, {id: 2}]);
+    var collection = new Ostov.Collection([{id: 1}, {id: 2}]);
     collection.on('update', function(coll, options) {
       expect(options.changes.added.length).toBe(0);
       expect(options.changes.removed.length).toBe(0);
@@ -1897,21 +1897,21 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3610 - invoke collects arguments', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       method(x, y, z) {
         expect(x).toBe(1);
         expect(y).toBe(2);
         expect(z).toBe(3);
       }
     }
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.model = Model;
     var collection = new Collection([{id: 1}]);
     collection.invoke('method', 1, 2, 3);
   });
 
   it('#3662 - triggering change without model will not error', () => {
-    var collection = new Backbone.Collection([{id: 1}]);
+    var collection = new Ostov.Collection([{id: 1}]);
     var model = collection.first();
     collection.on('change', function(m) {
       expect(m).toBe(undefined);
@@ -1920,7 +1920,7 @@ describe('Backbone.Collection', () => {
   });
 
   it('#3871 - falsy parse result creates empty collection', () => {
-    class _FalsyParseCollection extends Backbone.Collection {
+    class _FalsyParseCollection extends Ostov.Collection {
       parse(data, options) {}
     }
     var collection = new _FalsyParseCollection();
@@ -1929,8 +1929,8 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - remove's `update` event returns one removed model", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var collection = new Ostov.Collection([model]);
     collection.on('update', function(context, options) {
       var changed = options.changes;
       expect(changed.added).toEqual([]);
@@ -1941,9 +1941,9 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - remove's `update` event returns multiple removed models", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var model2 = new Backbone.Model({id: 2, title: 'Second Post'});
-    var collection = new Backbone.Collection([model, model2]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var model2 = new Ostov.Model({id: 2, title: 'Second Post'});
+    var collection = new Ostov.Collection([model, model2]);
     collection.on('update', function(context, options) {
       var changed = options.changes;
       expect(changed.added).toEqual([]);
@@ -1956,8 +1956,8 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - set's `update` event returns one added model", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var collection = new Backbone.Collection();
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var collection = new Ostov.Collection();
     collection.on('update', function(context, options) {
       var addedModels = options.changes.added;
       expect(addedModels.length === 1).toBeTruthy();
@@ -1967,9 +1967,9 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - set's `update` event returns multiple added models", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var model2 = new Backbone.Model({id: 2, title: 'Second Post'});
-    var collection = new Backbone.Collection();
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var model2 = new Ostov.Model({id: 2, title: 'Second Post'});
+    var collection = new Ostov.Collection();
     collection.on('update', function(context, options) {
       var addedModels = options.changes.added;
       expect(addedModels.length === 2).toBeTruthy();
@@ -1980,10 +1980,10 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - set's `update` event returns one removed model", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var model2 = new Backbone.Model({id: 2, title: 'Second Post'});
-    var model3 = new Backbone.Model({id: 3, title: 'My Last Post'});
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var model2 = new Ostov.Model({id: 2, title: 'Second Post'});
+    var model3 = new Ostov.Model({id: 3, title: 'My Last Post'});
+    var collection = new Ostov.Collection([model]);
     collection.on('update', function(context, options) {
       var changed = options.changes;
       expect(changed.added.length).toBe(2);
@@ -1995,10 +1995,10 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - set's `update` event returns multiple removed models", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var model2 = new Backbone.Model({id: 2, title: 'Second Post'});
-    var model3 = new Backbone.Model({id: 3, title: 'My Last Post'});
-    var collection = new Backbone.Collection([model, model2]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var model2 = new Ostov.Model({id: 2, title: 'Second Post'});
+    var model3 = new Ostov.Model({id: 3, title: 'My Last Post'});
+    var collection = new Ostov.Collection([model, model2]);
     collection.on('update', function(context, options) {
       var removedModels = options.changes.removed;
       expect(removedModels.length === 2).toBeTruthy();
@@ -2009,10 +2009,10 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - set's `update` event returns one merged model", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var model2 = new Backbone.Model({id: 2, title: 'Second Post'});
-    var model2Update = new Backbone.Model({id: 2, title: 'Second Post V2'});
-    var collection = new Backbone.Collection([model, model2]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var model2 = new Ostov.Model({id: 2, title: 'Second Post'});
+    var model2Update = new Ostov.Model({id: 2, title: 'Second Post V2'});
+    var collection = new Ostov.Collection([model, model2]);
     collection.on('update', function(context, options) {
       var mergedModels = options.changes.merged;
       expect(mergedModels.length === 1).toBeTruthy();
@@ -2022,11 +2022,11 @@ describe('Backbone.Collection', () => {
   });
 
   it("#3711 - set's `update` event returns multiple merged models", () => {
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var modelUpdate = new Backbone.Model({id: 1, title: 'First Post V2'});
-    var model2 = new Backbone.Model({id: 2, title: 'Second Post'});
-    var model2Update = new Backbone.Model({id: 2, title: 'Second Post V2'});
-    var collection = new Backbone.Collection([model, model2]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var modelUpdate = new Ostov.Model({id: 1, title: 'First Post V2'});
+    var model2 = new Ostov.Model({id: 2, title: 'Second Post'});
+    var model2Update = new Ostov.Model({id: 2, title: 'Second Post V2'});
+    var collection = new Ostov.Collection([model, model2]);
     collection.on('update', function(context, options) {
       var mergedModels = options.changes.merged;
       expect(mergedModels.length === 2).toBeTruthy();
@@ -2038,8 +2038,8 @@ describe('Backbone.Collection', () => {
 
   it("#3711 - set's `update` event should not be triggered adding a model which already exists exactly alike", () => {
     var fired = false;
-    var model = new Backbone.Model({id: 1, title: 'First Post'});
-    var collection = new Backbone.Collection([model]);
+    var model = new Ostov.Model({id: 1, title: 'First Post'});
+    var collection = new Ostov.Collection([model]);
     collection.on('update', function(context, options) {
       fired = true;
     });
@@ -2049,18 +2049,18 @@ describe('Backbone.Collection', () => {
 
   it('get models with `attributes` key', () => {
     var model = {id: 1, attributes: {}};
-    var collection = new Backbone.Collection([model]);
+    var collection = new Ostov.Collection([model]);
     expect(collection.get(model)).toBeTruthy();
   });
 
   it('#3961 - add events sends options.index that correspond to wrong index', () => {
     var numModels = 4;
     var models = _.each(['a', 'b', 'c', 'd'], function(val) {
-      return new Backbone.Model({id: val});
+      return new Ostov.Model({id: val});
     });
-    var collection = new Backbone.Collection(models);
+    var collection = new Ostov.Collection(models);
     models.shift(); // remove first element;
-    models.push(new Backbone.Model({id: 'e'}));
+    models.push(new Ostov.Model({id: 'e'}));
     collection.on('add', function(model, coll, options){
       expect(options.index).toBe(undefined);
     });
@@ -2069,10 +2069,10 @@ describe('Backbone.Collection', () => {
 
   it('#4233 - can instantiate new model in ES class Collection', () => {
     var model = function(attrs, options) {
-      return new Backbone.Model(attrs, options);
+      return new Ostov.Model(attrs, options);
     };
 
-    class MyCollection extends Backbone.Collection {
+    class MyCollection extends Ostov.Collection {
       modelId(attr) {
         return attr.x;
       }

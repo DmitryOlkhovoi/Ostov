@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-describe('Backbone.View', () => {
+describe('Ostov.View', () => {
 
   var view;
 
@@ -9,7 +9,7 @@ describe('Backbone.View', () => {
       '<div id="testElement"><h1>Test</h1></div>'
     );
 
-    view = new Backbone.View({
+    view = new Ostov.View({
       id: 'test-view',
       className: 'test-view',
       other: 'non-special-option'
@@ -28,7 +28,7 @@ describe('Backbone.View', () => {
   });
 
   it('$', () => {
-    var myView = new Backbone.View;
+    var myView = new Ostov.View;
     myView.setElement('<p><a><b>test</b></a></p>');
     var result = myView.$('a b');
 
@@ -37,17 +37,17 @@ describe('Backbone.View', () => {
   });
 
   it('$el', () => {
-    var myView = new Backbone.View;
+    var myView = new Ostov.View;
     myView.setElement('<p><a><b>test</b></a></p>');
     expect(myView.el.nodeType).toBe(1);
 
-    // $el is a Backbone.$-wrapped element when Backbone.$ is set.
-    expect(myView.$el instanceof Backbone.$).toBeTruthy();
+    // $el is a Ostov.$-wrapped element when Ostov.$ is set.
+    expect(myView.$el instanceof Ostov.$).toBeTruthy();
     expect(myView.$el.get(0)).toBe(myView.el);
   });
 
   it('initialize', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       initialize() {
         this.one = 1;
       }
@@ -57,7 +57,7 @@ describe('Backbone.View', () => {
   });
 
   it('preinitialize', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       preinitialize() {
         this.one = 1;
       }
@@ -68,7 +68,7 @@ describe('Backbone.View', () => {
 
   it('preinitialize occurs before the view is set up', () => {
     var elValue;
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       preinitialize() {
         elValue = this.el;
       }
@@ -79,14 +79,14 @@ describe('Backbone.View', () => {
   });
 
   it('render', () => {
-    var myView = new Backbone.View;
+    var myView = new Ostov.View;
     expect(myView.render()).toBe(myView);
   });
 
   it('delegateEvents', () => {
     var counter1 = 0, counter2 = 0;
 
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     myView.increment = function() { counter1++; };
     myView.$el.on('click', function() { counter2++; });
 
@@ -110,7 +110,7 @@ describe('Backbone.View', () => {
   it('delegate', () => {
     var clickCount = 0;
     var h1ClickCount = 0;
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     myView.delegate('click', 'h1', function() {
       h1ClickCount++;
     });
@@ -125,7 +125,7 @@ describe('Backbone.View', () => {
   });
 
   it('delegateEvents allows functions for callbacks', () => {
-    var myView = new Backbone.View({el: '<p></p>'});
+    var myView = new Ostov.View({el: '<p></p>'});
     myView.counter = 0;
 
     var events = {
@@ -147,7 +147,7 @@ describe('Backbone.View', () => {
   });
 
   it('delegateEvents ignore undefined methods', () => {
-    var myView = new Backbone.View({el: '<p></p>'});
+    var myView = new Ostov.View({el: '<p></p>'});
     myView.delegateEvents({click: 'undefinedMethod'});
     myView.$el.trigger('click');
   });
@@ -155,7 +155,7 @@ describe('Backbone.View', () => {
   it('undelegateEvents', () => {
     var counter1 = 0, counter2 = 0;
 
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     myView.increment = function() { counter1++; };
     myView.$el.on('click', function() { counter2++; });
 
@@ -180,7 +180,7 @@ describe('Backbone.View', () => {
   });
 
   it('undelegate', () => {
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     myView.delegate('click', function() { throw new Error('should not fire'); });
     myView.delegate('click', 'h1', function() { throw new Error('should not fire'); });
 
@@ -194,7 +194,7 @@ describe('Backbone.View', () => {
 
   it('undelegate with passed handler', () => {
     var fired = false;
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     var listener = function() { throw new Error('should not fire'); };
     myView.delegate('click', listener);
     myView.delegate('click', function() { fired = true; });
@@ -205,7 +205,7 @@ describe('Backbone.View', () => {
 
   it('undelegate with selector', () => {
     var elClicked = false;
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     myView.delegate('click', function() { elClicked = true; });
     myView.delegate('click', 'h1', function() { throw new Error('should not fire'); });
     myView.undelegate('click', 'h1');
@@ -216,7 +216,7 @@ describe('Backbone.View', () => {
 
   it('undelegate with handler and selector', () => {
     var elClicked = false;
-    var myView = new Backbone.View({el: '#testElement'});
+    var myView = new Ostov.View({el: '#testElement'});
     myView.delegate('click', function() { elClicked = true; });
     var handler = function() { throw new Error('should not fire'); };
     myView.delegate('click', 'h1', handler);
@@ -227,7 +227,7 @@ describe('Backbone.View', () => {
   });
 
   it('tagName can be provided as a string', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.tagName = 'span';
 
@@ -235,7 +235,7 @@ describe('Backbone.View', () => {
   });
 
   it('tagName can be provided as a function', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       tagName() {
         return 'p';
       }
@@ -245,7 +245,7 @@ describe('Backbone.View', () => {
   });
 
   it('_ensureElement with DOM node el', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.el = document.body;
 
@@ -253,24 +253,24 @@ describe('Backbone.View', () => {
   });
 
   it('_ensureElement with string el', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.el = 'body';
     expect(new View().el).toBe(document.body);
 
-    class View2 extends Backbone.View {
+    class View2 extends Ostov.View {
     }
     View2.prototype.el = '#testElement > h1';
     expect(new View2().el).toBe($('#testElement > h1').get(0));
 
-    class View3 extends Backbone.View {
+    class View3 extends Ostov.View {
     }
     View3.prototype.el = '#nonexistent';
     expect(!new View3().el).toBeTruthy();
   });
 
   it('with className and id functions', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       className() {
         return 'className';
       }
@@ -284,7 +284,7 @@ describe('Backbone.View', () => {
   });
 
   it('with attributes', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.attributes = {
       'id': 'id',
@@ -296,7 +296,7 @@ describe('Backbone.View', () => {
   });
 
   it('with attributes as a function', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       attributes() {
         return {'class': 'dynamic'};
       }
@@ -306,7 +306,7 @@ describe('Backbone.View', () => {
   });
 
   it('should default to className/id properties', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.className = 'backboneClass';
     View.prototype.id = 'backboneId';
@@ -326,7 +326,7 @@ describe('Backbone.View', () => {
     var count = 0;
     var $el = $('<p></p>');
 
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.el = $el;
     View.prototype.events = {
@@ -350,7 +350,7 @@ describe('Backbone.View', () => {
 
   it('custom events', () => {
     var firedCount = 0;
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.el = $('body');
     View.prototype.events = {
@@ -371,7 +371,7 @@ describe('Backbone.View', () => {
   it('#1048 - setElement resolves provided element.', () => {
     var $el = $('body');
 
-    var myView = new Backbone.View({el: $el});
+    var myView = new Ostov.View({el: $el});
     expect(myView.el === document.body).toBeTruthy();
 
     myView.setElement(document.body);
@@ -383,7 +383,7 @@ describe('Backbone.View', () => {
     var button2 = $('<button></button>');
 
     var clickedTarget = null;
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.events = {
       click: function(e) {
@@ -400,7 +400,7 @@ describe('Backbone.View', () => {
   });
 
   it('#1172 - Clone attributes object', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
     }
     View.prototype.attributes = {foo: 'bar'};
 
@@ -413,7 +413,7 @@ describe('Backbone.View', () => {
 
   it('views stopListening', () => {
     var heard = false;
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       initialize() {
         this.listenTo(this.model, 'all x', function() { heard = true; });
         this.listenTo(this.collection, 'all x', function() { heard = true; });
@@ -421,8 +421,8 @@ describe('Backbone.View', () => {
     }
 
     var myView = new View({
-      model: new Backbone.Model,
-      collection: new Backbone.Collection
+      model: new Ostov.Model,
+      collection: new Ostov.Collection
     });
 
     myView.stopListening();
@@ -432,7 +432,7 @@ describe('Backbone.View', () => {
   });
 
   it('Provide function for el.', () => {
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       el() {
         return '<p><a></a></p>';
       }
@@ -446,7 +446,7 @@ describe('Backbone.View', () => {
   it('events passed in options', () => {
     var counter = 0;
 
-    class View extends Backbone.View {
+    class View extends Ostov.View {
       increment() {
         counter++;
       }
@@ -464,7 +464,7 @@ describe('Backbone.View', () => {
   });
 
   it('remove', () => {
-    var myView = new Backbone.View;
+    var myView = new Ostov.View;
     document.body.appendChild(view.el);
 
     myView.delegate('click', function() { throw new Error('should not fire'); });
@@ -481,7 +481,7 @@ describe('Backbone.View', () => {
   it('setElement', () => {
     var oldClicked = false;
     var newClicked = false;
-    var myView = new Backbone.View({
+    var myView = new Ostov.View({
       events: {
         click: function() { oldClicked = true; }
       }

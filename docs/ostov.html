@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>backbone.js</title>
+  <title>ostov.js</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -15,7 +15,7 @@
         
           <li id="title">
               <div class="annotation">
-                  <h1>backbone.js</h1>
+                  <h1>ostov.js</h1>
               </div>
           </li>
         
@@ -27,7 +27,7 @@
               <div class="sswrap ">
                 <a class="ss" href="#section-1">&#x00a7;</a>
               </div>
-              <pre><code><span class="hljs-title class_">Backbone</span>.<span class="hljs-property">js</span> <span class="hljs-number">1.6</span><span class="hljs-number">.1</span>
+              <pre><code><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">js</span> <span class="hljs-number">1.6</span><span class="hljs-number">.1</span>
 </code></pre>
 
             </div>
@@ -42,7 +42,7 @@
                 <a class="ss" href="#section-2">&#x00a7;</a>
               </div>
               <pre><code>(c) <span class="hljs-number">2010</span>-<span class="hljs-number">2024</span> <span class="hljs-title class_">Jeremy</span> <span class="hljs-title class_">Ashkenas</span> and <span class="hljs-title class_">DocumentCloud</span>
-<span class="hljs-title class_">Backbone</span> may be freely distributed under the <span class="hljs-variable constant_">MIT</span> license.
+<span class="hljs-title class_">Ostov</span> may be freely distributed under the <span class="hljs-variable constant_">MIT</span> license.
 <span class="hljs-title class_">For</span> all details and <span class="hljs-attr">documentation</span>:
 <span class="hljs-attr">http</span>:<span class="hljs-comment">//backbonejs.org</span>
 </code></pre>
@@ -78,7 +78,7 @@ We use <code>self</code> instead of <code>window</code> for <code>WebWorker</cod
               <div class="sswrap ">
                 <a class="ss" href="#section-4">&#x00a7;</a>
               </div>
-              <p>Set up Backbone appropriately for the environment. Start with AMD.</p>
+              <p>Set up Ostov appropriately for the environment. Start with AMD.</p>
 
             </div>
             
@@ -95,11 +95,11 @@ We use <code>self</code> instead of <code>window</code> for <code>WebWorker</cod
                 <a class="ss" href="#section-5">&#x00a7;</a>
               </div>
               <p>Export global even in AMD case in case this script is loaded with
-others that may still expect a global Backbone.</p>
+others that may still expect a global Ostov.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      root.<span class="hljs-property">Backbone</span> = <span class="hljs-title function_">factory</span>(root, <span class="hljs-built_in">exports</span>, _, $);
+            <div class="content"><div class='highlight'><pre>      root.<span class="hljs-property">Ostov</span> = <span class="hljs-title function_">factory</span>(root, <span class="hljs-built_in">exports</span>, _, $);
     });</pre></div></div>
             
         </li>
@@ -134,10 +134,10 @@ others that may still expect a global Backbone.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>  } <span class="hljs-keyword">else</span> {
-    root.<span class="hljs-property">Backbone</span> = <span class="hljs-title function_">factory</span>(root, {}, root.<span class="hljs-property">_</span>, root.<span class="hljs-property">jQuery</span> || root.<span class="hljs-property">Zepto</span> || root.<span class="hljs-property">ender</span> || root.<span class="hljs-property">$</span>);
+    root.<span class="hljs-property">Ostov</span> = <span class="hljs-title function_">factory</span>(root, {}, root.<span class="hljs-property">_</span>, root.<span class="hljs-property">jQuery</span> || root.<span class="hljs-property">Zepto</span> || root.<span class="hljs-property">ender</span> || root.<span class="hljs-property">$</span>);
   }
 
-})(<span class="hljs-keyword">function</span>(<span class="hljs-params">root, Backbone, _, $</span>) {</pre></div></div>
+})(<span class="hljs-keyword">function</span>(<span class="hljs-params">root, Ostov, _, $</span>) {</pre></div></div>
             
         </li>
         
@@ -173,12 +173,12 @@ others that may still expect a global Backbone.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-10">&#x00a7;</a>
               </div>
-              <p>Save the previous value of the <code>Backbone</code> variable, so that it can be
+              <p>Save the previous value of the <code>Ostov</code> variable, so that it can be
 restored later on, if <code>noConflict</code> is used.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> previousBackbone = root.<span class="hljs-property">Backbone</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> previousBackbone = root.<span class="hljs-property">Ostov</span>;</pre></div></div>
             
         </li>
         
@@ -208,7 +208,7 @@ restored later on, if <code>noConflict</code> is used.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">VERSION</span> = <span class="hljs-string">&#x27;1.6.1&#x27;</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">VERSION</span> = <span class="hljs-string">&#x27;1.6.1&#x27;</span>;</pre></div></div>
             
         </li>
         
@@ -219,12 +219,12 @@ restored later on, if <code>noConflict</code> is used.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-13">&#x00a7;</a>
               </div>
-              <p>For Backbone’s purposes, jQuery, Zepto, Ender, or My Library (kidding) owns
+              <p>For Ostov’s purposes, jQuery, Zepto, Ender, or My Library (kidding) owns
 the <code>$</code> variable.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">$</span> = $;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">$</span> = $;</pre></div></div>
             
         </li>
         
@@ -235,13 +235,13 @@ the <code>$</code> variable.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-14">&#x00a7;</a>
               </div>
-              <p>Runs Backbone.js in <em>noConflict</em> mode, returning the <code>Backbone</code> variable
-to its previous owner. Returns a reference to this Backbone object.</p>
+              <p>Runs Ostov.js in <em>noConflict</em> mode, returning the <code>Ostov</code> variable
+to its previous owner. Returns a reference to this Ostov object.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">noConflict</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
-    root.<span class="hljs-property">Backbone</span> = previousBackbone;
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">noConflict</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    root.<span class="hljs-property">Ostov</span> = previousBackbone;
     <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
   };</pre></div></div>
             
@@ -260,7 +260,7 @@ set a <code>X-Http-Method-Override</code> header.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">emulateHTTP</span> = <span class="hljs-literal">false</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">emulateHTTP</span> = <span class="hljs-literal">false</span>;</pre></div></div>
             
         </li>
         
@@ -278,7 +278,7 @@ form param named <code>model</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">emulateJSON</span> = <span class="hljs-literal">false</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">emulateJSON</span> = <span class="hljs-literal">false</span>;</pre></div></div>
             
         </li>
         
@@ -289,7 +289,7 @@ form param named <code>model</code>.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-17">&#x00a7;</a>
               </div>
-              <h2 id="backboneevents">Backbone.Events</h2>
+              <h2 id="backboneevents">Ostov.Events</h2>
 
             </div>
             
@@ -319,14 +319,14 @@ a custom event channel. You may bind a callback to an event with <code>on</code>
 remove with <code>off</code>; <code>trigger</code>-ing an event fires all callbacks in
 succession.</p>
 <pre><code><span class="hljs-keyword">var</span> object = {};
-_.<span class="hljs-title function_">extend</span>(object, <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">Events</span>);
+_.<span class="hljs-title function_">extend</span>(object, <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">Events</span>);
 object.<span class="hljs-title function_">on</span>(<span class="hljs-string">&#x27;expand&#x27;</span>, <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>){ <span class="hljs-title function_">alert</span>(<span class="hljs-string">&#x27;expanded&#x27;</span>); });
 object.<span class="hljs-title function_">trigger</span>(<span class="hljs-string">&#x27;expand&#x27;</span>);
 </code></pre>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Events</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">Events</span> = {};</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Events</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">Events</span> = {};</pre></div></div>
             
         </li>
         
@@ -544,7 +544,7 @@ Setup the necessary references to track the listening callbacks.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-31">&#x00a7;</a>
               </div>
-              <p>If the target obj is not Backbone.Events, track events manually.</p>
+              <p>If the target obj is not Ostov.Events, track events manually.</p>
 
             </div>
             
@@ -936,7 +936,7 @@ receive the true name of the event as the first argument).</p>
               </div>
               <p>A difficult-to-believe, but optimized internal dispatch function for
 triggering events. Tries to keep the usual cases speedy (most internal
-Backbone events have 3 arguments).</p>
+Ostov events have 3 arguments).</p>
 
             </div>
             
@@ -986,7 +986,7 @@ when all callbacks have been offed.</p>
                 <a class="ss" href="#section-51">&#x00a7;</a>
               </div>
               <p>Offs a callback (or several).
-Uses an optimized counter if the listenee uses Backbone.Events.
+Uses an optimized counter if the listenee uses Ostov.Events.
 Otherwise, falls back to manual tracking to support events
 library interop.</p>
 
@@ -1050,12 +1050,12 @@ library interop.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-54">&#x00a7;</a>
               </div>
-              <p>Allow the <code>Backbone</code> object to serve as a global event bus, for folks who
+              <p>Allow the <code>Ostov</code> object to serve as a global event bus, for folks who
 want global “pubsub” in a convenient place.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  _.<span class="hljs-title function_">extend</span>(<span class="hljs-title class_">Backbone</span>, <span class="hljs-title class_">Events</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  _.<span class="hljs-title function_">extend</span>(<span class="hljs-title class_">Ostov</span>, <span class="hljs-title class_">Events</span>);</pre></div></div>
             
         </li>
         
@@ -1066,7 +1066,7 @@ want global “pubsub” in a convenient place.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-55">&#x00a7;</a>
               </div>
-              <h2 id="backbonemodel">Backbone.Model</h2>
+              <h2 id="backbonemodel">Ostov.Model</h2>
 
             </div>
             
@@ -1091,7 +1091,7 @@ want global “pubsub” in a convenient place.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-57">&#x00a7;</a>
               </div>
-              <p>Backbone <strong>Models</strong> are the basic data object in the framework –
+              <p>Ostov <strong>Models</strong> are the basic data object in the framework –
 frequently representing a row in a table in a database on your server.
 A discrete chunk of data and a bunch of useful, related methods for
 performing computations and transformations on that data.</p>
@@ -1112,7 +1112,7 @@ is automatically generated and assigned for you.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Model</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">Model</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">attributes, options</span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Model</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">Model</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">attributes, options</span>) {
     <span class="hljs-keyword">var</span> attrs = attributes || {};
     options || (options = {});
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">preinitialize</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
@@ -1278,13 +1278,13 @@ initialization logic.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-68">&#x00a7;</a>
               </div>
-              <p>Proxy <code>Backbone.sync</code> by default – but override this if you need
+              <p>Proxy <code>Ostov.sync</code> by default – but override this if you need
 custom syncing semantics for <em>this</em> particular model.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-attr">sync</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
-      <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">sync</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
+      <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">sync</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
     },</pre></div></div>
             
         </li>
@@ -1878,7 +1878,7 @@ If <code>wait: true</code> is passed, waits for the server to respond before rem
                 <a class="ss" href="#section-96">&#x00a7;</a>
               </div>
               <p>Default URL for the model’s representation on the server – if you’re
-using Backbone’s restful methods, override this to change the endpoint
+using Ostov’s restful methods, override this to change the endpoint
 that will be called.</p>
 
             </div>
@@ -1996,7 +1996,7 @@ returning <code>true</code> if all is well. Otherwise, fire an <code>&quot;inval
               <div class="sswrap ">
                 <a class="ss" href="#section-102">&#x00a7;</a>
               </div>
-              <h2 id="backbonecollection">Backbone.Collection</h2>
+              <h2 id="backbonecollection">Ostov.Collection</h2>
 
             </div>
             
@@ -2021,7 +2021,7 @@ returning <code>true</code> if all is well. Otherwise, fire an <code>&quot;inval
               <div class="sswrap ">
                 <a class="ss" href="#section-104">&#x00a7;</a>
               </div>
-              <p>If models tend to represent a single row of data, a Backbone Collection is
+              <p>If models tend to represent a single row of data, a Ostov Collection is
 more analogous to a table full of data … or a small slice or page of that
 table, or a collection of rows that belong together for a particular reason
 – all of the messages in this particular folder, all of the documents
@@ -2045,7 +2045,7 @@ its models in sort order, as they’re added and removed.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Collection</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">Collection</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">models, options</span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Collection</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">Collection</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">models, options</span>) {
     options || (options = {});
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">preinitialize</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
     <span class="hljs-keyword">if</span> (options.<span class="hljs-property">model</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">model</span> = options.<span class="hljs-property">model</span>;
@@ -2118,7 +2118,7 @@ its models in sort order, as they’re added and removed.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-109">&#x00a7;</a>
               </div>
-              <p>The default model for a collection is just a <strong>Backbone.Model</strong>.
+              <p>The default model for a collection is just a <strong>Ostov.Model</strong>.
 This should be overridden in most cases.</p>
 
             </div>
@@ -2184,12 +2184,12 @@ models’ attributes.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-113">&#x00a7;</a>
               </div>
-              <p>Proxy <code>Backbone.sync</code> by default.</p>
+              <p>Proxy <code>Ostov.sync</code> by default.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-attr">sync</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
-      <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">sync</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
+      <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">sync</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
     },</pre></div></div>
             
         </li>
@@ -2201,7 +2201,7 @@ models’ attributes.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-114">&#x00a7;</a>
               </div>
-              <p>Add a model, or list of models to the set. <code>models</code> may be Backbone
+              <p>Add a model, or list of models to the set. <code>models</code> may be Ostov
 Models or raw JavaScript objects to be converted to Models, or any
 combination of the two.</p>
 
@@ -3229,7 +3229,7 @@ In modern ES2015 browsers, this value is found at Symbol.iterator.</p>
               </div>
               <p>A CollectionIterator implements JavaScript’s Iterator protocol, allowing the
 use of <code>for of</code> loops in modern browsers and interoperation between
-Backbone.Collection and other JavaScript functions and third-party libraries
+Ostov.Collection and other JavaScript functions and third-party libraries
 which can operate on Iterables.</p>
 
             </div>
@@ -3354,7 +3354,7 @@ calls to the next method always return done.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-168">&#x00a7;</a>
               </div>
-              <h2 id="backboneview">Backbone.View</h2>
+              <h2 id="backboneview">Ostov.View</h2>
 
             </div>
             
@@ -3379,7 +3379,7 @@ calls to the next method always return done.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-170">&#x00a7;</a>
               </div>
-              <p>Backbone Views are almost more convention than they are actual code. A View
+              <p>Ostov Views are almost more convention than they are actual code. A View
 is simply a JavaScript object that represents a logical chunk of UI in the
 DOM. This might be a single item, an entire list, a sidebar or panel, or
 even the surrounding frame which wraps your whole app. Defining a chunk of
@@ -3398,12 +3398,12 @@ react to specific changes in the state of your models.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-171">&#x00a7;</a>
               </div>
-              <p>Creating a Backbone.View creates its initial element outside of the DOM,
+              <p>Creating a Ostov.View creates its initial element outside of the DOM,
 if an existing element is not provided…</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">View</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">View</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">View</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">View</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) {
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">cid</span> = _.<span class="hljs-title function_">uniqueId</span>(<span class="hljs-string">&#x27;view&#x27;</span>);
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">preinitialize</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
     _.<span class="hljs-title function_">extend</span>(<span class="hljs-variable language_">this</span>, _.<span class="hljs-title function_">pick</span>(options, viewOptions));
@@ -3450,7 +3450,7 @@ if an existing element is not provided…</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-174">&#x00a7;</a>
               </div>
-              <p>Set up all inheritable <strong>Backbone.View</strong> properties and methods.</p>
+              <p>Set up all inheritable <strong>Ostov.View</strong> properties and methods.</p>
 
             </div>
             
@@ -3550,7 +3550,7 @@ convention is for <strong>render</strong> to always return <code>this</code>.</p
                 <a class="ss" href="#section-180">&#x00a7;</a>
               </div>
               <p>Remove this view by taking the element out of the DOM, and removing any
-applicable Backbone.Events listeners.</p>
+applicable Ostov.Events listeners.</p>
 
             </div>
             
@@ -3618,7 +3618,7 @@ alternative DOM manipulation API and are only required to set the
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-attr">_setElement</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">el</span>) {
-      <span class="hljs-variable language_">this</span>.<span class="hljs-property">$el</span> = el <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">$</span> ? el : <span class="hljs-title class_">Backbone</span>.$(el);
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">$el</span> = el <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">$</span> ? el : <span class="hljs-title class_">Ostov</span>.$(el);
       <span class="hljs-variable language_">this</span>.<span class="hljs-property">el</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">$el</span>[<span class="hljs-number">0</span>];
     },</pre></div></div>
             
@@ -3690,7 +3690,7 @@ using <code>selector</code>). This only works for delegate-able events: not <cod
               </div>
               <p>Clears all callbacks previously bound to the view by <code>delegateEvents</code>.
 You usually don’t need to use this, but may wish to if you have multiple
-Backbone views attached to the same DOM element.</p>
+Ostov views attached to the same DOM element.</p>
 
             </div>
             
@@ -3793,7 +3793,7 @@ subclasses using an alternative DOM manipulation API.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-191">&#x00a7;</a>
               </div>
-              <p>Proxy Backbone class methods to Underscore functions, wrapping the model’s
+              <p>Proxy Ostov class methods to Underscore functions, wrapping the model’s
 <code>attributes</code> object or collection’s <code>models</code> array behind the scenes.</p>
 <p>collection.filter(function(model) { return model.get(‘age’) &gt; 10 });
 collection.each(this.addView);</p>
@@ -3865,7 +3865,7 @@ collection.each(this.addView);</p>
                 <a class="ss" href="#section-193">&#x00a7;</a>
               </div>
               <p>Underscore methods that we want to implement on the Collection.
-90% of the core usefulness of Backbone Collections is actually implemented
+90% of the core usefulness of Ostov Collections is actually implemented
 right here:</p>
 
             </div>
@@ -3938,7 +3938,7 @@ number of arguments they take.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-196">&#x00a7;</a>
               </div>
-              <h2 id="backbonesync">Backbone.sync</h2>
+              <h2 id="backbonesync">Ostov.sync</h2>
 
             </div>
             
@@ -3963,7 +3963,7 @@ number of arguments they take.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-198">&#x00a7;</a>
               </div>
-              <p>Override this function to change the manner in which Backbone persists
+              <p>Override this function to change the manner in which Ostov persists
 models to the server. You will be passed the type of request, and the
 model in question. By default, makes a RESTful Ajax request
 to the model’s <code>url()</code>. Some possible customizations could be:</p>
@@ -3972,7 +3972,7 @@ to the model’s <code>url()</code>. Some possible customizations could be:</p>
 <li>Send up the models as XML instead of JSON.</li>
 <li>Persist models via WebSockets instead of Ajax.</li>
 </ul>
-<p>Turn on <code>Backbone.emulateHTTP</code> in order to send <code>PUT</code> and <code>DELETE</code> requests
+<p>Turn on <code>Ostov.emulateHTTP</code> in order to send <code>PUT</code> and <code>DELETE</code> requests
 as <code>POST</code>, with a <code>_method</code> parameter containing the true HTTP method,
 as well as all requests with the body as <code>application/x-www-form-urlencoded</code>
 instead of <code>application/json</code> with the model in a param named <code>model</code>.
@@ -3981,7 +3981,7 @@ it difficult to read the body of <code>PUT</code> requests.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">sync</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">method, model, options</span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">sync</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">method, model, options</span>) {
     <span class="hljs-keyword">var</span> type = methodMap[method];</pre></div></div>
             
         </li>
@@ -3998,8 +3998,8 @@ it difficult to read the body of <code>PUT</code> requests.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    _.<span class="hljs-title function_">defaults</span>(options || (options = {}), {
-      <span class="hljs-attr">emulateHTTP</span>: <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">emulateHTTP</span>,
-      <span class="hljs-attr">emulateJSON</span>: <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">emulateJSON</span>
+      <span class="hljs-attr">emulateHTTP</span>: <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">emulateHTTP</span>,
+      <span class="hljs-attr">emulateJSON</span>: <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">emulateJSON</span>
     });</pre></div></div>
             
         </li>
@@ -4144,7 +4144,7 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> xhr = options.<span class="hljs-property">xhr</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-title function_">ajax</span>(_.<span class="hljs-title function_">extend</span>(params, options));
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> xhr = options.<span class="hljs-property">xhr</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-title function_">ajax</span>(_.<span class="hljs-title function_">extend</span>(params, options));
     model.<span class="hljs-title function_">trigger</span>(<span class="hljs-string">&#x27;request&#x27;</span>, model, xhr, options);
     <span class="hljs-keyword">return</span> xhr;
   };</pre></div></div>
@@ -4158,7 +4158,7 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-208">&#x00a7;</a>
               </div>
-              <p>Map from CRUD to HTTP for our default <code>Backbone.sync</code> implementation.</p>
+              <p>Map from CRUD to HTTP for our default <code>Ostov.sync</code> implementation.</p>
 
             </div>
             
@@ -4179,13 +4179,13 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-209">&#x00a7;</a>
               </div>
-              <p>Set the default implementation of <code>Backbone.ajax</code> to proxy through to <code>$</code>.
+              <p>Set the default implementation of <code>Ostov.ajax</code> to proxy through to <code>$</code>.
 Override this if you’d like to use a different library.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">ajax</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
-    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">$</span>.<span class="hljs-property">ajax</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-title class_">Backbone</span>.<span class="hljs-property">$</span>, <span class="hljs-variable language_">arguments</span>);
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">ajax</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">$</span>.<span class="hljs-property">ajax</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-title class_">Ostov</span>.<span class="hljs-property">$</span>, <span class="hljs-variable language_">arguments</span>);
   };</pre></div></div>
             
         </li>
@@ -4197,7 +4197,7 @@ Override this if you’d like to use a different library.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-210">&#x00a7;</a>
               </div>
-              <h2 id="backbonerouter">Backbone.Router</h2>
+              <h2 id="backbonerouter">Ostov.Router</h2>
 
             </div>
             
@@ -4227,7 +4227,7 @@ matched. Creating a new one sets its <code>routes</code> hash, if not set static
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Router</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">Router</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">Router</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">Router</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) {
     options || (options = {});
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">preinitialize</span>.<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-variable language_">arguments</span>);
     <span class="hljs-keyword">if</span> (options.<span class="hljs-property">routes</span>) <span class="hljs-variable language_">this</span>.<span class="hljs-property">routes</span> = options.<span class="hljs-property">routes</span>;
@@ -4263,7 +4263,7 @@ parts of route strings.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-214">&#x00a7;</a>
               </div>
-              <p>Set up all inheritable <strong>Backbone.Router</strong> properties and methods.</p>
+              <p>Set up all inheritable <strong>Ostov.Router</strong> properties and methods.</p>
 
             </div>
             
@@ -4326,12 +4326,12 @@ initialization logic.</p>
       }
       <span class="hljs-keyword">if</span> (!callback) callback = <span class="hljs-variable language_">this</span>[name];
       <span class="hljs-keyword">var</span> router = <span class="hljs-variable language_">this</span>;
-      <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">history</span>.<span class="hljs-title function_">route</span>(route, <span class="hljs-keyword">function</span>(<span class="hljs-params">fragment</span>) {
+      <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">history</span>.<span class="hljs-title function_">route</span>(route, <span class="hljs-keyword">function</span>(<span class="hljs-params">fragment</span>) {
         <span class="hljs-keyword">var</span> args = router.<span class="hljs-title function_">_extractParameters</span>(route, fragment);
         <span class="hljs-keyword">if</span> (router.<span class="hljs-title function_">execute</span>(callback, args, name) !== <span class="hljs-literal">false</span>) {
           router.<span class="hljs-property">trigger</span>.<span class="hljs-title function_">apply</span>(router, [<span class="hljs-string">&#x27;route:&#x27;</span> + name].<span class="hljs-title function_">concat</span>(args));
           router.<span class="hljs-title function_">trigger</span>(<span class="hljs-string">&#x27;route&#x27;</span>, name, args);
-          <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">history</span>.<span class="hljs-title function_">trigger</span>(<span class="hljs-string">&#x27;route&#x27;</span>, router, name, args);
+          <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">history</span>.<span class="hljs-title function_">trigger</span>(<span class="hljs-string">&#x27;route&#x27;</span>, router, name, args);
         }
       });
       <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
@@ -4364,12 +4364,12 @@ excellent place to do pre-route setup or post-route cleanup.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-219">&#x00a7;</a>
               </div>
-              <p>Simple proxy to <code>Backbone.history</code> to save a fragment into the history.</p>
+              <p>Simple proxy to <code>Ostov.history</code> to save a fragment into the history.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-attr">navigate</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">fragment, options</span>) {
-      <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">history</span>.<span class="hljs-title function_">navigate</span>(fragment, options);
+      <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">history</span>.<span class="hljs-title function_">navigate</span>(fragment, options);
       <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
     },</pre></div></div>
             
@@ -4382,7 +4382,7 @@ excellent place to do pre-route setup or post-route cleanup.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-220">&#x00a7;</a>
               </div>
-              <p>Bind all defined routes to <code>Backbone.history</code>. We have to reverse the
+              <p>Bind all defined routes to <code>Ostov.history</code>. We have to reverse the
 order of the routes here to support behavior where the most general
 routes can be defined at the bottom of the route map.</p>
 
@@ -4469,7 +4469,7 @@ treated as <code>null</code> to normalize cross-browser behavior.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-224">&#x00a7;</a>
               </div>
-              <h2 id="backbonehistory">Backbone.History</h2>
+              <h2 id="backbonehistory">Ostov.History</h2>
 
             </div>
             
@@ -4502,7 +4502,7 @@ falls back to polling.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">History</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">History</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> <span class="hljs-title class_">History</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">History</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">handlers</span> = [];
     <span class="hljs-variable language_">this</span>.<span class="hljs-property">checkUrl</span> = <span class="hljs-variable language_">this</span>.<span class="hljs-property">checkUrl</span>.<span class="hljs-title function_">bind</span>(<span class="hljs-variable language_">this</span>);</pre></div></div>
             
@@ -4594,7 +4594,7 @@ falls back to polling.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-232">&#x00a7;</a>
               </div>
-              <p>Set up all inheritable <strong>Backbone.History</strong> properties and methods.</p>
+              <p>Set up all inheritable <strong>Ostov.History</strong> properties and methods.</p>
 
             </div>
             
@@ -4769,7 +4769,7 @@ an existing route, and <code>false</code> otherwise.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-attr">start</span>: <span class="hljs-keyword">function</span>(<span class="hljs-params">options</span>) {
-      <span class="hljs-keyword">if</span> (<span class="hljs-title class_">History</span>.<span class="hljs-property">started</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&#x27;Backbone.history has already been started&#x27;</span>);
+      <span class="hljs-keyword">if</span> (<span class="hljs-title class_">History</span>.<span class="hljs-property">started</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&#x27;Ostov.history has already been started&#x27;</span>);
       <span class="hljs-title class_">History</span>.<span class="hljs-property">started</span> = <span class="hljs-literal">true</span>;</pre></div></div>
             
         </li>
@@ -4973,7 +4973,7 @@ support the <code>hashchange</code> event, HTML5 history, or the user wants
               <div class="sswrap ">
                 <a class="ss" href="#section-252">&#x00a7;</a>
               </div>
-              <p>Disable Backbone.history, perhaps temporarily. Not useful in a real app,
+              <p>Disable Ostov.history, perhaps temporarily. Not useful in a real app,
 but possibly useful for unit testing Routers.</p>
 
             </div>
@@ -5387,11 +5387,11 @@ a new one to the browser history.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-274">&#x00a7;</a>
               </div>
-              <p>Create the default Backbone.history.</p>
+              <p>Create the default Ostov.history.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">history</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">History</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">history</span> = <span class="hljs-keyword">new</span> <span class="hljs-title class_">History</span>;</pre></div></div>
             
         </li>
         
@@ -5577,11 +5577,11 @@ external <code>debugInfo</code> function.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">_debug</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">_debug</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) {
     <span class="hljs-keyword">return</span> {<span class="hljs-attr">root</span>: root, <span class="hljs-attr">_</span>: _};
   };
 
-  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>;
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>;
 });</pre></div></div>
             
         </li>

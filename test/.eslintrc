@@ -4,7 +4,7 @@
   },
   "globals": {
     "QUnit": false,
-    "Backbone": true,
+    "Ostov": true,
     "_": true,
     "$": true
   },

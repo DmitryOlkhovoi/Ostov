@@ -41,22 +41,22 @@ _.extend(Location.prototype, {
 
 });
 
-describe('Backbone.Router', function() {
+describe('Ostov.Router', function() {
 
   beforeEach(function() {
     location = new Location('http://example.com');
-    Backbone.history = _.extend(new Backbone.History, {location: location});
+    Ostov.history = _.extend(new Ostov.History, {location: location});
     router = new Router({testing: 101});
-    Backbone.history.interval = 9;
-    Backbone.history.start({pushState: false});
+    Ostov.history.interval = 9;
+    Ostov.history.start({pushState: false});
     lastRoute = null;
     lastArgs = [];
-    Backbone.history.on('route', onRoute);
+    Ostov.history.on('route', onRoute);
   });
 
   afterEach(function() {
-    Backbone.history.stop();
-    Backbone.history.off('route', onRoute);
+    Ostov.history.stop();
+    Ostov.history.off('route', onRoute);
   });
 
   var ExternalObject = {
@@ -68,7 +68,7 @@ describe('Backbone.Router', function() {
   };
   ExternalObject.routingFunction = _.bind(ExternalObject.routingFunction, ExternalObject);
 
-  class Router extends Backbone.Router {
+  class Router extends Ostov.Router {
 
     preinitialize(options) {
       this.testpreinit = 'foo';
@@ -187,7 +187,7 @@ describe('Backbone.Router', function() {
 
   it('routes (simple)', function() {
     location.replace('http://example.com#search/news');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.query).toBe('news');
     expect(router.page).toBeNull();
     expect(lastRoute).toBe('search');
@@ -196,7 +196,7 @@ describe('Backbone.Router', function() {
 
   it('routes (simple, but unicode)', function() {
     location.replace('http://example.com#search/тест');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.query).toBe('тест');
     expect(router.page).toBeNull();
     expect(lastRoute).toBe('search');
@@ -205,50 +205,50 @@ describe('Backbone.Router', function() {
 
   it('routes (two part)', function() {
     location.replace('http://example.com#search/nyc/p10');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.query).toBe('nyc');
     expect(router.page).toBe('10');
   });
 
   it('routes via navigate', function() {
-    Backbone.history.navigate('search/manhattan/p20', {trigger: true});
+    Ostov.history.navigate('search/manhattan/p20', {trigger: true});
     expect(router.query).toBe('manhattan');
     expect(router.page).toBe('20');
   });
 
   it('routes via navigate with params', function() {
-    Backbone.history.navigate('query/test?a=b', {trigger: true});
+    Ostov.history.navigate('query/test?a=b', {trigger: true});
     expect(router.queryArgs).toBe('a=b');
   });
 
   it('routes via navigate for backwards-compatibility', function() {
-    Backbone.history.navigate('search/manhattan/p20', true);
+    Ostov.history.navigate('search/manhattan/p20', true);
     expect(router.query).toBe('manhattan');
     expect(router.page).toBe('20');
   });
 
   it('reports matched route via nagivate', function() {
-    expect(Backbone.history.navigate('search/manhattan/p20', true)).toBeTruthy();
+    expect(Ostov.history.navigate('search/manhattan/p20', true)).toBeTruthy();
   });
 
   it('route precedence via navigate', function() {
     // Check both 0.9.x and backwards-compatibility options
     _.each([{trigger: true}, true], function(options) {
-      Backbone.history.navigate('contacts', options);
+      Ostov.history.navigate('contacts', options);
       expect(router.contact).toBe('index');
-      Backbone.history.navigate('contacts/new', options);
+      Ostov.history.navigate('contacts/new', options);
       expect(router.contact).toBe('new');
-      Backbone.history.navigate('contacts/foo', options);
+      Ostov.history.navigate('contacts/foo', options);
       expect(router.contact).toBe('load');
     });
   });
 
   it('loadUrl is not called for identical routes.', function() {
-    Backbone.history.loadUrl = function() { expect(false).toBeTruthy(); };
+    Ostov.history.loadUrl = function() { expect(false).toBeTruthy(); };
     location.replace('http://example.com#route');
-    Backbone.history.navigate('route');
-    Backbone.history.navigate('/route');
-    Backbone.history.navigate('/route');
+    Ostov.history.navigate('route');
+    Ostov.history.navigate('/route');
+    Ostov.history.navigate('/route');
   });
 
   it('use implicit callback if none provided', function() {
@@ -259,39 +259,39 @@ describe('Backbone.Router', function() {
 
   it('routes via navigate with {replace: true}', function() {
     location.replace('http://example.com#start_here');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     location.replace = function(href) {
       expect(href).toBe(new Location('http://example.com#end_here').href);
     };
-    Backbone.history.navigate('end_here', {replace: true});
+    Ostov.history.navigate('end_here', {replace: true});
   });
 
   it('routes (splats)', function() {
     location.replace('http://example.com#splat/long-list/of/splatted_99args/end');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.args).toBe('long-list/of/splatted_99args');
   });
 
   it('routes (github)', function() {
-    location.replace('http://example.com#backbone/compare/1.0...braddunbar:with/slash');
-    Backbone.history.checkUrl();
-    expect(router.repo).toBe('backbone');
+    location.replace('http://example.com#ostov/compare/1.0...braddunbar:with/slash');
+    Ostov.history.checkUrl();
+    expect(router.repo).toBe('ostov');
     expect(router.from).toBe('1.0');
     expect(router.to).toBe('braddunbar:with/slash');
   });
 
   it('routes (optional)', function() {
     location.replace('http://example.com#optional');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(!router.arg).toBeTruthy();
     location.replace('http://example.com#optional/thing');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.arg).toBe('thing');
   });
 
   it('routes (complex)', function() {
     location.replace('http://example.com#one/two/three/complex-part/four/five/six/seven');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.first).toBe('one/two/three');
     expect(router.part).toBe('part');
     expect(router.rest).toBe('four/five/six/seven');
@@ -299,7 +299,7 @@ describe('Backbone.Router', function() {
 
   it('routes (query)', function() {
     location.replace('http://example.com#query/mandel?a=b&c=d');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.entity).toBe('mandel');
     expect(router.queryArgs).toBe('a=b&c=d');
     expect(lastRoute).toBe('query');
@@ -309,7 +309,7 @@ describe('Backbone.Router', function() {
 
   it('routes (anything)', function() {
     location.replace('http://example.com#doesnt-match-a-route');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.anything).toBe('doesnt-match-a-route');
   });
 
@@ -319,13 +319,13 @@ describe('Backbone.Router', function() {
     });
     expect(ExternalObject.value).toBe('unset');
     location.replace('http://example.com#function/set');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(ExternalObject.value).toBe('set');
   });
 
   it('Decode named parameters, not splats.', function() {
     location.replace('http://example.com#decode/a%2Fb/c%2Fd/e');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.named).toBe('a/b');
     expect(router.path).toBe('c/d/e');
   });
@@ -333,11 +333,11 @@ describe('Backbone.Router', function() {
   it('fires event when router doesn\'t have callback on it', function() {
     router.on('route:noCallback', function() { expect(true).toBeTruthy(); });
     location.replace('http://example.com#noCallback');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('No events are triggered if #execute returns false.', function() {
-    class MyRouter extends Backbone.Router {
+    class MyRouter extends Ostov.Router {
       execute(callback, args) {
         callback.apply(this, args);
         return false;
@@ -355,31 +355,31 @@ describe('Backbone.Router', function() {
       expect(false).toBeTruthy();
     });
 
-    Backbone.history.on('route', function() {
+    Ostov.history.on('route', function() {
       expect(false).toBeTruthy();
     });
 
     location.replace('http://example.com#foo');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('#933, #908 - leading slash', function() {
     location.replace('http://example.com/root/foo');
 
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({root: '/root', hashChange: false, silent: true});
-    expect(Backbone.history.getFragment()).toBe('foo');
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({root: '/root', hashChange: false, silent: true});
+    expect(Ostov.history.getFragment()).toBe('foo');
 
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({root: '/root/', hashChange: false, silent: true});
-    expect(Backbone.history.getFragment()).toBe('foo');
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({root: '/root/', hashChange: false, silent: true});
+    expect(Ostov.history.getFragment()).toBe('foo');
   });
 
   it('#967 - Route callback gets passed encoded values.', function() {
     var route = 'has%2Fslash/complex-has%23hash/has%20space';
-    Backbone.history.navigate(route, {trigger: true});
+    Ostov.history.navigate(route, {trigger: true});
     expect(router.first).toBe('has/slash');
     expect(router.part).toBe('has#hash');
     expect(router.rest).toBe('has space');
@@ -387,53 +387,53 @@ describe('Backbone.Router', function() {
 
   it('correctly handles URLs with % (#868)', function() {
     location.replace('http://example.com#search/fat%3A1.5%25');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     location.replace('http://example.com#search/fat');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.query).toBe('fat');
     expect(router.page).toBeNull();
     expect(lastRoute).toBe('search');
   });
 
   it('#2666 - Hashes with UTF8 in them.', function() {
-    Backbone.history.navigate('charñ', {trigger: true});
+    Ostov.history.navigate('charñ', {trigger: true});
     expect(router.charType).toBe('UTF');
-    Backbone.history.navigate('char%C3%B1', {trigger: true});
+    Ostov.history.navigate('char%C3%B1', {trigger: true});
     expect(router.charType).toBe('UTF');
   });
 
   it('#1185 - Use pathname when hashChange is not wanted.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/path/name#hash');
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({hashChange: false});
-    var fragment = Backbone.history.getFragment();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({hashChange: false});
+    var fragment = Ostov.history.getFragment();
     expect(fragment).toBe(location.pathname.replace(/^\//, ''));
   });
 
   it('#1206 - Strip leading slash before location.assign.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root/');
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({hashChange: false, root: '/root/'});
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({hashChange: false, root: '/root/'});
     location.assign = function(pathname) {
       expect(pathname).toBe('/root/fragment');
     };
-    Backbone.history.navigate('/fragment');
+    Ostov.history.navigate('/fragment');
   });
 
   it('#1387 - Root fragment without trailing slash.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root');
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({hashChange: false, root: '/root/', silent: true});
-    expect(Backbone.history.getFragment()).toBe('');
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({hashChange: false, root: '/root/', silent: true});
+    expect(Ostov.history.getFragment()).toBe('');
   });
 
   it('#1366 - History does not prepend root to fragment.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root/');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -441,19 +441,19 @@ describe('Backbone.Router', function() {
         }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       root: '/root/',
       pushState: true,
       hashChange: false
     });
-    Backbone.history.navigate('x');
-    expect(Backbone.history.fragment).toBe('x');
+    Ostov.history.navigate('x');
+    expect(Ostov.history.fragment).toBe('x');
   });
 
   it('Normalize root.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -461,18 +461,18 @@ describe('Backbone.Router', function() {
         }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       pushState: true,
       root: '/root',
       hashChange: false
     });
-    Backbone.history.navigate('fragment');
+    Ostov.history.navigate('fragment');
   });
 
   it('Normalize root. (replaceState)', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root#fragment');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {},
@@ -481,41 +481,41 @@ describe('Backbone.Router', function() {
         }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       pushState: true,
       root: '/root'
     });
   });
 
   it('Normalize root. (loadUrl)', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root');
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.loadUrl = function() { expect(true).toBeTruthy(); };
-    Backbone.history.start({
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.loadUrl = function() { expect(true).toBeTruthy(); };
+    Ostov.history.start({
       pushState: true,
       root: '/root'
     });
   });
 
   it('Normalize root - leading slash.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() {},
         replaceState: function() {}
       }
     });
-    Backbone.history.start({root: 'root'});
-    expect(Backbone.history.root).toBe('/root/');
+    Ostov.history.start({root: 'root'});
+    expect(Ostov.history.root).toBe('/root/');
   });
 
   it('Transition from hashChange to pushState.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root#x/y');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() {},
@@ -524,30 +524,30 @@ describe('Backbone.Router', function() {
         }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       root: 'root',
       pushState: true
     });
   });
 
   it('#1619: Router: Normalize empty root', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() {},
         replaceState: function() {}
       }
     });
-    Backbone.history.start({root: ''});
-    expect(Backbone.history.root).toBe('/');
+    Ostov.history.start({root: ''});
+    expect(Ostov.history.root).toBe('/');
   });
 
   it('#1619: Router: nagivate with empty root', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -555,37 +555,37 @@ describe('Backbone.Router', function() {
         }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       pushState: true,
       root: '',
       hashChange: false
     });
-    Backbone.history.navigate('fragment');
+    Ostov.history.navigate('fragment');
   });
 
   it('Transition from pushState to hashChange.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root/x/y?a=b');
     location.replace = function(url) {
       expect(url).toBe('/root#x/y?a=b');
     };
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: null,
         replaceState: null
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       root: 'root',
       pushState: true
     });
   });
 
   it('#1695 - hashChange to pushState with search.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root#x/y?a=b');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() {},
@@ -594,14 +594,14 @@ describe('Backbone.Router', function() {
         }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       root: 'root',
       pushState: true
     });
   });
 
   it('#1746 - Router allows empty route.', function() {
-    class MyRouter extends Backbone.Router {
+    class MyRouter extends Ostov.Router {
       empty() {}
       route(route) {
         expect(route).toBe('');
@@ -612,21 +612,21 @@ describe('Backbone.Router', function() {
   });
 
   it('#1794 - Trailing space in fragments.', function() {
-    var history = new Backbone.History;
+    var history = new Ostov.History;
     expect(history.getFragment('fragment   ')).toBe('fragment');
   });
 
   it('#1820 - Leading slash and trailing space.', function() {
-    var history = new Backbone.History;
+    var history = new Ostov.History;
     expect(history.getFragment('/fragment ')).toBe('fragment');
   });
 
   it('#1980 - Optional parameters.', function() {
     location.replace('http://example.com#named/optional/y');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.z).toBe(undefined);
     location.replace('http://example.com#named/optional/y123');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
     expect(router.z).toBe('123');
   });
 
@@ -636,11 +636,11 @@ describe('Backbone.Router', function() {
       expect(args).toEqual(['x', null]);
     });
     location.replace('http://example.com#route-event/x');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('#2255 - Extend routes by making routes a function.', function() {
-    class RouterBase extends Backbone.Router {
+    class RouterBase extends Ostov.Router {
     }
     RouterBase.prototype.routes = function() {
       return {
@@ -661,16 +661,16 @@ describe('Backbone.Router', function() {
   });
 
   it('#2538 - hashChange to pushState only if both requested.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root?a=b#x/y');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() {},
         replaceState: function() { expect(false).toBeTruthy(); }
       }
     });
-    Backbone.history.start({
+    Ostov.history.start({
       root: 'root',
       pushState: true,
       hashChange: false
@@ -678,8 +678,8 @@ describe('Backbone.Router', function() {
   });
 
   it('No hash fallback.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() {},
@@ -687,7 +687,7 @@ describe('Backbone.Router', function() {
       }
     });
 
-    class MyRouter extends Backbone.Router {
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       hash: function() { expect(false).toBeTruthy(); }
@@ -695,17 +695,17 @@ describe('Backbone.Router', function() {
     var myRouter = new MyRouter;
 
     location.replace('http://example.com/');
-    Backbone.history.start({
+    Ostov.history.start({
       pushState: true,
       hashChange: false
     });
     location.replace('http://example.com/nomatch#hash');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('#2656 - No trailing slash on root.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -714,13 +714,13 @@ describe('Backbone.Router', function() {
       }
     });
     location.replace('http://example.com/root/path');
-    Backbone.history.start({pushState: true, hashChange: false, root: 'root'});
-    Backbone.history.navigate('');
+    Ostov.history.start({pushState: true, hashChange: false, root: 'root'});
+    Ostov.history.navigate('');
   });
 
   it('#2656 - No trailing slash on root. (no root)', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -729,13 +729,13 @@ describe('Backbone.Router', function() {
       }
     });
     location.replace('http://example.com/path');
-    Backbone.history.start({pushState: true, hashChange: false});
-    Backbone.history.navigate('');
+    Ostov.history.start({pushState: true, hashChange: false});
+    Ostov.history.navigate('');
   });
 
   it('#2656 - No trailing slash on root. (query string)', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -744,13 +744,13 @@ describe('Backbone.Router', function() {
       }
     });
     location.replace('http://example.com/root/path');
-    Backbone.history.start({pushState: true, hashChange: false, root: 'root'});
-    Backbone.history.navigate('?x=1');
+    Ostov.history.start({pushState: true, hashChange: false, root: 'root'});
+    Ostov.history.navigate('?x=1');
   });
 
   it('#3391 - Empty root normalizes to single slash.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -759,13 +759,13 @@ describe('Backbone.Router', function() {
       }
     });
     location.replace('http://example.com/root/path');
-    Backbone.history.start({pushState: true, hashChange: false, root: ''});
-    Backbone.history.navigate('');
+    Ostov.history.start({pushState: true, hashChange: false, root: ''});
+    Ostov.history.navigate('');
   });
 
   it('#3391 - Use trailing slash on root when trailingSlash is true.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -774,13 +774,13 @@ describe('Backbone.Router', function() {
       }
     });
     location.replace('http://example.com/root/path');
-    Backbone.history.start({pushState: true, hashChange: false, root: 'root', trailingSlash: true});
-    Backbone.history.navigate('');
+    Ostov.history.start({pushState: true, hashChange: false, root: 'root', trailingSlash: true});
+    Ostov.history.navigate('');
   });
 
   it('#2765 - Fragment matching sans query/hash.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function(state, title, url) {
@@ -789,7 +789,7 @@ describe('Backbone.Router', function() {
       }
     });
 
-    class MyRouter extends Backbone.Router {
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       path: function() { expect(true).toBeTruthy(); }
@@ -797,12 +797,12 @@ describe('Backbone.Router', function() {
     var myRouter = new MyRouter;
 
     location.replace('http://example.com/');
-    Backbone.history.start({pushState: true, hashChange: false});
-    Backbone.history.navigate('path?query#hash', true);
+    Ostov.history.start({pushState: true, hashChange: false});
+    Ostov.history.navigate('path?query#hash', true);
   });
 
   it('Do not decode the search params.', function() {
-    class MyRouter extends Backbone.Router {
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       path: function(params) {
@@ -810,14 +810,14 @@ describe('Backbone.Router', function() {
       }
     };
     var myRouter = new MyRouter;
-    Backbone.history.navigate('path?x=y%3Fz', true);
+    Ostov.history.navigate('path?x=y%3Fz', true);
   });
 
   it('Navigate to a hash url.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({pushState: true});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({pushState: true});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       path: function(params) {
@@ -826,14 +826,14 @@ describe('Backbone.Router', function() {
     };
     var myRouter = new MyRouter;
     location.replace('http://example.com/path?x=y#hash');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('#navigate to a hash url.', function() {
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.start({pushState: true});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.start({pushState: true});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       path: function(params) {
@@ -841,14 +841,14 @@ describe('Backbone.Router', function() {
       }
     };
     var myRouter = new MyRouter;
-    Backbone.history.navigate('path?x=y#hash', true);
+    Ostov.history.navigate('path?x=y#hash', true);
   });
 
   it('unicode pathname', function() {
     location.replace('http://example.com/myyjä');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       myyjä: function() {
@@ -856,15 +856,15 @@ describe('Backbone.Router', function() {
       }
     };
     new MyRouter;
-    Backbone.history.start({pushState: true});
+    Ostov.history.start({pushState: true});
   });
 
   it('unicode pathname with % in a parameter', function() {
     location.replace('http://example.com/myyjä/foo%20%25%3F%2f%40%25%20bar');
     location.pathname = '/myyj%C3%A4/foo%20%25%3F%2f%40%25%20bar';
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       'myyjä/:query': function(query) {
@@ -872,14 +872,14 @@ describe('Backbone.Router', function() {
       }
     };
     new MyRouter;
-    Backbone.history.start({pushState: true});
+    Ostov.history.start({pushState: true});
   });
 
   it('newline in route', function() {
     location.replace('http://example.com/stuff%0Anonsense?param=foo%0Abar');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       'stuff\nnonsense': function() {
@@ -887,14 +887,14 @@ describe('Backbone.Router', function() {
       }
     };
     new MyRouter;
-    Backbone.history.start({pushState: true});
+    Ostov.history.start({pushState: true});
   });
 
   it('Router#execute receives callback, args, name.', function() {
     location.replace('http://example.com#foo/123/bar?x=y');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
       foo() {}
       execute(callback, args, name) {
         expect(callback).toBe(this.foo);
@@ -904,69 +904,69 @@ describe('Backbone.Router', function() {
     }
     MyRouter.prototype.routes = {'foo/:id/bar': 'foo'};
     var myRouter = new MyRouter;
-    Backbone.history.start();
+    Ostov.history.start();
   });
 
   it('pushState to hashChange with only search params.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com?a=b');
     location.replace = function(url) {
       expect(url).toBe('/#?a=b');
     };
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: null
     });
-    Backbone.history.start({pushState: true});
+    Ostov.history.start({pushState: true});
   });
 
   it('#3123 - History#navigate decodes before comparison.', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/shop/search?keyword=short%20dress');
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: function() { expect(false).toBeTruthy(); },
         replaceState: function() { expect(false).toBeTruthy(); }
       }
     });
-    Backbone.history.start({pushState: true});
-    Backbone.history.navigate('shop/search?keyword=short%20dress', true);
-    expect(Backbone.history.fragment).toBe('shop/search?keyword=short dress');
+    Ostov.history.start({pushState: true});
+    Ostov.history.navigate('shop/search?keyword=short%20dress', true);
+    expect(Ostov.history.fragment).toBe('shop/search?keyword=short dress');
   });
 
   it('#3175 - Urls in the params', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com#login?a=value&backUrl=https%3A%2F%2Fwww.msn.com%2Fidp%2Fidpdemo%3Fspid%3Dspdemo%26target%3Db');
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    var myRouter = new Backbone.Router;
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    var myRouter = new Ostov.Router;
     myRouter.route('login', function(params) {
       expect(params).toBe('a=value&backUrl=https%3A%2F%2Fwww.msn.com%2Fidp%2Fidpdemo%3Fspid%3Dspdemo%26target%3Db');
     });
-    Backbone.history.start();
+    Ostov.history.start();
   });
 
   it('#3358 - pushState to hashChange transition with search params', function() {
-    Backbone.history.stop();
+    Ostov.history.stop();
     location.replace('http://example.com/root?foo=bar');
     location.replace = function(url) {
       expect(url).toBe('/root#?foo=bar');
     };
-    Backbone.history = _.extend(new Backbone.History, {
+    Ostov.history = _.extend(new Ostov.History, {
       location: location,
       history: {
         pushState: undefined,
         replaceState: undefined
       }
     });
-    Backbone.history.start({root: '/root', pushState: true});
+    Ostov.history.start({root: '/root', pushState: true});
   });
 
   it('Paths that don\'t match the root should not match no root', function() {
     location.replace('http://example.com/foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       foo: function() {
@@ -974,14 +974,14 @@ describe('Backbone.Router', function() {
       }
     };
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root', pushState: true});
+    Ostov.history.start({root: 'root', pushState: true});
   });
 
   it('Paths that don\'t match the root should not match roots of the same length', function() {
     location.replace('http://example.com/xxxx/foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {
       foo: function() {
@@ -989,125 +989,125 @@ describe('Backbone.Router', function() {
       }
     };
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root', pushState: true});
+    Ostov.history.start({root: 'root', pushState: true});
   });
 
   it('roots with regex characters', function() {
     location.replace('http://example.com/x+y.z/foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'x+y.z', pushState: true});
+    Ostov.history.start({root: 'x+y.z', pushState: true});
   });
 
   it('roots with unicode characters', function() {
     location.replace('http://example.com/®ooτ/foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: '®ooτ', pushState: true});
+    Ostov.history.start({root: '®ooτ', pushState: true});
   });
 
   it('roots without slash', function() {
     location.replace('http://example.com/®ooτ');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {'': function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: '®ooτ', pushState: true});
+    Ostov.history.start({root: '®ooτ', pushState: true});
   });
 
   it('#4025 - navigate updates URL hash as is', function() {
     var route = 'search/has%20space';
-    Backbone.history.navigate(route);
+    Ostov.history.navigate(route);
     expect(location.hash).toBe('#' + route);
   });
 
   it('initial non-matching root triggers notfound event', function() {
     location.replace('http://example.com/root#foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.on('notfound', function() { expect(true).toBeTruthy(); });
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.on('notfound', function() { expect(true).toBeTruthy(); });
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(false).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'other'});
+    Ostov.history.start({root: 'other'});
   });
 
   it('later non-matching root triggers notfound event', function() {
     location.replace('http://example.com/root#foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.on('notfound', function() { expect(true).toBeTruthy(); });
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.on('notfound', function() { expect(true).toBeTruthy(); });
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root'});
+    Ostov.history.start({root: 'root'});
     location.replace('http://example.com/other#foo');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('initial non-matching route triggers notfound event', function() {
     location.replace('http://example.com/root#bar');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.on('notfound', function() { expect(true).toBeTruthy(); });
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.on('notfound', function() { expect(true).toBeTruthy(); });
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(false).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root'});
+    Ostov.history.start({root: 'root'});
   });
 
   it('later non-matching route triggers notfound event', function() {
     location.replace('http://example.com/root#foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.on('notfound', function() { expect(true).toBeTruthy(); });
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.on('notfound', function() { expect(true).toBeTruthy(); });
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root'});
+    Ostov.history.start({root: 'root'});
     location.replace('http://example.com/other#bar');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('non-matching pushState route triggers notfound event', function() {
     location.replace('http://example.com/root/foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.on('notfound', function() { expect(true).toBeTruthy(); });
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.on('notfound', function() { expect(true).toBeTruthy(); });
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root', pushState: true});
+    Ostov.history.start({root: 'root', pushState: true});
     location.replace('http://example.com/other/bar');
-    Backbone.history.checkUrl();
+    Ostov.history.checkUrl();
   });
 
   it('non-matching navigate triggers notfound event', function() {
     location.replace('http://example.com/root#foo');
-    Backbone.history.stop();
-    Backbone.history = _.extend(new Backbone.History, {location: location});
-    Backbone.history.on('notfound', function() { expect(true).toBeTruthy(); });
-    class MyRouter extends Backbone.Router {
+    Ostov.history.stop();
+    Ostov.history = _.extend(new Ostov.History, {location: location});
+    Ostov.history.on('notfound', function() { expect(true).toBeTruthy(); });
+    class MyRouter extends Ostov.Router {
     }
     MyRouter.prototype.routes = {foo: function() { expect(true).toBeTruthy(); }};
     var myRouter = new MyRouter;
-    Backbone.history.start({root: 'root'});
-    Backbone.history.navigate('http://example.com/other#bar', {trigger: true});
+    Ostov.history.start({root: 'root'});
+    Ostov.history.navigate('http://example.com/other#bar', {trigger: true});
   });
 
 });

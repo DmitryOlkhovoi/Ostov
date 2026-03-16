@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We currently support the following versions of Backbone with security updates:
+We currently support the following versions of Ostov with security updates:
 
 - the latest commit on the `master` branch (published as "edge" on the
   [project website][website]);
@@ -10,8 +10,8 @@ We currently support the following versions of Backbone with security updates:
 - any release tagged as [preview][npm-preview] on npm, if present.
 
 [website]: https://backbonejs.org
-[npm-latest]: https://www.npmjs.com/package/backbone/v/latest
-[npm-preview]: https://www.npmjs.com/package/backbone/v/preview
+[npm-latest]: https://www.npmjs.com/package/ostov/v/latest
+[npm-preview]: https://www.npmjs.com/package/ostov/v/preview
 
 ## Reporting a Vulnerability
 

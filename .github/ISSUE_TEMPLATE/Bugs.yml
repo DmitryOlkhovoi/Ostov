@@ -11,7 +11,7 @@ body:
 
         Is your bug a security issue? In that case, **please do not use this
         form!** Instead, see the [security
-        policy](https://github.com/jashkenas/backbone/security/policy) on how to
+        policy](https://github.com/jashkenas/ostov/security/policy) on how to
         report the issue.\n\n
 
         ## Identification\n\n
@@ -22,9 +22,9 @@ body:
     attributes:
       label: Affected component
       description: >
-        Which part of Backbone is affected? Please be as specific as possible,
+        Which part of Ostov is affected? Please be as specific as possible,
         for example &ldquo;the silent option of Collection.reset&rdquo; or
-        &ldquo;importing Backbone with require.js&rdquo;.
+        &ldquo;importing Ostov with require.js&rdquo;.
       placeholder: the sync event triggered after Model.fetch
     validations:
       required: true
@@ -74,17 +74,17 @@ body:
     attributes:
       label: Software stack
       description: "
-        With which version(s) of Backbone, Underscore/Lodash, jQuery/Zepto,
+        With which version(s) of Ostov, Underscore/Lodash, jQuery/Zepto,
         other relevant libraries or tools, your browser, etcetera, did you
         experience this problem? Please list one per line, including name,
         version number(s) and variant(s) if applicable.\n\n
 
         **Tip:** if you are using the bleeding-edge version of
-        Backbone, much of this information can be obtained by using
-        [debugInfo](https://backbonejs.org/#Utility-Backbone-debugInfo)
+        Ostov, much of this information can be obtained by using
+        [debugInfo](https://backbonejs.org/#Utility-Ostov-debugInfo)
         and copy-pasting its console output below."
       placeholder: "
-        - Backbone 1.4.1 and latest `master` (commit fcf5df6)\n
+        - Ostov 1.4.1 and latest `master` (commit fcf5df6)\n
         - Underscore 1.13.6\n
         - jQuery 3.6.3 (slim build)\n
         - Marionette 4.1.2\n
@@ -94,8 +94,8 @@ body:
         OR (stretch form field to see example content):\n
 
         ```json\n
-        Backbone debug info:  {\n
-        \ \ \"backbone\": \"1.5.0\",\n
+        Ostov debug info:  {\n
+        \ \ \"ostov\": \"1.5.0\",\n
         \ \ \"distribution\": \"MARK_DEVELOPMENT\",\n
         \ \ \"_\": \"lodash 4.17.21\",\n
         \ \ \"$\": \"3.6.0\",\n
@@ -107,7 +107,7 @@ body:
         }\n
         ```\n
 
-        - Backbone `master` checked out on August 10, 2023\n
+        - Ostov `master` checked out on August 10, 2023\n
         - Marionette 4.1.2"
     validations:
       required: true

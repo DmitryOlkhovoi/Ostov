@@ -1,7 +1,7 @@
-//     Backbone.js 1.6.1
+//     Ostov.js 1.6.1
 
 //     (c) 2010-2024 Jeremy Ashkenas and DocumentCloud
-//     Backbone may be freely distributed under the MIT license.
+//     Ostov may be freely distributed under the MIT license.
 //     For all details and documentation:
 //     http://backbonejs.org
 
@@ -17,11 +17,11 @@ const root: Record<string, unknown> =
 // Initial Setup
 // -------------
 
-// Save the previous value of the `Backbone` variable, so that it can be
+// Save the previous value of the `Ostov` variable, so that it can be
 // restored later on, if `noConflict` is used.
-const previousBackbone: unknown = root.Backbone;
+const previousBackbone: unknown = root.Ostov;
 
-// Backbone.Events
+// Ostov.Events
 // ---------------
 
 // A module that can be mixed in to *any object* in order to provide it with
@@ -30,7 +30,7 @@ const previousBackbone: unknown = root.Backbone;
 // succession.
 //
 //     var object = {};
-//     _.extend(object, Backbone.Events);
+//     _.extend(object, Ostov.Events);
 //     object.on('expand', function(){ alert('expanded'); });
 //     object.trigger('expand');
 //
@@ -219,7 +219,7 @@ EventsImpl.listenTo = function(this: any, obj: any, name: string | { [event: str
   _listening = void 0;
 
   if (error) throw error;
-  // If the target obj is not Backbone.Events, track events manually.
+  // If the target obj is not Ostov.Events, track events manually.
   if (listening.interop) listening.on(name, callback);
 
   return this;
@@ -388,7 +388,7 @@ const triggerApi = (objEvents: EventsHash, name: string, _callback: Function | u
 
 // A difficult-to-believe, but optimized internal dispatch function for
 // triggering events. Tries to keep the usual cases speedy (most internal
-// Backbone events have 3 arguments).
+// Ostov events have 3 arguments).
 const triggerEvents = (events: EventHandler[], args: any[]): void => {
   let ev: EventHandler, i = -1;
   const l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
@@ -423,7 +423,7 @@ class Listening {
   }
 
   // Offs a callback (or several).
-  // Uses an optimized counter if the listenee uses Backbone.Events.
+  // Uses an optimized counter if the listenee uses Ostov.Events.
   // Otherwise, falls back to manual tracking to support events
   // library interop.
   off(name?: string, callback?: Function): void {
@@ -452,11 +452,11 @@ class Listening {
 EventsImpl.bind = EventsImpl.on;
 EventsImpl.unbind = EventsImpl.off;
 
-// Allow the `Backbone` object to serve as a global event bus, for folks who
+// Allow the `Ostov` object to serve as a global event bus, for folks who
 // want global "pubsub" in a convenient place.
 const Events: EventsMixin = EventsImpl;
 
-// Base class for all Backbone classes, with Events mixed in.
+// Base class for all Ostov classes, with Events mixed in.
 class BackboneBase {
   // Events mixin properties
   _events?: EventsHash;
@@ -476,10 +476,10 @@ class BackboneBase {
 }
 Object.assign(BackboneBase.prototype, EventsImpl);
 
-// Backbone.Model
+// Ostov.Model
 // --------------
 
-// Backbone **Models** are the basic data object in the framework --
+// Ostov **Models** are the basic data object in the framework --
 // frequently representing a row in a table in a database on your server.
 // A discrete chunk of data and a bunch of useful, related methods for
 // performing computations and transformations on that data.
@@ -519,10 +519,10 @@ class Model extends BackboneBase {
     return _.clone(this.attributes);
   }
 
-  // Proxy `Backbone.sync` by default -- but override this if you need
+  // Proxy `Ostov.sync` by default -- but override this if you need
   // custom syncing semantics for *this* particular model.
   sync(...args: any[]): any {
-    return Backbone.sync.apply(this, args as [string, any, any?]);
+    return Ostov.sync.apply(this, args as [string, any, any?]);
   }
 
   // Get the value of an attribute.
@@ -776,7 +776,7 @@ class Model extends BackboneBase {
   }
 
   // Default URL for the model's representation on the server -- if you're
-  // using Backbone's restful methods, override this to change the endpoint
+  // using Ostov's restful methods, override this to change the endpoint
   // that will be called.
   url(): string {
     const base: string =
@@ -849,10 +849,10 @@ Model.prototype.idAttribute = 'id';
 // The prefix is used to create the client id which is used to identify models locally.
 Model.prototype.cidPrefix = 'c';
 
-// Backbone.Collection
+// Ostov.Collection
 // -------------------
 
-// If models tend to represent a single row of data, a Backbone Collection is
+// If models tend to represent a single row of data, a Ostov Collection is
 // more analogous to a table full of data ... or a small slice or page of that
 // table, or a collection of rows that belong together for a particular reason
 // -- all of the messages in this particular folder, all of the documents
@@ -897,12 +897,12 @@ class Collection extends BackboneBase {
     return this.map((model: Model) => model.toJSON(options));
   }
 
-  // Proxy `Backbone.sync` by default.
+  // Proxy `Ostov.sync` by default.
   sync(...args: any[]): any {
-    return Backbone.sync.apply(this, args as [string, any, any?]);
+    return Ostov.sync.apply(this, args as [string, any, any?]);
   }
 
-  // Add a model, or list of models to the set. `models` may be Backbone
+  // Add a model, or list of models to the set. `models` may be Ostov
   // Models or raw JavaScript objects to be converted to Models, or any
   // combination of the two.
   add(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options?: ModelSetOptions): Model | Model[] {
@@ -1333,7 +1333,7 @@ class Collection extends BackboneBase {
   static mixin: (obj: any) => void;
 }
 
-// The default model for a collection is just a **Backbone.Model**.
+// The default model for a collection is just a **Ostov.Model**.
 // This should be overridden in most cases.
 Collection.prototype.model = Model;
 
@@ -1348,7 +1348,7 @@ if (typeof Symbol === 'function' && Symbol.iterator) {
 
 // A CollectionIterator implements JavaScript's Iterator protocol, allowing the
 // use of `for of` loops in modern browsers and interoperation between
-// Backbone.Collection and other JavaScript functions and third-party libraries
+// Ostov.Collection and other JavaScript functions and third-party libraries
 // which can operate on Iterables.
 
 // This "enum" defines the three possible kinds of values which can be emitted
@@ -1406,10 +1406,10 @@ class CollectionIterator implements Iterator<any> {
   }
 }
 
-// Backbone.View
+// Ostov.View
 // -------------
 
-// Backbone Views are almost more convention than they are actual code. A View
+// Ostov Views are almost more convention than they are actual code. A View
 // is simply a JavaScript object that represents a logical chunk of UI in the
 // DOM. This might be a single item, an entire list, a sidebar or panel, or
 // even the surrounding frame which wraps your whole app. Defining a chunk of
@@ -1435,7 +1435,7 @@ class View extends BackboneBase {
   tagName!: string;
   events?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
 
-  // Creating a Backbone.View creates its initial element outside of the DOM,
+  // Creating a Ostov.View creates its initial element outside of the DOM,
   // if an existing element is not provided...
   constructor(options?: Record<string, unknown>) {
     super();
@@ -1447,11 +1447,11 @@ class View extends BackboneBase {
   }
 
   // Scoped element lookup inside the view's root element.
-  // Returns a Backbone.$-wrapped result when Backbone.$ is set,
+  // Returns a Ostov.$-wrapped result when Ostov.$ is set,
   // otherwise a plain NodeList.
   $(selector: string): any {
     const nodes = this.el.querySelectorAll(selector);
-    return Backbone.$ ? Backbone.$(Array.from(nodes)) : nodes;
+    return Ostov.$ ? Ostov.$(Array.from(nodes)) : nodes;
   }
 
   // **render** is the core function that your view should override, in order
@@ -1462,7 +1462,7 @@ class View extends BackboneBase {
   }
 
   // Remove this view by taking the element out of the DOM, and removing any
-  // applicable Backbone.Events listeners.
+  // applicable Ostov.Events listeners.
   remove(): this {
     this.undelegateEvents();
     this._removeElement();
@@ -1488,7 +1488,7 @@ class View extends BackboneBase {
 
   // Creates the `this.el` and `this.$el` references for this view using the
   // given `el`. `el` can be a CSS selector string or a DOM element.
-  // When Backbone.$ is set, `this.$el` is a wrapped element; otherwise it is
+  // When Ostov.$ is set, `this.$el` is a wrapped element; otherwise it is
   // the same raw DOM element as `this.el`.
   // Subclasses can override this to utilize an alternative DOM manipulation API.
   _setElement(el: any): void {
@@ -1496,7 +1496,7 @@ class View extends BackboneBase {
     // For string selectors that don't match anything, keep el as null/falsy.
     // For non-string values (DOM elements, jQuery-like wrappers), fall back.
     this.el = resolved !== null ? resolved : typeof el !== 'string' ? el : null;
-    this.$el = Backbone.$ ? Backbone.$(this.el) : this.el;
+    this.$el = Ostov.$ ? Ostov.$(this.el) : this.el;
   }
 
   // Set callbacks, where `this.events` is a hash of
@@ -1539,7 +1539,7 @@ class View extends BackboneBase {
 
   // Clears all callbacks previously bound to the view by `delegateEvents`.
   // You usually don't need to use this, but may wish to if you have multiple
-  // Backbone views attached to the same DOM element.
+  // Ostov views attached to the same DOM element.
   undelegateEvents(): this {
     if (this.el) _.dom.off(this.el, '.delegateEvents' + this.cid);
     return this;
@@ -1595,7 +1595,7 @@ class View extends BackboneBase {
 // The default `tagName` of a View's element is `"div"`.
 View.prototype.tagName = 'div';
 
-// Proxy Backbone class methods to Underscore functions, wrapping the model's
+// Proxy Ostov class methods to Underscore functions, wrapping the model's
 // `attributes` object or collection's `models` array behind the scenes.
 //
 // collection.filter(function(model) { return model.get('age') > 10 });
@@ -1635,7 +1635,7 @@ const modelMatcher = (attrs: any): Function => {
 };
 
 // Underscore methods that we want to implement on the Collection.
-// 90% of the core usefulness of Backbone Collections is actually implemented
+// 90% of the core usefulness of Ostov Collections is actually implemented
 // right here:
 const collectionMethods: Record<string, number> = {
   forEach: 3, each: 3, map: 3, collect: 3, reduce: 0,
@@ -1675,10 +1675,10 @@ _.each([
   });
 });
 
-// Backbone.sync
+// Ostov.sync
 // -------------
 
-// Override this function to change the manner in which Backbone persists
+// Override this function to change the manner in which Ostov persists
 // models to the server. You will be passed the type of request, and the
 // model in question. By default, makes a RESTful Ajax request
 // to the model's `url()`. Some possible customizations could be:
@@ -1687,14 +1687,14 @@ _.each([
 // * Send up the models as XML instead of JSON.
 // * Persist models via WebSockets instead of Ajax.
 //
-// Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
+// Turn on `Ostov.emulateHTTP` in order to send `PUT` and `DELETE` requests
 // as `POST`, with a `_method` parameter containing the true HTTP method,
 // as well as all requests with the body as `application/x-www-form-urlencoded`
 // instead of `application/json` with the model in a param named `model`.
 // Useful when interfacing with server-side languages like **PHP** that make
 // it difficult to read the body of `PUT` requests.
 
-// Map from CRUD to HTTP for our default `Backbone.sync` implementation.
+// Map from CRUD to HTTP for our default `Ostov.sync` implementation.
 const methodMap: Record<string, string> = {
   'create': 'POST',
   'update': 'PUT',
@@ -1703,7 +1703,7 @@ const methodMap: Record<string, string> = {
   'read': 'GET'
 };
 
-// Backbone.Router
+// Ostov.Router
 // ---------------
 
 // Routers map faux-URLs to actions, and fire events when routes are
@@ -1741,12 +1741,12 @@ class Router extends BackboneBase {
     }
     if (!callback) callback = (this as any)[name as string];
     const router = this;
-    Backbone.history.route(route, (fragment: string) => {
+    Ostov.history.route(route, (fragment: string) => {
       const args = router._extractParameters(route as RegExp, fragment);
       if (router.execute(callback!, args, name as string) !== false) {
         router.trigger(`route:${name}`, ...args);
         router.trigger('route', name, args);
-        Backbone.history.trigger('route', router, name, args);
+        Ostov.history.trigger('route', router, name, args);
       }
     });
     return this;
@@ -1758,13 +1758,13 @@ class Router extends BackboneBase {
     if (callback) callback.apply(this, args);
   }
 
-  // Simple proxy to `Backbone.history` to save a fragment into the history.
+  // Simple proxy to `Ostov.history` to save a fragment into the history.
   navigate(fragment: string, options?: { trigger?: boolean; replace?: boolean }): this {
-    Backbone.history.navigate(fragment, options);
+    Ostov.history.navigate(fragment, options);
     return this;
   }
 
-  // Bind all defined routes to `Backbone.history`. We have to reverse the
+  // Bind all defined routes to `Ostov.history`. We have to reverse the
   // order of the routes here to support behavior where the most general
   // routes can be defined at the bottom of the route map.
   _bindRoutes(): void {
@@ -1808,7 +1808,7 @@ class Router extends BackboneBase {
   [key: string]: any;
 }
 
-// Backbone.History
+// Ostov.History
 // ----------------
 
 // Handles cross-browser history management, based on either
@@ -1915,7 +1915,7 @@ class History extends BackboneBase {
   // Start the hash change handling, returning `true` if the current URL matches
   // an existing route, and `false` otherwise.
   start(options?: any): any {
-    if (History.started) throw new Error('Backbone.history has already been started');
+    if (History.started) throw new Error('Ostov.history has already been started');
     History.started = true;
 
     // Figure out the initial configuration. Do we need an iframe?
@@ -1988,7 +1988,7 @@ class History extends BackboneBase {
     if (!this.options.silent) return this.loadUrl();
   }
 
-  // Disable Backbone.history, perhaps temporarily. Not useful in a real app,
+  // Disable Ostov.history, perhaps temporarily. Not useful in a real app,
   // but possibly useful for unit testing Routers.
   stop(): void {
     // Add a cross-platform `removeEventListener` shim for older browsers.
@@ -2156,7 +2156,7 @@ const wrapError = (model: Model | Collection, options: SyncOptions): void => {
   };
 };
 
-// The Backbone object
+// The Ostov object
 interface BackboneStatic extends EventsMixin {
   VERSION: string;
   $: any;
@@ -2176,49 +2176,49 @@ interface BackboneStatic extends EventsMixin {
   [key: string]: any;
 }
 
-const Backbone: BackboneStatic = {} as BackboneStatic;
+const Ostov: BackboneStatic = {} as BackboneStatic;
 
 // Current version of the library. Keep in sync with `package.json`.
-Backbone.VERSION = '1.6.1';
+Ostov.VERSION = '1.6.1';
 
-// Backbone.$ can be set to jQuery (or a compatible library) by the user if
-// they want jQuery-powered DOM helpers. Backbone itself no longer requires it.
-Backbone.$ = null;
+// Ostov.$ can be set to jQuery (or a compatible library) by the user if
+// they want jQuery-powered DOM helpers. Ostov itself no longer requires it.
+Ostov.$ = null;
 
-// Runs Backbone.js in *noConflict* mode, returning the `Backbone` variable
-// to its previous owner. Returns a reference to this Backbone object.
-Backbone.noConflict = function(): BackboneStatic {
-  root.Backbone = previousBackbone;
+// Runs Ostov.js in *noConflict* mode, returning the `Ostov` variable
+// to its previous owner. Returns a reference to this Ostov object.
+Ostov.noConflict = function(): BackboneStatic {
+  root.Ostov = previousBackbone;
   return this;
 };
 
 // Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
 // will fake `"PATCH"`, `"PUT"` and `"DELETE"` requests via the `_method` parameter and
 // set a `X-Http-Method-Override` header.
-Backbone.emulateHTTP = false;
+Ostov.emulateHTTP = false;
 
 // Turn on `emulateJSON` to support legacy servers that can't deal with direct
 // `application/json` requests ... this will encode the body as
 // `application/x-www-form-urlencoded` instead and will send the model in a
 // form param named `model`.
-Backbone.emulateJSON = false;
+Ostov.emulateJSON = false;
 
 // Events
-Backbone.Events = EventsImpl;
+Ostov.Events = EventsImpl;
 
-// Allow the `Backbone` object to serve as a global event bus, for folks who
+// Allow the `Ostov` object to serve as a global event bus, for folks who
 // want global "pubsub" in a convenient place.
-_.extend(Backbone, EventsImpl);
+_.extend(Ostov, EventsImpl);
 
-// Backbone.sync
-Backbone.sync = (method: string, model: Model | Collection, options?: SyncOptions): XhrLike => {
+// Ostov.sync
+Ostov.sync = (method: string, model: Model | Collection, options?: SyncOptions): XhrLike => {
   const type: string = methodMap[method];
 
   // Default options, unless specified.
   // Must mutate (not replace) `options` so that `options.xhr` set below
   // is visible to callbacks that closed over the same object in sync callers.
   if (!options) options = {};
-  _.defaults(options, { emulateHTTP: Backbone.emulateHTTP, emulateJSON: Backbone.emulateJSON });
+  _.defaults(options, { emulateHTTP: Ostov.emulateHTTP, emulateJSON: Ostov.emulateJSON });
 
   // Default JSON-request options.
   const params: AjaxOptions = { type: type, dataType: 'json', url: '' };
@@ -2266,16 +2266,16 @@ Backbone.sync = (method: string, model: Model | Collection, options?: SyncOption
   };
 
   // Make the request, allowing the user to override any Ajax options.
-  const xhr = options.xhr = Backbone.ajax(Object.assign(params, options) as AjaxOptions);
+  const xhr = options.xhr = Ostov.ajax(Object.assign(params, options) as AjaxOptions);
   model.trigger('request', model, xhr, options);
   return xhr;
 };
 
-// Default implementation of `Backbone.ajax` using the native Fetch API.
+// Default implementation of `Ostov.ajax` using the native Fetch API.
 // Override this function if you need custom request handling.
-// The options object follows the jQuery.ajax convention used by Backbone.sync:
+// The options object follows the jQuery.ajax convention used by Ostov.sync:
 //   type, url, data, contentType, dataType, beforeSend, success, error, context.
-Backbone.ajax = (options: AjaxOptions): XhrLike => {
+Ostov.ajax = (options: AjaxOptions): XhrLike => {
   const method: string = ((options.type as string) || 'GET').toUpperCase();
   const url: string = options.url;
   const headers: Record<string, string> = {};
@@ -2335,26 +2335,26 @@ Backbone.ajax = (options: AjaxOptions): XhrLike => {
   return xhr;
 };
 
-// Create the default Backbone.history.
-Backbone.history = new History();
+// Create the default Ostov.history.
+Ostov.history = new History();
 
-// Expose classes on Backbone namespace.
-Backbone.Model = Model;
-Backbone.Collection = Collection;
-Backbone.View = View;
-Backbone.Router = Router;
-Backbone.History = History;
+// Expose classes on Ostov namespace.
+Ostov.Model = Model;
+Ostov.Collection = Collection;
+Ostov.View = View;
+Ostov.Router = Router;
+Ostov.History = History;
 
 // Provide useful information when things go wrong. This method is not meant
 // to be used directly; it merely provides the necessary introspection for the
 // external `debugInfo` function.
 // Note: `_` is the built-in utils library (no underscore.js dependency).
-Backbone._debug = (): { root: Record<string, unknown>; _: typeof _ } => {
+Ostov._debug = (): { root: Record<string, unknown>; _: typeof _ } => {
   return { root: root, _: _ };
 };
 
 // Set on globalThis for noConflict support
-root.Backbone = Backbone;
+root.Ostov = Ostov;
 
 export { _, Model, Collection, View, Router, History, Events };
-export default Backbone;
+export default Ostov;

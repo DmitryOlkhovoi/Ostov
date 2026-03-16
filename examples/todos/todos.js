@@ -1,7 +1,7 @@
-// An example Backbone application contributed by
+// An example Ostov application contributed by
 // [Jérôme Gravel-Niquet](http://jgn.me/). This demo uses a simple
-// [LocalStorage adapter](backbone.localStorage.html)
-// to persist Backbone models within your browser.
+// [LocalStorage adapter](ostov.localStorage.html)
+// to persist Ostov models within your browser.
 
 // Load the application once the DOM is ready, using `jQuery.ready`:
 $(function(){
@@ -10,7 +10,7 @@ $(function(){
   // ----------
 
   // Our basic **Todo** model has `title`, `order`, and `done` attributes.
-  var Todo = Backbone.Model.extend({
+  var Todo = Ostov.Model.extend({
 
     // Default attributes for the todo item.
     defaults: function() {
@@ -33,13 +33,13 @@ $(function(){
 
   // The collection of todos is backed by *localStorage* instead of a remote
   // server.
-  var TodoList = Backbone.Collection.extend({
+  var TodoList = Ostov.Collection.extend({
 
     // Reference to this collection's model.
     model: Todo,
 
-    // Save all of the todo items under the `"todos-backbone"` namespace.
-    localStorage: new Backbone.LocalStorage("todos-backbone"),
+    // Save all of the todo items under the `"todos-ostov"` namespace.
+    localStorage: new Ostov.LocalStorage("todos-ostov"),
 
     // Filter down the list of all todo items that are finished.
     done: function() {
@@ -70,7 +70,7 @@ $(function(){
   // --------------
 
   // The DOM element for a todo item...
-  var TodoView = Backbone.View.extend({
+  var TodoView = Ostov.View.extend({
 
     //... is a list tag.
     tagName:  "li",
@@ -141,7 +141,7 @@ $(function(){
   // ---------------
 
   // Our overall **AppView** is the top-level piece of UI.
-  var AppView = Backbone.View.extend({
+  var AppView = Ostov.View.extend({
 
     // Instead of generating a new element, bind to the existing skeleton of
     // the App already present in the HTML.

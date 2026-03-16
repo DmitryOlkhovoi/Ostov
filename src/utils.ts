@@ -1,6 +1,6 @@
-//     Backbone utils.ts
-//     Replaces underscore.js and jQuery for Backbone.js.
-//     Contains only the functions actually used by Backbone.
+//     Ostov utils.ts
+//     Replaces underscore.js and jQuery for Ostov.js.
+//     Contains only the functions actually used by Ostov.
 
 'use strict';
 

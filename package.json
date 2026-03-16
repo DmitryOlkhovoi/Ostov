@@ -1,6 +1,6 @@
 {
-  "name": "backbone",
-  "description": "Give your JS App some Backbone with Models, Views, Collections, and Events.",
+  "name": "ostov",
+  "description": "Give your JS App some Ostov with Models, Views, Collections, and Events.",
   "type": "module",
   "url": "http://backbonejs.org",
   "keywords": [
@@ -34,19 +34,19 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/*.ts",
-    "doc": "docco backbone.js && docco examples/todos/todos.js examples/backbone.localStorage.js",
+    "doc": "docco ostov.js && docco examples/todos/todos.js examples/ostov.localStorage.js",
     "mark-release": "replace-in-file MARK_DEVELOPMENT MARK_RELEASE modules/debug-info.js",
     "mark-develop": "replace-in-file MARK_RELEASE MARK_DEVELOPMENT modules/debug-info.js",
     "prepublishOnly": "npm run test && npm run build"
   },
-  "main": "dist/backbone.js",
-  "module": "dist/backbone.js",
-  "types": "dist/backbone.d.ts",
+  "main": "dist/ostov.js",
+  "module": "dist/ostov.js",
+  "types": "dist/ostov.d.ts",
   "version": "1.6.1",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jashkenas/backbone.git"
+    "url": "https://github.com/jashkenas/ostov.git"
   },
   "files": [
     "dist/",

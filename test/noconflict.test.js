@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
-describe('Backbone.noConflict', () => {
+describe('Ostov.noConflict', () => {
 
   it('noConflict', () => {
-    var noconflictBackbone = Backbone.noConflict();
-    expect(window.Backbone).toBe(undefined);
-    window.Backbone = noconflictBackbone;
-    expect(window.Backbone).toBe(noconflictBackbone);
+    var noconflictBackbone = Ostov.noConflict();
+    expect(window.Ostov).toBe(undefined);
+    window.Ostov = noconflictBackbone;
+    expect(window.Ostov).toBe(noconflictBackbone);
   });
 
 });

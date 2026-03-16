@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-describe('Backbone.sync', () => {
+describe('Ostov.sync', () => {
 
-  class Library extends Backbone.Collection {
+  class Library extends Ostov.Collection {
     url() { return '/library'; }
   }
   var library;
@@ -19,7 +19,7 @@ describe('Backbone.sync', () => {
   });
 
   afterEach(() => {
-    Backbone.emulateHTTP = false;
+    Ostov.emulateHTTP = false;
   });
 
   it('read', () => {
@@ -139,7 +139,7 @@ describe('Backbone.sync', () => {
 
   it('urlError', () => {
     var env = globalThis.env;
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     expect(function() {
       model.fetch();
     }).toThrow();
@@ -148,66 +148,66 @@ describe('Backbone.sync', () => {
   });
 
   it('#1052 - `options` is optional.', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.url = '/test';
-    Backbone.sync('create', model);
+    Ostov.sync('create', model);
   });
 
-  it('Backbone.ajax', () => {
+  it('Ostov.ajax', () => {
     var capturedUrl;
-    Backbone.ajax = function(settings) {
+    Ostov.ajax = function(settings) {
       capturedUrl = settings.url;
     };
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.url = '/test';
-    Backbone.sync('create', model);
+    Ostov.sync('create', model);
     expect(capturedUrl).toBe('/test');
   });
 
   it('Call provided error callback on error.', () => {
     var env = globalThis.env;
     var errorCalled = false;
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.url = '/test';
-    Backbone.sync('read', model, {
+    Ostov.sync('read', model, {
       error: function() { errorCalled = true; }
     });
     env.ajaxSettings.error();
     expect(errorCalled).toBeTruthy();
   });
 
-  it('Use Backbone.emulateHTTP as default.', () => {
+  it('Use Ostov.emulateHTTP as default.', () => {
     var env = globalThis.env;
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.url = '/test';
 
-    Backbone.emulateHTTP = true;
+    Ostov.emulateHTTP = true;
     model.sync('create', model);
     expect(env.ajaxSettings.emulateHTTP).toBe(true);
 
-    Backbone.emulateHTTP = false;
+    Ostov.emulateHTTP = false;
     model.sync('create', model);
     expect(env.ajaxSettings.emulateHTTP).toBe(false);
   });
 
-  it('Use Backbone.emulateJSON as default.', () => {
+  it('Use Ostov.emulateJSON as default.', () => {
     var env = globalThis.env;
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.url = '/test';
 
-    Backbone.emulateJSON = true;
+    Ostov.emulateJSON = true;
     model.sync('create', model);
     expect(env.ajaxSettings.emulateJSON).toBe(true);
 
-    Backbone.emulateJSON = false;
+    Ostov.emulateJSON = false;
     model.sync('create', model);
     expect(env.ajaxSettings.emulateJSON).toBe(false);
   });
 
   it('#1756 - Call user provided beforeSend function.', () => {
     var env = globalThis.env;
-    Backbone.emulateHTTP = true;
-    var model = new Backbone.Model;
+    Ostov.emulateHTTP = true;
+    var model = new Ostov.Model;
     model.url = '/test';
     var headerSet = null;
     var valueSet = null;
@@ -233,7 +233,7 @@ describe('Backbone.sync', () => {
   it('#2928 - Pass along `textStatus` and `errorThrown`.', () => {
     var env = globalThis.env;
     var capturedTextStatus, capturedErrorThrown;
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.url = '/test';
     model.on('error', function(m, xhr, options) {
       capturedTextStatus = options.textStatus;

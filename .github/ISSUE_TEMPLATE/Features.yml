@@ -1,6 +1,6 @@
 name: Feature request
 description: >-
-  Tell us about functionality that you miss in Backbone.
+  Tell us about functionality that you miss in Ostov.
 body:
   - type: markdown
     attributes:
@@ -13,11 +13,11 @@ body:
     attributes:
       label: Ultimate goal
       description: >-
-        This first question is not about Backbone but about the mission that you
-        hope to accomplish with Backbone. What work do you need to get done?
+        This first question is not about Ostov but about the mission that you
+        hope to accomplish with Ostov. What work do you need to get done?
       placeholder: |
         GOOD: I work on an application that needs to ...
-        BAD (later question): I think Backbone.Collection should have a method that ...
+        BAD (later question): I think Ostov.Collection should have a method that ...
     validations:
       required: true
   - type: textarea
@@ -26,12 +26,12 @@ body:
       label: Shortcomings
       description: >-
         Working towards your end goal, what task is currently difficult to
-        achieve with Backbone as it is? Which features in Backbone or other
+        achieve with Ostov as it is? Which features in Ostov or other
         libraries are currently available to you, which do not quite do what you
         need?
       placeholder: |
         In my application, I need to ..., but when I define a
-        Backbone.Collection subclass, there does not seem to be any way to ...
+        Ostov.Collection subclass, there does not seem to be any way to ...
 
         - I could use `Collection.slice`, but ...
         - I could use <some other library>, but ...
@@ -42,7 +42,7 @@ body:
     attributes:
       label: Justification
       description: >-
-        Why do you believe that the missing functionality belongs in Backbone
+        Why do you believe that the missing functionality belongs in Ostov
         proper? Why could or should it not be provided by another library or
         tool?
     validations:

@@ -4,9 +4,9 @@ import terser from '@rollup/plugin-terser';
 export default [
   // Full bundle (readable)
   {
-    input: 'src/backbone.ts',
+    input: 'src/ostov.ts',
     output: {
-      file: 'dist/backbone.js',
+      file: 'dist/ostov.js',
       format: 'es',
       sourcemap: true
     },
@@ -16,9 +16,9 @@ export default [
   },
   // Minified bundle
   {
-    input: 'src/backbone.ts',
+    input: 'src/ostov.ts',
     output: {
-      file: 'dist/backbone.min.js',
+      file: 'dist/ostov.min.js',
       format: 'es',
       sourcemap: true
     },

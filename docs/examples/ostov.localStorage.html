@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>backbone.localStorage.js</title>
+  <title>ostov.localStorage.js</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="../docco.css" />
@@ -20,8 +20,8 @@
             <div id="jump_page">
               
                 
-                <a class="source" href="backbone.localStorage.html">
-                  examples/backbone.localStorage.js
+                <a class="source" href="ostov.localStorage.html">
+                  examples/ostov.localStorage.js
                 </a>
               
                 
@@ -38,7 +38,7 @@
         
           <li id="title">
               <div class="annotation">
-                  <h1>backbone.localStorage.js</h1>
+                  <h1>ostov.localStorage.js</h1>
               </div>
           </li>
         
@@ -54,10 +54,10 @@
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
- * Backbone localStorage Adapter
+ * Ostov localStorage Adapter
  * Version 1.1.0
  *
- * https://github.com/jeromegn/Backbone.localStorage
+ * https://github.com/jeromegn/Ostov.localStorage
  */</span>
 (<span class="hljs-keyword">function</span> (<span class="hljs-params">root, factory</span>) {
    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> define === <span class="hljs-string">&quot;function&quot;</span> &amp;&amp; define.<span class="hljs-property">amd</span>) {</pre></div></div>
@@ -75,7 +75,7 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-title function_">define</span>([<span class="hljs-string">&quot;underscore&quot;</span>,<span class="hljs-string">&quot;backbone&quot;</span>], <span class="hljs-keyword">function</span>(<span class="hljs-params">_, Backbone</span>) {</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-title function_">define</span>([<span class="hljs-string">&quot;underscore&quot;</span>,<span class="hljs-string">&quot;ostov&quot;</span>], <span class="hljs-keyword">function</span>(<span class="hljs-params">_, Ostov</span>) {</pre></div></div>
             
         </li>
         
@@ -90,7 +90,7 @@
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-title function_">factory</span>(_ || root.<span class="hljs-property">_</span>, <span class="hljs-title class_">Backbone</span> || root.<span class="hljs-property">Backbone</span>);
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">return</span> <span class="hljs-title function_">factory</span>(_ || root.<span class="hljs-property">_</span>, <span class="hljs-title class_">Ostov</span> || root.<span class="hljs-property">Ostov</span>);
       });
    } <span class="hljs-keyword">else</span> {</pre></div></div>
             
@@ -103,13 +103,13 @@
               <div class="sswrap ">
                 <a class="ss" href="#section-4">&#x00a7;</a>
               </div>
-              <p>RequireJS isn’t being used. Assume underscore and backbone are loaded in script tags</p>
+              <p>RequireJS isn’t being used. Assume underscore and ostov are loaded in script tags</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-title function_">factory</span>(_, <span class="hljs-title class_">Backbone</span>);
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-title function_">factory</span>(_, <span class="hljs-title class_">Ostov</span>);
    }
-}(<span class="hljs-variable language_">this</span>, <span class="hljs-keyword">function</span>(<span class="hljs-params">_, Backbone</span>) {</pre></div></div>
+}(<span class="hljs-variable language_">this</span>, <span class="hljs-keyword">function</span>(<span class="hljs-params">_, Ostov</span>) {</pre></div></div>
             
         </li>
         
@@ -120,7 +120,7 @@
               <div class="sswrap ">
                 <a class="ss" href="#section-5">&#x00a7;</a>
               </div>
-              <p>A simple module to replace <code>Backbone.sync</code> with <em>localStorage</em>-based
+              <p>A simple module to replace <code>Ostov.sync</code> with <em>localStorage</em>-based
 persistence. Models are given GUIDS, and saved into a JSON object. Simple
 as that.</p>
 
@@ -135,7 +135,7 @@ as that.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-6">&#x00a7;</a>
               </div>
-              <p>Hold reference to Underscore.js and Backbone.js in the closure in order
+              <p>Hold reference to Underscore.js and Ostov.js in the closure in order
 to make things work even if they are removed from the global namespace</p>
 
             </div>
@@ -185,17 +185,17 @@ to make things work even if they are removed from the global namespace</p>
               </div>
               <p>Our Store is represented by a single JS object in <em>localStorage</em>. Create it
 with a meaningful name, like the name you’d give a table.
-window.Store is deprecated, use Backbone.LocalStorage instead</p>
+window.Store is deprecated, use Ostov.LocalStorage instead</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Backbone</span>.<span class="hljs-property">LocalStorage</span> = <span class="hljs-variable language_">window</span>.<span class="hljs-property">Store</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">name</span>) {
+            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">LocalStorage</span> = <span class="hljs-variable language_">window</span>.<span class="hljs-property">Store</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">name</span>) {
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span> = name;
   <span class="hljs-keyword">var</span> store = <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">localStorage</span>().<span class="hljs-title function_">getItem</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">name</span>);
   <span class="hljs-variable language_">this</span>.<span class="hljs-property">records</span> = (store &amp;&amp; store.<span class="hljs-title function_">split</span>(<span class="hljs-string">&quot;,&quot;</span>)) || [];
 };
 
-_.<span class="hljs-title function_">extend</span>(<span class="hljs-title class_">Backbone</span>.<span class="hljs-property">LocalStorage</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>, {</pre></div></div>
+_.<span class="hljs-title function_">extend</span>(<span class="hljs-title class_">Ostov</span>.<span class="hljs-property">LocalStorage</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>, {</pre></div></div>
             
         </li>
         
@@ -356,11 +356,11 @@ have an id of it’s own.</p>
               </div>
               <p>localSync delegate to the model or collection’s
 <em>localStorage</em> property, which should be an instance of <code>Store</code>.
-window.Store.sync and Backbone.localSync is deprecated, use Backbone.LocalStorage.sync instead</p>
+window.Store.sync and Ostov.localSync is deprecated, use Ostov.LocalStorage.sync instead</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Backbone</span>.<span class="hljs-property">LocalStorage</span>.<span class="hljs-property">sync</span> = <span class="hljs-variable language_">window</span>.<span class="hljs-property">Store</span>.<span class="hljs-property">sync</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">localSync</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">method, model, options</span>) {
+            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">LocalStorage</span>.<span class="hljs-property">sync</span> = <span class="hljs-variable language_">window</span>.<span class="hljs-property">Store</span>.<span class="hljs-property">sync</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">localSync</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">method, model, options</span>) {
   <span class="hljs-keyword">var</span> store = model.<span class="hljs-property">localStorage</span> || model.<span class="hljs-property">collection</span>.<span class="hljs-property">localStorage</span>;
 
   <span class="hljs-keyword">var</span> resp, errorMessage, syncDfd = $.<span class="hljs-title class_">Deferred</span> &amp;&amp; $.<span class="hljs-title class_">Deferred</span>(); <span class="hljs-comment">//If $ is having Deferred - use it.</span>
@@ -425,14 +425,14 @@ always execute callback for success and error</p>
   <span class="hljs-keyword">return</span> syncDfd &amp;&amp; syncDfd.<span class="hljs-title function_">promise</span>();
 };
 
-<span class="hljs-title class_">Backbone</span>.<span class="hljs-property">ajaxSync</span> = <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">sync</span>;
+<span class="hljs-title class_">Ostov</span>.<span class="hljs-property">ajaxSync</span> = <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">sync</span>;
 
-<span class="hljs-title class_">Backbone</span>.<span class="hljs-property">getSyncMethod</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">model</span>) {
+<span class="hljs-title class_">Ostov</span>.<span class="hljs-property">getSyncMethod</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">model</span>) {
   <span class="hljs-keyword">if</span>(model.<span class="hljs-property">localStorage</span> || (model.<span class="hljs-property">collection</span> &amp;&amp; model.<span class="hljs-property">collection</span>.<span class="hljs-property">localStorage</span>)) {
-    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">localSync</span>;
+    <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">localSync</span>;
   }
 
-  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">ajaxSync</span>;
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">ajaxSync</span>;
 };</pre></div></div>
             
         </li>
@@ -444,16 +444,16 @@ always execute callback for success and error</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-19">&#x00a7;</a>
               </div>
-              <p>Override ‘Backbone.sync’ to default to localSync,
-the original ‘Backbone.sync’ is still available in ‘Backbone.ajaxSync’</p>
+              <p>Override ‘Ostov.sync’ to default to localSync,
+the original ‘Ostov.sync’ is still available in ‘Ostov.ajaxSync’</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Backbone</span>.<span class="hljs-property">sync</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">method, model, options</span>) {
-  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-title function_">getSyncMethod</span>(model).<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, [method, model, options]);
+            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">sync</span> = <span class="hljs-keyword">function</span>(<span class="hljs-params">method, model, options</span>) {
+  <span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-title function_">getSyncMethod</span>(model).<span class="hljs-title function_">apply</span>(<span class="hljs-variable language_">this</span>, [method, model, options]);
 };
 
-<span class="hljs-keyword">return</span> <span class="hljs-title class_">Backbone</span>.<span class="hljs-property">LocalStorage</span>;
+<span class="hljs-keyword">return</span> <span class="hljs-title class_">Ostov</span>.<span class="hljs-property">LocalStorage</span>;
 }));</pre></div></div>
             
         </li>

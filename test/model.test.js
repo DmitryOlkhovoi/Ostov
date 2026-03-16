@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 
-class ProxyModel extends Backbone.Model {}
-class Klass extends Backbone.Collection {
+class ProxyModel extends Ostov.Model {}
+class Klass extends Ostov.Collection {
   url() { return '/collection'; }
 }
 var doc, collection;
 
-describe('Backbone.Model', () => {
+describe('Ostov.Model', () => {
 
   beforeEach(() => {
     doc = new ProxyModel({
@@ -20,7 +20,7 @@ describe('Backbone.Model', () => {
   });
 
   it('initialize', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       initialize() {
         this.one = 1;
         expect(this.collection).toBe(collection);
@@ -32,12 +32,12 @@ describe('Backbone.Model', () => {
   });
 
   it('Object.prototype properties are overridden by attributes', () => {
-    var model = new Backbone.Model({hasOwnProperty: true});
+    var model = new Ostov.Model({hasOwnProperty: true});
     expect(model.get('hasOwnProperty')).toBe(true);
   });
 
   it('initialize with attributes and options', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       initialize(attributes, options) {
         this.one = options.one;
       }
@@ -47,7 +47,7 @@ describe('Backbone.Model', () => {
   });
 
   it('initialize with parsed attributes', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       parse(attrs) {
         attrs.value += 1;
         return attrs;
@@ -59,7 +59,7 @@ describe('Backbone.Model', () => {
 
 
   it('preinitialize', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       preinitialize() {
         this.one = 1;
       }
@@ -70,7 +70,7 @@ describe('Backbone.Model', () => {
   });
 
   it('preinitialize occurs before the model is set up', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       preinitialize() {
         expect(this.collection).toBe(undefined);
         expect(this.cid).toBe(undefined);
@@ -84,7 +84,7 @@ describe('Backbone.Model', () => {
   });
 
   it('parse can return null', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       parse(attrs) {
         attrs.value += 1;
         return null;
@@ -105,7 +105,7 @@ describe('Backbone.Model', () => {
   });
 
   it('url when using urlRoot, and uri encoding', () => {
-    class Model extends Backbone.Model {}
+    class Model extends Ostov.Model {}
     Model.prototype.urlRoot = '/collection';
     var model = new Model();
     expect(model.url()).toBe('/collection');
@@ -114,7 +114,7 @@ describe('Backbone.Model', () => {
   });
 
   it('url when using urlRoot as a function to determine urlRoot at runtime', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       urlRoot() {
         return '/nested/' + this.get('parentId') + '/collection';
       }
@@ -127,7 +127,7 @@ describe('Backbone.Model', () => {
   });
 
   it('underscore methods', () => {
-    var model = new Backbone.Model({foo: 'a', bar: 'b', baz: 'c'});
+    var model = new Ostov.Model({foo: 'a', bar: 'b', baz: 'c'});
     var model2 = model.clone();
     expect(model.keys()).toEqual(['foo', 'bar', 'baz']);
     expect(model.values()).toEqual(['a', 'b', 'c']);
@@ -137,12 +137,12 @@ describe('Backbone.Model', () => {
   });
 
   it('chain', () => {
-    var model = new Backbone.Model({a: 0, b: 1, c: 2});
+    var model = new Ostov.Model({a: 0, b: 1, c: 2});
     expect(model.chain().pick('a', 'b', 'c').values().compact().value()).toEqual([1, 2]);
   });
 
   it('clone', () => {
-    var a = new Backbone.Model({foo: 1, bar: 2, baz: 3});
+    var a = new Ostov.Model({foo: 1, bar: 2, baz: 3});
     var b = a.clone();
     expect(a.get('foo')).toBe(1);
     expect(a.get('bar')).toBe(2);
@@ -154,23 +154,23 @@ describe('Backbone.Model', () => {
     expect(a.get('foo')).toBe(100);
     expect(b.get('foo')).toBe(1);
 
-    var foo = new Backbone.Model({p: 1});
-    var bar = new Backbone.Model({p: 2});
+    var foo = new Ostov.Model({p: 1});
+    var bar = new Ostov.Model({p: 2});
     bar.set(foo.clone().attributes, {unset: true});
     expect(foo.get('p')).toBe(1);
     expect(bar.get('p')).toBe(undefined);
   });
 
   it('isNew', () => {
-    var a = new Backbone.Model({foo: 1, bar: 2, baz: 3});
+    var a = new Ostov.Model({foo: 1, bar: 2, baz: 3});
     expect(a.isNew()).toBeTruthy();
-    a = new Backbone.Model({foo: 1, bar: 2, baz: 3, id: -5});
+    a = new Ostov.Model({foo: 1, bar: 2, baz: 3, id: -5});
     expect(!a.isNew()).toBeTruthy();
-    a = new Backbone.Model({foo: 1, bar: 2, baz: 3, id: 0});
+    a = new Ostov.Model({foo: 1, bar: 2, baz: 3, id: 0});
     expect(!a.isNew()).toBeTruthy();
-    expect(new Backbone.Model().isNew()).toBeTruthy();
-    expect(!new Backbone.Model({id: 2}).isNew()).toBeTruthy();
-    expect(!new Backbone.Model({id: -5}).isNew()).toBeTruthy();
+    expect(new Ostov.Model().isNew()).toBeTruthy();
+    expect(!new Ostov.Model({id: 2}).isNew()).toBeTruthy();
+    expect(!new Ostov.Model({id: -5}).isNew()).toBeTruthy();
   });
 
   it('get', () => {
@@ -191,7 +191,7 @@ describe('Backbone.Model', () => {
   });
 
   it('has', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
 
     expect(model.has('name')).toBe(false);
 
@@ -221,7 +221,7 @@ describe('Backbone.Model', () => {
   });
 
   it('matches', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
 
     expect(model.matches({name: 'Jonas', cool: true})).toBe(false);
 
@@ -233,7 +233,7 @@ describe('Backbone.Model', () => {
   });
 
   it('matches with predicate', () => {
-    var model = new Backbone.Model({a: 0});
+    var model = new Ostov.Model({a: 0});
 
     expect(model.matches(function(attr) {
       return attr.a > 1 && attr.b != null;
@@ -247,7 +247,7 @@ describe('Backbone.Model', () => {
   });
 
   it('set and unset', () => {
-    var a = new Backbone.Model({id: 'id', foo: 1, bar: 2, baz: 3});
+    var a = new Ostov.Model({id: 'id', foo: 1, bar: 2, baz: 3});
     var changeCount = 0;
     a.on('change:foo', function() { changeCount += 1; });
     a.set({foo: 2});
@@ -272,7 +272,7 @@ describe('Backbone.Model', () => {
 
   it('#2030 - set with failed validate, followed by another set triggers change', () => {
     var attr = 0, main = 0, error = 0;
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       validate(attrs) {
         if (attrs.x > 1) {
           error++;
@@ -290,7 +290,7 @@ describe('Backbone.Model', () => {
 
   it('set triggers changes in the correct order', () => {
     var value = null;
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.on('last', function(){ value = 'last'; });
     model.on('first', function(){ value = 'first'; });
     model.trigger('first');
@@ -299,7 +299,7 @@ describe('Backbone.Model', () => {
   });
 
   it('set falsy values in the correct order', () => {
-    var model = new Backbone.Model({result: 'result'});
+    var model = new Ostov.Model({result: 'result'});
     model.on('change', function() {
       expect(model.changed.result).toBe(void 0);
       expect(model.previous('result')).toBe(false);
@@ -311,7 +311,7 @@ describe('Backbone.Model', () => {
   });
 
   it('nested set triggers with the correct options', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var o1 = {};
     var o2 = {};
     var o3 = {};
@@ -333,7 +333,7 @@ describe('Backbone.Model', () => {
   it('multiple unsets', () => {
     var i = 0;
     var counter = function(){ i++; };
-    var model = new Backbone.Model({a: 1});
+    var model = new Ostov.Model({a: 1});
     model.on('change:a', counter);
     model.set({a: 2});
     model.unset('a');
@@ -342,7 +342,7 @@ describe('Backbone.Model', () => {
   });
 
   it('unset and changedAttributes', () => {
-    var model = new Backbone.Model({a: 1});
+    var model = new Ostov.Model({a: 1});
     model.on('change', function() {
       expect('a' in model.changedAttributes()).toBeTruthy();
     });
@@ -350,7 +350,7 @@ describe('Backbone.Model', () => {
   });
 
   it('using a non-default id attribute.', () => {
-    class MongoModel extends Backbone.Model {}
+    class MongoModel extends Ostov.Model {}
     MongoModel.prototype.idAttribute = '_id';
     var model = new MongoModel({id: 'eye-dee', _id: 25, title: 'Model'});
     expect(model.get('id')).toBe('eye-dee');
@@ -362,16 +362,16 @@ describe('Backbone.Model', () => {
   });
 
   it('setting an alternative cid prefix', () => {
-    class Model extends Backbone.Model {}
+    class Model extends Ostov.Model {}
     Model.prototype.cidPrefix = 'm';
     var model = new Model();
 
     expect(model.cid.charAt(0)).toBe('m');
 
-    model = new Backbone.Model();
+    model = new Ostov.Model();
     expect(model.cid.charAt(0)).toBe('c');
 
-    class Collection extends Backbone.Collection {}
+    class Collection extends Ostov.Collection {}
     Collection.prototype.model = Model;
     var col = new Collection([{id: 'c5'}, {id: 'c6'}, {id: 'c7'}]);
 
@@ -385,13 +385,13 @@ describe('Backbone.Model', () => {
   });
 
   it('set an empty string', () => {
-    var model = new Backbone.Model({name: 'Model'});
+    var model = new Ostov.Model({name: 'Model'});
     model.set({name: ''});
     expect(model.get('name')).toBe('');
   });
 
   it('setting an object', () => {
-    var model = new Backbone.Model({
+    var model = new Ostov.Model({
       custom: {foo: 1}
     });
     model.on('change', function() {
@@ -407,7 +407,7 @@ describe('Backbone.Model', () => {
 
   it('clear', () => {
     var changed;
-    var model = new Backbone.Model({id: 1, name: 'Model'});
+    var model = new Ostov.Model({id: 1, name: 'Model'});
     model.on('change:name', function(){ changed = true; });
     model.on('change', function() {
       var changedAttrs = model.changedAttributes();
@@ -419,7 +419,7 @@ describe('Backbone.Model', () => {
   });
 
   it('defaults', () => {
-    class Defaulted extends Backbone.Model {}
+    class Defaulted extends Ostov.Model {}
     Defaulted.prototype.defaults = {
       one: 1,
       two: 2
@@ -430,7 +430,7 @@ describe('Backbone.Model', () => {
     model = new Defaulted({two: 3});
     expect(model.get('one')).toBe(1);
     expect(model.get('two')).toBe(3);
-    class Defaulted2 extends Backbone.Model {
+    class Defaulted2 extends Ostov.Model {
       defaults() {
         return {
           one: 3,
@@ -441,7 +441,7 @@ describe('Backbone.Model', () => {
     model = new Defaulted2({two: undefined});
     expect(model.get('one')).toBe(3);
     expect(model.get('two')).toBe(4);
-    class Defaulted3 extends Backbone.Model {}
+    class Defaulted3 extends Ostov.Model {}
     Defaulted3.prototype.defaults = {hasOwnProperty: true};
     model = new Defaulted3();
     expect(model.get('hasOwnProperty')).toBe(true);
@@ -452,7 +452,7 @@ describe('Backbone.Model', () => {
   });
 
   it('change, hasChanged, changedAttributes, previous, previousAttributes', () => {
-    var model = new Backbone.Model({name: 'Tim', age: 10});
+    var model = new Ostov.Model({name: 'Tim', age: 10});
     expect(model.changedAttributes()).toEqual(false);
     model.on('change', function() {
       expect(model.hasChanged('name')).toBeTruthy();
@@ -468,7 +468,7 @@ describe('Backbone.Model', () => {
   });
 
   it('changedAttributes', () => {
-    var model = new Backbone.Model({a: 'a', b: 'b'});
+    var model = new Ostov.Model({a: 'a', b: 'b'});
     expect(model.changedAttributes()).toEqual(false);
     expect(model.changedAttributes({a: 'a'})).toBe(false);
     expect(model.changedAttributes({a: 'b'}).a).toBe('b');
@@ -476,7 +476,7 @@ describe('Backbone.Model', () => {
 
   it('change with options', () => {
     var value;
-    var model = new Backbone.Model({name: 'Rob'});
+    var model = new Ostov.Model({name: 'Rob'});
     model.on('change', function(m, options) {
       value = options.prefix + m.get('name');
     });
@@ -489,7 +489,7 @@ describe('Backbone.Model', () => {
   it('change after initialize', () => {
     var changed = 0;
     var attrs = {id: 1, label: 'c'};
-    var obj = new Backbone.Model(attrs);
+    var obj = new Ostov.Model(attrs);
     obj.on('change', function() { changed += 1; });
     obj.set(attrs);
     expect(changed).toBe(0);
@@ -497,7 +497,7 @@ describe('Backbone.Model', () => {
 
   it('save within change event', () => {
     var env = globalThis.env;
-    var model = new Backbone.Model({firstName: 'Taylor', lastName: 'Swift'});
+    var model = new Ostov.Model({firstName: 'Taylor', lastName: 'Swift'});
     model.url = '/test';
     model.on('change', function() {
       model.save();
@@ -507,7 +507,7 @@ describe('Backbone.Model', () => {
   });
 
   it('validate after save', () => {
-    var lastError, model = new Backbone.Model();
+    var lastError, model = new Ostov.Model();
     model.validate = function(attrs) {
       if (attrs.admin) return "Can't change admin status.";
     };
@@ -530,7 +530,7 @@ describe('Backbone.Model', () => {
   });
 
   it('save, fetch, destroy triggers error event when an error occurs', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('error', function() {
       expect(true).toBeTruthy();
     });
@@ -543,7 +543,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#3283 - save, fetch, destroy calls success with context', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var obj = {};
     var options = {
       context: obj,
@@ -560,7 +560,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#3283 - save, fetch, destroy calls error with context', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var obj = {};
     var options = {
       context: obj,
@@ -578,7 +578,7 @@ describe('Backbone.Model', () => {
 
   it('#3470 - save and fetch with parse false', () => {
     var i = 0;
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.parse = function() {
       expect(false).toBeTruthy();
     };
@@ -614,7 +614,7 @@ describe('Backbone.Model', () => {
   });
 
   it('save in positional style', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.sync = function(method, m, options) {
       options.success();
     };
@@ -623,7 +623,7 @@ describe('Backbone.Model', () => {
   });
 
   it('save with non-object success response', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.sync = function(method, m, options) {
       options.success('', options);
       options.success(null, options);
@@ -636,7 +636,7 @@ describe('Backbone.Model', () => {
   });
 
   it('save with wait and supplied id', () => {
-    class Model extends Backbone.Model {}
+    class Model extends Ostov.Model {}
     Model.prototype.urlRoot = '/collection';
     var model = new Model();
     model.save({id: 42}, {wait: true});
@@ -644,10 +644,10 @@ describe('Backbone.Model', () => {
   });
 
   it('save will pass extra options to success callback', () => {
-    class SpecialSyncModel extends Backbone.Model {
+    class SpecialSyncModel extends Ostov.Model {
       sync(method, m, options) {
         _.extend(options, {specialSync: true});
-        return Backbone.Model.prototype.sync.call(this, method, m, options);
+        return Ostov.Model.prototype.sync.call(this, method, m, options);
       }
     }
     SpecialSyncModel.prototype.urlRoot = '/test';
@@ -663,7 +663,7 @@ describe('Backbone.Model', () => {
   });
 
   it('failing save with wait:true triggers error event (#4262)', () => {
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.urlRoot = '/test';
     model.on('error', function() { expect(true).toBeTruthy(); });
     model.save({id: '1'}, {wait: true});
@@ -677,10 +677,10 @@ describe('Backbone.Model', () => {
   });
 
   it('fetch will pass extra options to success callback', () => {
-    class SpecialSyncModel extends Backbone.Model {
+    class SpecialSyncModel extends Ostov.Model {
       sync(method, m, options) {
         _.extend(options, {specialSync: true});
-        return Backbone.Model.prototype.sync.call(this, method, m, options);
+        return Ostov.Model.prototype.sync.call(this, method, m, options);
       }
     }
     SpecialSyncModel.prototype.urlRoot = '/test';
@@ -700,15 +700,15 @@ describe('Backbone.Model', () => {
     expect(globalThis.env.syncArgs.method).toBe('delete');
     expect(_.isEqual(globalThis.env.syncArgs.model, doc)).toBeTruthy();
 
-    var newModel = new Backbone.Model;
+    var newModel = new Ostov.Model;
     expect(newModel.destroy()).toBe(false);
   });
 
   it('destroy will pass extra options to success callback', () => {
-    class SpecialSyncModel extends Backbone.Model {
+    class SpecialSyncModel extends Ostov.Model {
       sync(method, m, options) {
         _.extend(options, {specialSync: true});
-        return Backbone.Model.prototype.sync.call(this, method, m, options);
+        return Ostov.Model.prototype.sync.call(this, method, m, options);
       }
     }
     SpecialSyncModel.prototype.urlRoot = '/test';
@@ -724,7 +724,7 @@ describe('Backbone.Model', () => {
   });
 
   it('non-persisted destroy', () => {
-    var a = new Backbone.Model({foo: 1, bar: 2, baz: 3});
+    var a = new Ostov.Model({foo: 1, bar: 2, baz: 3});
     a.sync = function() { throw 'should not be called'; };
     a.destroy();
     expect(true).toBeTruthy();
@@ -732,7 +732,7 @@ describe('Backbone.Model', () => {
 
   it('validate', () => {
     var lastError;
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.validate = function(attrs) {
       if (attrs.admin !== this.get('admin')) return "Can't change admin status.";
     };
@@ -753,7 +753,7 @@ describe('Backbone.Model', () => {
 
   it('validate on unset and clear', () => {
     var error;
-    var model = new Backbone.Model({name: 'One'});
+    var model = new Ostov.Model({name: 'One'});
     model.validate = function(attrs) {
       if (!attrs.name) {
         error = true;
@@ -775,7 +775,7 @@ describe('Backbone.Model', () => {
 
   it('validate with error callback', () => {
     var lastError, boundError;
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.validate = function(attrs) {
       if (attrs.admin) return "Can't change admin status.";
     };
@@ -795,7 +795,7 @@ describe('Backbone.Model', () => {
   });
 
   it('defaults always extend attrs (#459)', () => {
-    class Defaulted extends Backbone.Model {
+    class Defaulted extends Ostov.Model {
       initialize(attrs, opts) {
         expect(this.attributes.one).toBe(1);
       }
@@ -806,7 +806,7 @@ describe('Backbone.Model', () => {
   });
 
   it('Inherit class properties', () => {
-    class Parent extends Backbone.Model {
+    class Parent extends Ostov.Model {
       instancePropSame() {}
       instancePropDiff() {}
     }
@@ -830,7 +830,7 @@ describe('Backbone.Model', () => {
   });
 
   it("Nested change events don't clobber previous attributes", () => {
-    new Backbone.Model()
+    new Ostov.Model()
     .on('change:state', function(m, newState) {
       expect(m.previous('state')).toBe(undefined);
       expect(newState).toBe('hello');
@@ -845,7 +845,7 @@ describe('Backbone.Model', () => {
   });
 
   it('hasChanged/set should use same comparison', () => {
-    var changed = 0, model = new Backbone.Model({a: null});
+    var changed = 0, model = new Ostov.Model({a: null});
     model.on('change', function() {
       expect(this.hasChanged('a')).toBeTruthy();
     })
@@ -857,7 +857,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#582, #425, change:attribute callbacks should fire after all changes have occurred', () => {
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
 
     var assertion = function() {
       expect(model.get('a')).toBe('a');
@@ -873,38 +873,38 @@ describe('Backbone.Model', () => {
   });
 
   it('#871, set with attributes property', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.set({attributes: true});
     expect(model.has('attributes')).toBeTruthy();
   });
 
   it('set value regardless of equality/change', () => {
-    var model = new Backbone.Model({x: []});
+    var model = new Ostov.Model({x: []});
     var a = [];
     model.set({x: a});
     expect(model.get('x') === a).toBeTruthy();
   });
 
   it('set same value does not trigger change', () => {
-    var model = new Backbone.Model({x: 1});
+    var model = new Ostov.Model({x: 1});
     model.on('change change:x', function() { expect(false).toBeTruthy(); });
     model.set({x: 1});
     model.set({x: 1});
   });
 
   it('unset does not fire a change for undefined attributes', () => {
-    var model = new Backbone.Model({x: undefined});
+    var model = new Ostov.Model({x: undefined});
     model.on('change:x', function(){ expect(false).toBeTruthy(); });
     model.unset('x');
   });
 
   it('set: undefined values', () => {
-    var model = new Backbone.Model({x: undefined});
+    var model = new Ostov.Model({x: undefined});
     expect('x' in model.attributes).toBeTruthy();
   });
 
   it('hasChanged works outside of change events, and true within', () => {
-    var model = new Backbone.Model({x: 1});
+    var model = new Ostov.Model({x: 1});
     model.on('change:x', function() {
       expect(model.hasChanged('x')).toBeTruthy();
       expect(model.get('x')).toBe(1);
@@ -918,7 +918,7 @@ describe('Backbone.Model', () => {
   });
 
   it('hasChanged gets cleared on the following set', () => {
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.set({x: 1});
     expect(model.hasChanged()).toBeTruthy();
     model.set({x: 1});
@@ -930,21 +930,21 @@ describe('Backbone.Model', () => {
   });
 
   it('save with `wait` succeeds without `validate`', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.url = '/test';
     model.save({x: 1}, {wait: true});
     expect(globalThis.env.syncArgs.model === model).toBeTruthy();
   });
 
   it("save without `wait` doesn't set invalid attributes", () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.validate = function() { return 1; };
     model.save({a: 1});
     expect(model.get('a')).toBe(void 0);
   });
 
   it("save doesn't validate twice", () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var times = 0;
     model.sync = function() {};
     model.validate = function() { ++times; };
@@ -953,14 +953,14 @@ describe('Backbone.Model', () => {
   });
 
   it('`hasChanged` for falsey keys', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.set({x: true}, {silent: true});
     expect(!model.hasChanged(0)).toBeTruthy();
     expect(!model.hasChanged('')).toBeTruthy();
   });
 
   it('`previous` for falsey keys', () => {
-    var model = new Backbone.Model({'0': true, '': true});
+    var model = new Ostov.Model({'0': true, '': true});
     model.set({'0': false, '': false}, {silent: true});
     expect(model.previous(0)).toBe(true);
     expect(model.previous('')).toBe(true);
@@ -968,7 +968,7 @@ describe('Backbone.Model', () => {
 
   it('`save` with `wait` sends correct attributes', () => {
     var changed = 0;
-    var model = new Backbone.Model({x: 1, y: 2});
+    var model = new Ostov.Model({x: 1, y: 2});
     model.url = '/test';
     model.on('change:x', function() { changed++; });
     model.save({x: 3}, {wait: true});
@@ -981,14 +981,14 @@ describe('Backbone.Model', () => {
   });
 
   it("a failed `save` with `wait` doesn't leave attributes behind", () => {
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.url = '/test';
     model.save({x: 1}, {wait: true});
     expect(model.get('x')).toBe(void 0);
   });
 
   it('#1030 - `save` with `wait` results in correct attributes if success is called during sync', () => {
-    var model = new Backbone.Model({x: 1, y: 2});
+    var model = new Ostov.Model({x: 1, y: 2});
     model.sync = function(method, m, options) {
       options.success();
     };
@@ -998,14 +998,14 @@ describe('Backbone.Model', () => {
   });
 
   it('save with wait validates attributes', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.url = '/test';
     model.validate = function() { expect(true).toBeTruthy(); };
     model.save({x: 1}, {wait: true});
   });
 
   it('save turns on parse flag', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       sync(method, m, options) { expect(options.parse).toBeTruthy(); }
     }
     new Model().save();
@@ -1013,7 +1013,7 @@ describe('Backbone.Model', () => {
 
   it("nested `set` during `'change:attr'`", () => {
     var events = [];
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('all', function(event) { events.push(event); });
     model.on('change', function() {
       model.set({z: true}, {silent: true});
@@ -1029,7 +1029,7 @@ describe('Backbone.Model', () => {
   });
 
   it('nested `change` only fires once', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change', function() {
       expect(true).toBeTruthy();
       model.set({x: true});
@@ -1039,7 +1039,7 @@ describe('Backbone.Model', () => {
 
   it("nested `set` during `'change'`", () => {
     var count = 0;
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change', function() {
       switch (count++) {
         case 0:
@@ -1065,7 +1065,7 @@ describe('Backbone.Model', () => {
 
   it('nested `change` with silent', () => {
     var count = 0;
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:y', function() { expect(false).toBeTruthy(); });
     model.on('change', function() {
       switch (count++) {
@@ -1089,7 +1089,7 @@ describe('Backbone.Model', () => {
   });
 
   it('nested `change:attr` with silent', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:y', function(){ expect(false).toBeTruthy(); });
     model.on('change', function() {
       model.set({y: true}, {silent: true});
@@ -1099,7 +1099,7 @@ describe('Backbone.Model', () => {
   });
 
   it('multiple nested changes with silent', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:x', function() {
       model.set({y: 1}, {silent: true});
       model.set({y: 2});
@@ -1112,7 +1112,7 @@ describe('Backbone.Model', () => {
 
   it('multiple nested changes with silent', () => {
     var changes = [];
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:b', function(m, val) { changes.push(val); });
     model.on('change', function() {
       model.set({b: 1});
@@ -1122,7 +1122,7 @@ describe('Backbone.Model', () => {
   });
 
   it('basic silent change semantics', () => {
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.set({x: 1});
     model.on('change', function(){ expect(true).toBeTruthy(); });
     model.set({x: 2}, {silent: true});
@@ -1130,7 +1130,7 @@ describe('Backbone.Model', () => {
   });
 
   it('nested set multiple times', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:b', function() {
       expect(true).toBeTruthy();
     });
@@ -1142,21 +1142,21 @@ describe('Backbone.Model', () => {
   });
 
   it('#1122 - clear does not alter options.', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var options = {};
     model.clear(options);
     expect(!options.unset).toBeTruthy();
   });
 
   it('#1122 - unset does not alter options.', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var options = {};
     model.unset('x', options);
     expect(!options.unset).toBeTruthy();
   });
 
   it('#1355 - `options` is passed to success callbacks', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     var opts = {
       success: function( m, resp, options ) {
         expect(options).toBeTruthy();
@@ -1171,7 +1171,7 @@ describe('Backbone.Model', () => {
   });
 
   it("#1412 - Trigger 'sync' event.", () => {
-    var model = new Backbone.Model({id: 1});
+    var model = new Ostov.Model({id: 1});
     model.sync = function(method, m, options) { options.success(); };
     model.on('sync', function(){ expect(true).toBeTruthy(); });
     model.fetch();
@@ -1181,7 +1181,7 @@ describe('Backbone.Model', () => {
 
   it('#1365 - Destroy: New models execute success callback.', () => {
     return new Promise((done) => {
-      new Backbone.Model()
+      new Ostov.Model()
       .on('sync', function() { expect(false).toBeTruthy(); })
       .on('destroy', function(){ expect(true).toBeTruthy(); })
       .destroy({success: function(){
@@ -1192,14 +1192,14 @@ describe('Backbone.Model', () => {
   });
 
   it('#1433 - Save: An invalid model cannot be persisted.', () => {
-    var model = new Backbone.Model;
+    var model = new Ostov.Model;
     model.validate = function(){ return 'invalid'; };
     model.sync = function(){ expect(false).toBeTruthy(); };
     expect(model.save()).toBe(false);
   });
 
   it("#1377 - Save without attrs triggers 'error'.", () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       sync(method, m, options){ options.success(); }
       validate(){ return 'invalid'; }
     }
@@ -1210,7 +1210,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#1545 - `undefined` can be passed to a model constructor without coersion', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       initialize(attrs, opts) {
         expect(attrs).toBe(undefined);
       }
@@ -1222,7 +1222,7 @@ describe('Backbone.Model', () => {
 
   it('#1478 - Model `save` does not trigger change on unchanged attributes', () => {
     return new Promise((done) => {
-      class Model extends Backbone.Model {
+      class Model extends Ostov.Model {
         sync(method, m, options) {
           setTimeout(function(){
             options.success();
@@ -1237,7 +1237,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#1664 - Changing from one value, silently to another, back to original triggers a change.', () => {
-    var model = new Backbone.Model({x: 1});
+    var model = new Ostov.Model({x: 1});
     model.on('change:x', function() { expect(true).toBeTruthy(); });
     model.set({x: 2}, {silent: true});
     model.set({x: 3}, {silent: true});
@@ -1246,7 +1246,7 @@ describe('Backbone.Model', () => {
 
   it('#1664 - multiple silent changes nested inside a change event', () => {
     var changes = [];
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change', function() {
       model.set({a: 'c'}, {silent: true});
       model.set({b: 2}, {silent: true});
@@ -1259,7 +1259,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#1791 - `attributes` is available for `parse`', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       parse() { this.has('a'); } // shouldn't throw an error
     }
     var model = new Model(null, {parse: true});
@@ -1267,7 +1267,7 @@ describe('Backbone.Model', () => {
 
   it('silent changes in last `change` event back to original triggers change', () => {
     var changes = [];
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:a change:b change:c', function(m, val) { changes.push(val); });
     model.on('change', function() {
       model.set({a: 'c'}, {silent: true});
@@ -1279,13 +1279,13 @@ describe('Backbone.Model', () => {
   });
 
   it('#1943 change calculations should use _.isEqual', () => {
-    var model = new Backbone.Model({a: {key: 'value'}});
+    var model = new Ostov.Model({a: {key: 'value'}});
     model.set('a', {key: 'value'}, {silent: true});
     expect(model.changedAttributes()).toBe(false);
   });
 
   it('#1964 - final `change` event is always fired, regardless of interim changes', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change:property', function() {
       model.set('property', 'bar');
     });
@@ -1296,7 +1296,7 @@ describe('Backbone.Model', () => {
   });
 
   it('isValid', () => {
-    var model = new Backbone.Model({valid: true});
+    var model = new Ostov.Model({valid: true});
     model.validate = function(attrs) {
       if (!attrs.valid) return 'invalid';
     };
@@ -1309,19 +1309,19 @@ describe('Backbone.Model', () => {
   });
 
   it('mixin', () => {
-    Backbone.Model.mixin({
+    Ostov.Model.mixin({
       isEqual: function(model1, model2) {
         return _.isEqual(model1, model2.attributes);
       }
     });
 
-    var model1 = new Backbone.Model({
+    var model1 = new Ostov.Model({
       a: {b: 2}, c: 3
     });
-    var model2 = new Backbone.Model({
+    var model2 = new Ostov.Model({
       a: {b: 2}, c: 3
     });
-    var model3 = new Backbone.Model({
+    var model3 = new Ostov.Model({
       a: {b: 4}, c: 3
     });
 
@@ -1331,13 +1331,13 @@ describe('Backbone.Model', () => {
 
 
   it('#1179 - isValid returns true in the absence of validate.', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.validate = null;
     expect(model.isValid()).toBeTruthy();
   });
 
   it('#1961 - Creating a model with {validate:true} will call validate and use the error callback', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       validate(attrs) {
         if (attrs.id === 1) return "This shouldn't happen";
       }
@@ -1347,7 +1347,7 @@ describe('Backbone.Model', () => {
   });
 
   it('toJSON receives attrs during save(..., {wait: true})', () => {
-    class Model extends Backbone.Model {
+    class Model extends Ostov.Model {
       toJSON() {
         expect(this.attributes.x).toBe(1);
         return _.clone(this.attributes);
@@ -1359,7 +1359,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#2034 - nested set with silent only triggers one change', () => {
-    var model = new Backbone.Model();
+    var model = new Ostov.Model();
     model.on('change', function() {
       model.set({b: true}, {silent: true});
       expect(true).toBeTruthy();
@@ -1368,7 +1368,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#3778 - id will only be updated if it is set', () => {
-    var model = new Backbone.Model({id: 1});
+    var model = new Ostov.Model({id: 1});
     model.id = 2;
     model.set({foo: 'bar'});
     expect(model.id).toBe(2);
@@ -1377,7 +1377,7 @@ describe('Backbone.Model', () => {
   });
 
   it('#4289 - Trigger "changeId" need to be generate only if the content id change', () => {
-    var model = new Backbone.Model({id: 1});
+    var model = new Ostov.Model({id: 1});
     model.idAttribute = 'id';
     model.on('changeId', function(m) {
       expect(m.get('id')).toBe(2);

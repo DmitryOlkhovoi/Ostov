@@ -2,14 +2,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Inline the debugInfo function since the module versions depend on
-// resolving 'backbone' as a package, which is not available in tests.
+// resolving 'ostov' as a package, which is not available in tests.
 function debugInfo() {
-  var _b = Backbone._debug(), _ = _b._, root = _b.root;
+  var _b = Ostov._debug(), _ = _b._, root = _b.root;
   var info = {
-    backbone: Backbone.VERSION,
+    ostov: Ostov.VERSION,
     distribution: 'MARK_DEVELOPMENT',
     _: _.VERSION,
-    $: Backbone.$ ? 'custom' : false
+    $: Ostov.$ ? 'custom' : false
   };
   if (typeof root.Deno !== 'undefined') {
     info.deno = _.pick(root.Deno, 'version', 'build');
@@ -18,11 +18,11 @@ function debugInfo() {
   } else if (typeof root.navigator !== 'undefined') {
     info.navigator = _.pick(root.navigator, 'userAgent', 'platform', 'webdriver');
   }
-  console.debug('Backbone debug info: ', JSON.stringify(info, null, 4));
+  console.debug('Ostov debug info: ', JSON.stringify(info, null, 4));
   return info;
 }
 
-describe('Backbone.debugInfo', () => {
+describe('Ostov.debugInfo', () => {
   var logs, originalDebug = console.debug;
 
   function spyDebug() {
@@ -33,21 +33,21 @@ describe('Backbone.debugInfo', () => {
   beforeEach(() => {
     logs = [];
     console.debug = spyDebug;
-    Backbone.debugInfo = debugInfo;
+    Ostov.debugInfo = debugInfo;
   });
 
   afterEach(() => {
     console.debug = originalDebug;
-    delete Backbone.debugInfo;
+    delete Ostov.debugInfo;
     logs = undefined;
   });
 
   it('debugInfo', () => {
-    var info = Backbone.debugInfo();
-    expect(info.backbone).toBe(Backbone.VERSION);
+    var info = Ostov.debugInfo();
+    expect(info.ostov).toBe(Ostov.VERSION);
     expect(info.distribution).toBe('MARK_DEVELOPMENT');
     expect(info._).toBe(_.VERSION);
-    expect(info.$).toBe(Backbone.$ ? 'custom' : false);
+    expect(info.$).toBe(Ostov.$ ? 'custom' : false);
     // In jsdom under Node, root.process is defined, so the process branch
     // is taken instead of navigator. Check whichever branch was selected.
     if (info.navigator) {

@@ -1,7 +1,7 @@
 // Vitest setup file — replaces the old QUnit/Karma environment.
-// Provides global Backbone, _, and $ for all test files.
+// Provides global Ostov, _, and $ for all test files.
 
-import Backbone, { _ } from '../../dist/backbone.js';
+import Ostov, { _ } from '../../dist/ostov.js';
 
 // --- Mini-$ shim (from test/vendor/mini-$.js) ---
 function $(selector) {
@@ -146,18 +146,18 @@ _.debounce = function(fn, wait, immediate) {
 });
 
 // --- Set globals ---
-globalThis.Backbone = Backbone;
+globalThis.Ostov = Ostov;
 globalThis._ = _;
 globalThis.$ = $;
 
-// Set Backbone.$ to use the mini-$ shim
-Backbone.$ = $;
+// Set Ostov.$ to use the mini-$ shim
+Ostov.$ = $;
 
 // --- Per-test environment setup (from test/setup/environment.js) ---
-const originalSync = Backbone.sync;
-const originalAjax = Backbone.ajax;
-const originalEmulateHTTP = Backbone.emulateHTTP;
-const originalEmulateJSON = Backbone.emulateJSON;
+const originalSync = Ostov.sync;
+const originalAjax = Ostov.ajax;
+const originalEmulateHTTP = Ostov.emulateHTTP;
+const originalEmulateJSON = Ostov.emulateJSON;
 
 // Store per-test environment
 globalThis.env = {};
@@ -173,12 +173,12 @@ beforeEach(() => {
   window.history.replaceState = function() {};
 
   // Capture ajax settings for comparison.
-  Backbone.ajax = function(settings) {
+  Ostov.ajax = function(settings) {
     globalThis.env.ajaxSettings = settings;
   };
 
-  // Capture the arguments to Backbone.sync for comparison.
-  Backbone.sync = function(method, model, options) {
+  // Capture the arguments to Ostov.sync for comparison.
+  Ostov.sync = function(method, model, options) {
     globalThis.env.syncArgs = {
       method: method,
       model: model,
@@ -189,9 +189,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  Backbone.sync = originalSync;
-  Backbone.ajax = originalAjax;
-  Backbone.emulateHTTP = originalEmulateHTTP;
-  Backbone.emulateJSON = originalEmulateJSON;
+  Ostov.sync = originalSync;
+  Ostov.ajax = originalAjax;
+  Ostov.emulateHTTP = originalEmulateHTTP;
+  Ostov.emulateJSON = originalEmulateJSON;
   // Note: history.pushState/replaceState will be restored by jsdom between tests
 });
