@@ -67,8 +67,8 @@ body:
         Which documentation, if any, did you base your above expectation on?
         Provide one link per line.
       placeholder: |
-        - https://backbonejs.org/#Model-fetch
-        - https://backbonejs.org/#Events-catalog
+        - https://ostovjs.org/#Model-fetch
+        - https://ostovjs.org/#Events-catalog
   - type: textarea
     id: stack
     attributes:
@@ -81,7 +81,7 @@ body:
 
         **Tip:** if you are using the bleeding-edge version of
         Ostov, much of this information can be obtained by using
-        [debugInfo](https://backbonejs.org/#Utility-Ostov-debugInfo)
+        [debugInfo](https://ostovjs.org/#Utility-Ostov-debugInfo)
         and copy-pasting its console output below."
       placeholder: "
         - Ostov 1.4.1 and latest `master` (commit fcf5df6)\n

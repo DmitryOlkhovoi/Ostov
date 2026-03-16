@@ -1,5 +1,5 @@
 {
-  "name": "ostov",
+  "name": "ostovjs",
   "description": "Give your JS App some Ostov with Models, Views, Collections, and Events.",
   "type": "module",
   "homepage": "https://ostovjs.org",
@@ -42,6 +42,12 @@
   "main": "dist/ostov.js",
   "module": "dist/ostov.js",
   "types": "dist/ostov.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/ostov.js",
+      "types": "./dist/ostov.d.ts"
+    }
+  },
   "version": "1.7.0",
   "license": "MIT",
   "repository": {

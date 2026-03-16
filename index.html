@@ -533,6 +533,16 @@
     <input id="function_filter" placeholder="Filter" type="text" autofocus />
 
     <div class="searchable_section">
+      <a class="toc_title" href="#es-module">
+        ES Module
+      </a>
+      <ul class="toc_section">
+        <li data-name="ES Module Usage">- <a href="#es-module">Usage</a></li>
+        <li data-name="Named Exports">– <a href="#es-module-named">Named Exports</a></li>
+      </ul>
+    </div>
+
+    <div class="searchable_section">
       <a class="toc_title" href="#Getting-started">
         Getting Started
       </a>
@@ -771,18 +781,18 @@
 
     <table>
       <tr>
-        <td><a class="punch" href="dist/ostov.js">Development Version (1.7.0)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Development Version (1.7.0)</a></td>
         <td class="text"><i>Full source, tons of comments</i></td>
       </tr>
       <tr>
-        <td><a class="punch" href="dist/ostov.min.js">Production Version (1.7.0)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js">Production Version (1.7.0)</a></td>
         <td class="text" style="line-height: 16px;">
           <i>Packed and gzipped</i><br />
-          <small>(<a href="dist/ostov.min.js.map">Source Map</a>)</small>
+          <small>(<a href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js.map">Source Map</a>)</small>
         </td>
       </tr>
       <tr>
-        <td><a class="punch" href="https://raw.github.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Edge Version (master)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Edge Version (master)</a></td>
         <td>
           <i>Unreleased, use at your own risk</i>
         </td>
@@ -793,8 +803,91 @@
       Ostov has no hard dependencies — it includes a minimal utility layer.
       For DOM manipulation with <a href="#View">Ostov.View</a>,
       optionally include <b><a href="https://jquery.com/">jQuery</a></b> ( >= 1.11.0) or a compatible library
-      such as <a href="http://zeptojs.com/">Zepto</a>.
+      such as <a href="https://zeptojs.com/">Zepto</a>.
     </p>
+    <h2 id="es-module">ES Module &amp; npm</h2>
+
+    <p>
+      Ostov is available on <b>npm</b> and ships as a native <b>ES module</b> —
+      there is no CommonJS build. Install it once and import directly in any
+      bundler (Vite, Rollup, webpack 5+) or in modern browsers via
+      <tt>&lt;script type="module"&gt;</tt>.
+    </p>
+
+    <pre><code class="bash">npm install ostovjs</code></pre>
+
+    <p>
+      The default export is the <tt>Ostov</tt> namespace object. All major classes are
+      also available as <b>named exports</b> so you can import only what you need and
+      keep your bundle lean.
+    </p>
+
+    <p>
+      <b>Default import — the full namespace:</b>
+    </p>
+    <pre><code class="javascript">import Ostov from 'ostovjs';
+
+const Book = Ostov.Model.extend({
+  defaults: { title: '', author: '' }
+});
+
+const book = new Book({ title: 'Dune', author: 'Herbert' });
+console.log(book.get('title')); // "Dune"</code></pre>
+
+    <p id="es-module-named">
+      <b>Named exports — import only what you need:</b>
+    </p>
+    <pre><code class="javascript">import { Model, Collection, View, Router, Events } from 'ostovjs';
+
+// Model
+const Task = Model.extend({
+  defaults: { done: false, title: '' }
+});
+
+// Collection
+const TaskList = Collection.extend({ model: Task });
+
+const tasks = new TaskList([
+  { title: 'Write docs' },
+  { title: 'Ship it' }
+]);
+
+console.log(tasks.length); // 2</code></pre>
+
+    <p>
+      <b>Direct script tag (global <tt>Ostov</tt> variable):</b>
+    </p>
+    <pre><code class="html">&lt;script src="ostov.js"&gt;&lt;/script&gt;
+
+&lt;script&gt;
+  var Book = Ostov.Model.extend({
+    defaults: { title: '', author: '' }
+  });
+
+  var book = new Book({ title: 'Dune', author: 'Herbert' });
+  console.log(book.get('title')); // "Dune"
+&lt;/script&gt;</code></pre>
+
+    <p>
+      <b>ES module directly in the browser:</b>
+    </p>
+    <pre><code class="html">&lt;script type="module"&gt;
+  import { Model, Collection } from './ostov.js';
+
+  const Task = Model.extend({
+    defaults: { done: false, title: '' }
+  });
+
+  const TaskList = Collection.extend({ model: Task });
+
+  const tasks = new TaskList([
+    { title: 'Write docs' },
+    { title: 'Ship it' }
+  ]);
+
+  console.log(tasks.length); // 2
+&lt;/script&gt;</code></pre>
+
     <h2 id="Getting-started">Getting Started</h2>
 
     <p>
@@ -3828,17 +3921,25 @@ ActiveRecord::Base.include_root_in_json = false
 
     <h2 id="changelog">Change Log</h2>
 
-    <b class="header" id="1.7.0">1.7.0</b> &mdash; <small><i>Apr. 1, 2025</i></small>
-    &mdash; <a href="https://github.com/DmitryOlkhovoi/Ostov/compare/1.6.0...1.7.0">Diff</a>
+    <b class="header" id="1.7.0">1.7.0</b> &mdash; <small><i>2026</i></small>
+    &mdash; <a href="https://github.com/DmitryOlkhovoi/Ostov/compare/1.6.1...1.7.0">Diff</a>
     &mdash; <a href="https://cdn.statically.io/gh/DmitryOlkhovoi/Ostov/1.7.0/index.html">Docs</a>
     <br />
     <ul style="margin-top: 5px;">
       <li>
-        Fixed a bug where the <tt>changeId</tt> event would sometimes fire even
-        though the id of a model did not change.
+        Classes support
       </li>
       <li>
-        Several small changes in the test infrastructure.
+        Typescript
+      </li>
+      <li>
+        ES modules
+      </li>
+      <li>
+        Removed jQuery dependency
+      </li>
+      <li>
+        Removed Underscore dependency
       </li>
     </ul>
 
