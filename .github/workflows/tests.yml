@@ -30,4 +30,5 @@ jobs:
         run: |
           npm ci
           npm install
+          npm run build
           npm run test
