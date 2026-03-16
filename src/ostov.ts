@@ -830,8 +830,21 @@ class Model extends BackboneBase {
   // urlRoot is optional — subclasses may define it
   urlRoot?: string | (() => string);
 
-  // defaults is optional — subclasses may define it
-  defaults?: Record<string, unknown> | (() => Record<string, unknown>);
+  // defaults is optional — subclasses may define it as a class field or prototype property.
+  // Getter/setter enables lazy re-application when class field sets defaults after super().
+  private _instanceDefaults?: Record<string, unknown> | (() => Record<string, unknown>);
+  get defaults(): Record<string, unknown> | (() => Record<string, unknown>) | undefined {
+    return this._instanceDefaults;
+  }
+  set defaults(value: Record<string, unknown> | (() => Record<string, unknown>) | undefined) {
+    this._instanceDefaults = value;
+    const resolved = typeof value === 'function' ? value.call(this) : value;
+    if (resolved && this.attributes) {
+      for (const key in resolved) {
+        if (!(key in this.attributes)) this.attributes[key] = resolved[key];
+      }
+    }
+  }
 
   // Allow any additional proxy methods from underscore
   [key: string]: any;
@@ -875,10 +888,25 @@ const splice = (array: unknown[], insert: unknown[], at: number): void => {
 };
 
 class Collection extends BackboneBase {
-  model!: typeof Model;
+  private _model: typeof Model = Model;
+  get model(): typeof Model { return this._model; }
+  set model(value: typeof Model) {
+    const prev = this._model;
+    this._model = value;
+    if (prev !== value && this.models?.length) {
+      const attrs = this.models.map(m => m.toJSON());
+      this._reset();
+      this.add(attrs, { silent: true });
+    }
+  }
   models!: Model[];
   length!: number;
-  comparator?: string | ((a: Model, b?: Model) => number);
+  private _comparator?: string | ((a: Model, b?: Model) => number);
+  get comparator(): string | ((a: Model, b?: Model) => number) | undefined { return this._comparator; }
+  set comparator(value: string | ((a: Model, b?: Model) => number) | undefined) {
+    this._comparator = value;
+    if (value && this.models?.length) this.sort({ silent: true });
+  }
   _byId!: Record<string, Model>;
 
   constructor(models?: Model[] | Record<string, unknown>[], options: ModelSetOptions & { model?: typeof Model; comparator?: string | ((a: Model, b?: Model) => number) } = {}) {
@@ -1333,10 +1361,6 @@ class Collection extends BackboneBase {
   static mixin: (obj: any) => void;
 }
 
-// The default model for a collection is just a **Ostov.Model**.
-// This should be overridden in most cases.
-Collection.prototype.model = Model;
-
 // Defining an @@iterator method implements JavaScript's Iterable protocol.
 // In modern ES2015 browsers, this value is found at Symbol.iterator.
 if (typeof Symbol === 'function' && Symbol.iterator) {
@@ -1425,7 +1449,19 @@ const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 
 
 class View extends BackboneBase {
   cid!: string;
-  el!: Element | string;
+  private _el: Element | string | null = null;
+  private _elEnsured: boolean = false;
+  get el(): Element {
+    if (!this._elEnsured) {
+      this._elEnsured = true;
+      this._ensureElement();
+    }
+    return this._el as Element;
+  }
+  set el(value: Element | string | null) {
+    this._el = value;
+    if (typeof value === 'string') this._elEnsured = false;
+  }
   $el!: any;
   model?: Model;
   collection?: Collection;
@@ -1442,7 +1478,6 @@ class View extends BackboneBase {
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments as any);
     _.extend(this, _.pick(options || {}, viewOptions));
-    this._ensureElement();
     this.initialize.apply(this, arguments as any);
   }
 
@@ -1541,7 +1576,7 @@ class View extends BackboneBase {
   // You usually don't need to use this, but may wish to if you have multiple
   // Ostov views attached to the same DOM element.
   undelegateEvents(): this {
-    if (this.el) _.dom.off(this.el as Element, '.delegateEvents' + this.cid);
+    if (this._el && typeof this._el !== 'string') _.dom.off(this._el, '.delegateEvents' + this.cid);
     return this;
   }
 
