@@ -8,6 +8,79 @@ interface EventHandler {
     ctx: unknown;
     listening: Listening | undefined;
 }
+export interface SyncOptions {
+    url?: string;
+    attrs?: Record<string, unknown>;
+    data?: unknown;
+    contentType?: string;
+    dataType?: string;
+    type?: string;
+    processData?: boolean;
+    emulateHTTP?: boolean;
+    emulateJSON?: boolean;
+    parse?: boolean;
+    validate?: boolean;
+    wait?: boolean;
+    patch?: boolean;
+    reset?: boolean;
+    sort?: boolean;
+    silent?: boolean;
+    success?: (this: unknown, ...args: unknown[]) => void;
+    error?: (this: unknown, ...args: unknown[]) => void;
+    beforeSend?: (xhr: {
+        setRequestHeader(name: string, value: string): void;
+    }) => void;
+    context?: unknown;
+    xhr?: XhrLike;
+    textStatus?: unknown;
+    errorThrown?: unknown;
+    [key: string]: unknown;
+}
+export interface ModelSetOptions {
+    unset?: boolean;
+    silent?: boolean;
+    validate?: boolean;
+    parse?: boolean;
+    wait?: boolean;
+    patch?: boolean;
+    sort?: boolean;
+    merge?: boolean;
+    add?: boolean;
+    remove?: boolean;
+    at?: number;
+    index?: number;
+    context?: unknown;
+    collection?: Collection;
+    changes?: {
+        added: Model[];
+        removed: Model[];
+        merged: Model[];
+    };
+    previousModels?: Model[];
+    success?: (this: unknown, ...args: unknown[]) => void;
+    error?: (this: unknown, ...args: unknown[]) => void;
+    [key: string]: unknown;
+}
+export interface XhrLike {
+    abort(): void;
+    [key: string]: unknown;
+}
+export interface AjaxOptions {
+    type?: string;
+    url: string;
+    data?: unknown;
+    contentType?: string;
+    dataType?: string;
+    processData?: boolean;
+    emulateJSON?: boolean;
+    beforeSend?: (xhr: {
+        setRequestHeader(name: string, value: string): void;
+    }) => void;
+    success?: (this: unknown, data: unknown, status: number, xhr: XhrLike) => void;
+    error?: (this: unknown, xhr: XhrLike, status: unknown, err: unknown) => void;
+    context?: unknown;
+    [key: string]: unknown;
+}
 export interface EventsMixin {
     on(name: string | {
         [event: string]: Function;
@@ -85,34 +158,34 @@ declare class Model extends BackboneBase {
     id: string | number | undefined;
     collection?: Collection;
     _changing: boolean;
-    _pending: boolean | Record<string, unknown>;
+    _pending: false | ModelSetOptions;
     _previousAttributes: Record<string, unknown>;
-    constructor(attributes?: Record<string, unknown> | unknown, options?: Record<string, unknown>);
+    constructor(attributes?: Record<string, unknown> | unknown, options?: ModelSetOptions);
     toJSON(_options?: unknown): Record<string, unknown>;
     sync(...args: any[]): any;
     get(attr: string): unknown;
     escape(attr: string): string;
     has(attr: string): boolean;
     matches(attrs: any): boolean;
-    set(key: any, val?: any, options?: any): any;
-    unset(attr: string, options?: any): any;
-    clear(options?: any): any;
+    set(key: string | Record<string, unknown> | null | undefined, val?: unknown, options?: ModelSetOptions): this | false;
+    unset(attr: string, options?: ModelSetOptions): this | false;
+    clear(options?: ModelSetOptions): this | false;
     hasChanged(attr?: string): boolean;
     changedAttributes(diff?: Record<string, unknown>): Record<string, unknown> | false;
     previous(attr?: string): unknown;
     previousAttributes(): Record<string, unknown>;
-    fetch(options?: any): any;
-    save(key?: any, val?: any, options?: any): any;
-    destroy(options?: any): any;
+    fetch(options?: SyncOptions): XhrLike;
+    save(key?: string | Record<string, unknown> | null, val?: unknown, options?: SyncOptions): XhrLike | false;
+    destroy(options?: SyncOptions): XhrLike | false;
     url(): string;
     parse(resp: unknown, _options?: unknown): unknown;
     clone(): Model;
     isNew(): boolean;
     isValid(options?: any): boolean;
-    _validate(attrs: any, options: any): boolean;
+    _validate(attrs: Record<string, unknown> | null | undefined, options: ModelSetOptions | SyncOptions): boolean;
     preinitialize(..._args: unknown[]): void;
     initialize(..._args: unknown[]): void;
-    validate?(attrs: any, options?: any): any;
+    validate?(attrs: Record<string, unknown>, options?: ModelSetOptions | SyncOptions): unknown;
     urlRoot?: string | (() => string);
     defaults?: Record<string, unknown> | (() => Record<string, unknown>);
     [key: string]: any;
@@ -124,27 +197,30 @@ declare class Collection extends BackboneBase {
     length: number;
     comparator?: string | ((a: Model, b?: Model) => number);
     _byId: Record<string, Model>;
-    constructor(models?: any, options?: any);
+    constructor(models?: Model[] | Record<string, unknown>[], options?: ModelSetOptions & {
+        model?: typeof Model;
+        comparator?: string | ((a: Model, b?: Model) => number);
+    });
     toJSON(options?: unknown): Record<string, unknown>[];
     sync(...args: any[]): any;
-    add(models: any, options?: any): any;
-    remove(models: any, options?: any): any;
-    set(models: any, options?: any): any;
-    reset(models?: any, options?: any): any;
-    push(model: any, options?: any): any;
-    pop(options?: any): any;
-    unshift(model: any, options?: any): any;
-    shift(options?: any): any;
-    slice(...args: any[]): Model[];
+    add(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options?: ModelSetOptions): Model | Model[];
+    remove(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options?: ModelSetOptions): Model | Model[];
+    set(models: any, options?: ModelSetOptions): any;
+    reset(models?: any, options?: ModelSetOptions): any;
+    push(model: Model | Record<string, unknown>, options?: ModelSetOptions): any;
+    pop(options?: ModelSetOptions): any;
+    unshift(model: Model | Record<string, unknown>, options?: ModelSetOptions): any;
+    shift(options?: ModelSetOptions): any;
+    slice(start?: number, end?: number): Model[];
     get(obj: any): Model | undefined;
     has(obj: any): boolean;
     at(index: number): Model;
-    where(attrs: any, first?: boolean): any;
-    findWhere(attrs: any): any;
-    sort(options?: any): this;
+    where(attrs: Record<string, unknown>, first?: boolean): Model | Model[];
+    findWhere(attrs: Record<string, unknown>): Model | undefined;
+    sort(options?: ModelSetOptions): this;
     pluck(attr: string): any[];
-    fetch(options?: any): any;
-    create(model: any, options?: any): any;
+    fetch(options?: SyncOptions): XhrLike;
+    create(model: Model | Record<string, unknown>, options?: SyncOptions): Model | false;
     parse(resp: unknown, _options?: unknown): unknown;
     clone(): Collection;
     modelId(attrs: any, idAttribute?: string): any;
@@ -183,7 +259,7 @@ declare class View extends BackboneBase {
     className?: string;
     tagName: string;
     events?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
-    constructor(options?: any);
+    constructor(options?: Record<string, unknown>);
     $(selector: string): any;
     render(): this;
     remove(): this;
@@ -206,7 +282,10 @@ declare class Router extends BackboneBase {
     constructor(options?: any);
     route(route: string | RegExp, name: string | Function, callback?: Function): this;
     execute(callback: Function, args: (string | null)[], _name: string): void | false;
-    navigate(fragment: string, options?: any): this;
+    navigate(fragment: string, options?: {
+        trigger?: boolean;
+        replace?: boolean;
+    }): this;
     _bindRoutes(): void;
     _routeToRegExp(route: string): RegExp;
     _extractParameters(route: RegExp, fragment: string): (string | null)[];
@@ -266,8 +345,8 @@ interface BackboneStatic extends EventsMixin {
     Router: typeof Router;
     History: typeof History;
     history: History;
-    sync: (method: string, model: Model | Collection, options?: Record<string, any>) => any;
-    ajax: (options: Record<string, any>) => any;
+    sync: (method: string, model: Model | Collection, options?: SyncOptions) => XhrLike;
+    ajax: (options: AjaxOptions) => XhrLike;
     _debug: () => {
         root: Record<string, unknown>;
         _: typeof _;

@@ -996,14 +996,14 @@ Object.assign(BackboneBase.prototype, EventsImpl);
 class Model extends BackboneBase {
     constructor(attributes, options = {}) {
         super();
-        let attrs = attributes || {};
+        let attrs = (attributes || {});
         this.preinitialize.apply(this, arguments);
         this.cid = _.uniqueId(this.cidPrefix);
         this.attributes = {};
         if (options.collection)
             this.collection = options.collection;
         if (options.parse)
-            attrs = this.parse(attrs, options) || {};
+            attrs = (this.parse(attrs, options) || {});
         const defaults = _.result(this, 'defaults');
         // Just _.defaults would work fine, but the additional _.extends
         // is in there for historical reasons. See #3843.
@@ -1057,8 +1057,8 @@ class Model extends BackboneBase {
         if (!this._validate(attrs, options))
             return false;
         // Extract attributes and options.
-        const unset = options.unset;
-        const silent = options.silent;
+        const unset = !!options.unset;
+        const silent = !!options.silent;
         const changes = [];
         const changing = this._changing;
         this._changing = true;
@@ -1368,11 +1368,11 @@ class Collection extends BackboneBase {
         return this.set(models, { ...{ merge: false }, ...options, ...addOptions });
     }
     // Remove a model, or a list of models from the set.
-    remove(models, options) {
+    remove(models, options = {}) {
         options = { ...options };
         const singular = !Array.isArray(models);
-        models = singular ? [models] : models.slice();
-        const removed = this._removeModels(models, options);
+        const list = (singular ? [models] : models.slice());
+        const removed = this._removeModels(list, options);
         if (!options.silent && removed.length) {
             options.changes = { added: [], merged: [], removed: removed };
             this.trigger('update', this, options);
@@ -1404,9 +1404,9 @@ class Collection extends BackboneBase {
         const toMerge = [];
         const toRemove = [];
         const modelMap = {};
-        const add = options.add;
-        const merge = options.merge;
-        const remove = options.remove;
+        const add = !!options.add;
+        const merge = !!options.merge;
+        const remove = !!options.remove;
         let sort = false;
         const sortable = this.comparator != null && at == null && options.sort !== false;
         const sortAttr = typeof this.comparator === 'string' ? this.comparator : null;
@@ -1531,8 +1531,8 @@ class Collection extends BackboneBase {
         return this.remove(model, options);
     }
     // Slice out a sub-array of models from the collection.
-    slice(...args) {
-        return this.models.slice(...args);
+    slice(start, end) {
+        return this.models.slice(start, end);
     }
     // Get a model from the set by id, cid, model object with id or cid
     // properties, or an attributes object that is transformed through modelId.
@@ -1610,11 +1610,11 @@ class Collection extends BackboneBase {
     create(model, options) {
         options = { ...(options || {}) };
         const wait = options.wait;
-        model = this._prepareModel(model, options);
-        if (!model)
+        const prepared = this._prepareModel(model, options);
+        if (!prepared)
             return false;
         if (!wait)
-            this.add(model, options);
+            this.add(prepared, options);
         const success = options.success;
         options.success = (m, resp, callbackOpts) => {
             if (wait) {
@@ -1629,10 +1629,10 @@ class Collection extends BackboneBase {
         // event. In this special case, we need to listen for it
         // separately and handle the event just once.
         if (wait) {
-            model.once('error', this._forwardPristineError, this);
+            prepared.once('error', this._forwardPristineError, this);
         }
-        model.save(null, options);
-        return model;
+        prepared.save(null, options);
+        return prepared;
     }
     // **parse** converts a response into a list of models to be added to the
     // collection. The default implementation is just to pass it through.
@@ -1850,7 +1850,7 @@ class View extends BackboneBase {
         super();
         this.cid = _.uniqueId('view');
         this.preinitialize.apply(this, arguments);
-        _.extend(this, _.pick(options, viewOptions));
+        _.extend(this, _.pick(options || {}, viewOptions));
         this._ensureElement();
         this.initialize.apply(this, arguments);
     }
@@ -2521,7 +2521,7 @@ Backbone.sync = (method, model, options) => {
         options = {};
     _.defaults(options, { emulateHTTP: Backbone.emulateHTTP, emulateJSON: Backbone.emulateJSON });
     // Default JSON-request options.
-    const params = { type: type, dataType: 'json' };
+    const params = { type: type, dataType: 'json', url: '' };
     // Ensure that we have a URL.
     if (!options.url) {
         params.url = _.result(model, 'url') || urlError();
@@ -2579,8 +2579,9 @@ Backbone.ajax = (options) => {
     if (options.data != null && method !== 'GET') {
         if (options.emulateJSON && typeof options.data === 'object') {
             // Encode as application/x-www-form-urlencoded.
-            body = Object.keys(options.data).map((k) => {
-                return `${encodeURIComponent(k)}=${encodeURIComponent(options.data[k])}`;
+            const data = options.data;
+            body = Object.keys(data).map((k) => {
+                return `${encodeURIComponent(k)}=${encodeURIComponent(String(data[k]))}`;
             }).join('&');
         }
         else {
@@ -2606,8 +2607,7 @@ Backbone.ajax = (options) => {
     };
     fetch(url, fetchOptions).then((response) => {
         if (!response.ok) {
-            const err = new Error(`HTTP error ${response.status}`);
-            err.status = response.status;
+            const err = Object.assign(new Error(`HTTP error ${response.status}`), { status: response.status });
             options.error?.call(options.context, xhr, response.status, err);
             return;
         }
@@ -2619,7 +2619,7 @@ Backbone.ajax = (options) => {
             options.success?.call(options.context, data, response.status, xhr);
         });
     }).catch((err) => {
-        if (err?.name === 'AbortError')
+        if (err && err.name === 'AbortError')
             return;
         options.error?.call(options.context, xhr, 'error', err);
     });

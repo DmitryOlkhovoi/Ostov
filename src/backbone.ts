@@ -58,6 +58,77 @@ interface OffApiOptions {
   listeners: { [id: string]: Listening } | undefined;
 }
 
+// --- Options interfaces ---
+
+export interface SyncOptions {
+  url?: string;
+  attrs?: Record<string, unknown>;
+  data?: unknown;
+  contentType?: string;
+  dataType?: string;
+  type?: string;
+  processData?: boolean;
+  emulateHTTP?: boolean;
+  emulateJSON?: boolean;
+  parse?: boolean;
+  validate?: boolean;
+  wait?: boolean;
+  patch?: boolean;
+  reset?: boolean;
+  sort?: boolean;
+  silent?: boolean;
+  success?: (this: unknown, ...args: unknown[]) => void;
+  error?: (this: unknown, ...args: unknown[]) => void;
+  beforeSend?: (xhr: { setRequestHeader(name: string, value: string): void }) => void;
+  context?: unknown;
+  xhr?: XhrLike;
+  textStatus?: unknown;
+  errorThrown?: unknown;
+  [key: string]: unknown;
+}
+
+export interface ModelSetOptions {
+  unset?: boolean;
+  silent?: boolean;
+  validate?: boolean;
+  parse?: boolean;
+  wait?: boolean;
+  patch?: boolean;
+  sort?: boolean;
+  merge?: boolean;
+  add?: boolean;
+  remove?: boolean;
+  at?: number;
+  index?: number;
+  context?: unknown;
+  collection?: Collection;
+  changes?: { added: Model[]; removed: Model[]; merged: Model[] };
+  previousModels?: Model[];
+  success?: (this: unknown, ...args: unknown[]) => void;
+  error?: (this: unknown, ...args: unknown[]) => void;
+  [key: string]: unknown;
+}
+
+export interface XhrLike {
+  abort(): void;
+  [key: string]: unknown;
+}
+
+export interface AjaxOptions {
+  type?: string;
+  url: string;
+  data?: unknown;
+  contentType?: string;
+  dataType?: string;
+  processData?: boolean;
+  emulateJSON?: boolean;
+  beforeSend?: (xhr: { setRequestHeader(name: string, value: string): void }) => void;
+  success?: (this: unknown, data: unknown, status: number, xhr: XhrLike) => void;
+  error?: (this: unknown, xhr: XhrLike, status: unknown, err: unknown) => void;
+  context?: unknown;
+  [key: string]: unknown;
+}
+
 export interface EventsMixin {
   on(name: string | { [event: string]: Function }, callback?: Function, context?: any): this;
   off(name?: string | { [event: string]: Function }, callback?: Function, context?: any): this;
@@ -423,17 +494,17 @@ class Model extends BackboneBase {
   id!: string | number | undefined;
   collection?: Collection;
   _changing!: boolean;
-  _pending!: boolean | Record<string, unknown>;
+  _pending!: false | ModelSetOptions;
   _previousAttributes!: Record<string, unknown>;
 
-  constructor(attributes?: Record<string, unknown> | unknown, options: Record<string, unknown> = {}) {
+  constructor(attributes?: Record<string, unknown> | unknown, options: ModelSetOptions = {}) {
     super();
-    let attrs = attributes || {};
+    let attrs: Record<string, unknown> = (attributes || {}) as Record<string, unknown>;
     this.preinitialize.apply(this, arguments as any);
     this.cid = _.uniqueId(this.cidPrefix);
     this.attributes = {};
     if (options.collection) this.collection = options.collection as Collection;
-    if (options.parse) attrs = this.parse(attrs, options) || {};
+    if (options.parse) attrs = (this.parse(attrs, options) || {}) as Record<string, unknown>;
     const defaults = _.result(this, 'defaults');
     // Just _.defaults would work fine, but the additional _.extends
     // is in there for historical reasons. See #3843.
@@ -478,14 +549,14 @@ class Model extends BackboneBase {
   // Set a hash of model attributes on the object, firing `"change"`. This is
   // the core primitive operation of a model, updating the data and notifying
   // anyone who needs to know about the change in state. The heart of the beast.
-  set(key: any, val?: any, options: any = {}): any {
+  set(key: string | Record<string, unknown> | null | undefined, val?: unknown, options: ModelSetOptions = {}): this | false {
     if (key == null) return this;
 
     // Handle both `"key", value` and `{key: value}` -style arguments.
     let attrs: Record<string, unknown>;
     if (typeof key === 'object') {
       attrs = key;
-      options = val || {};
+      options = (val as ModelSetOptions) || {};
     } else {
       (attrs = {} as Record<string, unknown>)[key] = val;
     }
@@ -494,8 +565,8 @@ class Model extends BackboneBase {
     if (!this._validate(attrs, options)) return false;
 
     // Extract attributes and options.
-    const unset: boolean = options.unset;
-    const silent: boolean = options.silent;
+    const unset = !!options.unset;
+    const silent = !!options.silent;
     const changes: string[] = [];
     const changing: boolean = this._changing;
     this._changing = true;
@@ -555,12 +626,12 @@ class Model extends BackboneBase {
 
   // Remove an attribute from the model, firing `"change"`. `unset` is a noop
   // if the attribute doesn't exist.
-  unset(attr: string, options?: any): any {
+  unset(attr: string, options?: ModelSetOptions): this | false {
     return this.set(attr, void 0, { ...options, unset: true });
   }
 
   // Clear all attributes on the model, firing `"change"`.
-  clear(options?: any): any {
+  clear(options?: ModelSetOptions): this | false {
     const attrs: Record<string, unknown> = {};
     for (const key in this.attributes) attrs[key] = void 0;
     return this.set(attrs, { ...options, unset: true });
@@ -608,13 +679,13 @@ class Model extends BackboneBase {
 
   // Fetch the model from the server, merging the response with the model's
   // local attributes. Any changed attributes will trigger a "change" event.
-  fetch(options?: any): any {
+  fetch(options?: SyncOptions): XhrLike {
     options = { parse: true, ...options };
     const success = options.success;
-    options.success = (resp: any) => {
-      const serverAttrs = options.parse ? this.parse(resp, options) : resp;
-      if (!this.set(serverAttrs, options)) return false;
-      success?.call(options.context, this, resp, options);
+    options.success = (resp: unknown) => {
+      const serverAttrs = options!.parse ? this.parse(resp, options) : resp;
+      if (!this.set(serverAttrs as Record<string, unknown>, options)) return false;
+      success?.call(options!.context, this, resp, options);
       this.trigger('sync', this, resp, options);
     };
     wrapError(this, options);
@@ -624,24 +695,24 @@ class Model extends BackboneBase {
   // Set a hash of model attributes, and sync the model to the server.
   // If the server returns an attributes hash that differs, the model's
   // state will be `set` again.
-  save(key?: any, val?: any, options?: any): any {
+  save(key?: string | Record<string, unknown> | null, val?: unknown, options?: SyncOptions): XhrLike | false {
     // Handle both `"key", value` and `{key: value}` -style arguments.
-    let attrs: any;
+    let attrs: Record<string, unknown> | null | undefined;
     if (key == null || typeof key === 'object') {
       attrs = key;
-      options = val;
+      options = val as SyncOptions;
     } else {
-      (attrs = {} as any)[key] = val;
+      (attrs = {} as Record<string, unknown>)[key] = val;
     }
 
     options = { validate: true, parse: true, ...options };
-    const wait: boolean = options.wait;
+    const wait = options.wait;
 
     // If we're not waiting and attributes exist, save acts as
     // `set(attr).save(null, opts)` with validation. Otherwise, check if
     // the model will be valid when the attributes, if any, are set.
     if (attrs && !wait) {
-      if (!this.set(attrs, options)) return false;
+      if (!this.set(attrs, options as ModelSetOptions)) return false;
     } else if (!this._validate(attrs, options)) {
       return false;
     }
@@ -650,13 +721,13 @@ class Model extends BackboneBase {
     // updated with the server-side state.
     const success = options.success;
     const attributes = this.attributes;
-    options.success = (resp: any) => {
+    options.success = (resp: unknown) => {
       // Ensure attributes are restored during synchronous saves.
       this.attributes = attributes;
-      let serverAttrs = options.parse ? this.parse(resp, options) : resp;
-      if (wait) serverAttrs = { ...attrs, ...serverAttrs };
-      if (serverAttrs && !this.set(serverAttrs, options)) return false;
-      success?.call(options.context, this, resp, options);
+      let serverAttrs: unknown = options!.parse ? this.parse(resp, options) : resp;
+      if (wait) serverAttrs = { ...attrs, ...(serverAttrs as object) };
+      if (serverAttrs && !this.set(serverAttrs as Record<string, unknown>, options as ModelSetOptions)) return false;
+      success?.call(options!.context, this, resp, options);
       this.trigger('sync', this, resp, options);
     };
     wrapError(this, options);
@@ -665,7 +736,7 @@ class Model extends BackboneBase {
     if (attrs && wait) this.attributes = { ...attributes, ...attrs };
 
     const method: string = this.isNew() ? 'create' : options.patch ? 'patch' : 'update';
-    if (method === 'patch' && !options.attrs) options.attrs = attrs;
+    if (method === 'patch' && !options.attrs) options.attrs = attrs as Record<string, unknown>;
     const xhr = this.sync(method, this, options);
 
     // Restore attributes.
@@ -677,23 +748,23 @@ class Model extends BackboneBase {
   // Destroy this model on the server if it was already persisted.
   // Optimistically removes the model from its collection, if it has one.
   // If `wait: true` is passed, waits for the server to respond before removal.
-  destroy(options?: any): any {
+  destroy(options?: SyncOptions): XhrLike | false {
     options = { ...(options || {}) };
     const success = options.success;
-    const wait: boolean = options.wait;
+    const wait = options.wait;
 
     const destroy = () => {
       this.stopListening();
       this.trigger('destroy', this, this.collection, options);
     };
 
-    options.success = (resp: any) => {
+    options.success = (resp: unknown) => {
       if (wait) destroy();
-      success?.call(options.context, this, resp, options);
+      success?.call(options!.context, this, resp, options);
       if (!this.isNew()) this.trigger('sync', this, resp, options);
     };
 
-    let xhr: any = false;
+    let xhr: XhrLike | false = false;
     if (this.isNew()) {
       _.defer(options.success);
     } else {
@@ -740,7 +811,7 @@ class Model extends BackboneBase {
 
   // Run validation against the next complete set of model attributes,
   // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
-  _validate(attrs: any, options: any): boolean {
+  _validate(attrs: Record<string, unknown> | null | undefined, options: ModelSetOptions | SyncOptions): boolean {
     if (!options.validate || !(this as any).validate) return true;
     attrs = { ...this.attributes, ...attrs };
     const error = this.validationError = (this as any).validate(attrs, options) || null;
@@ -754,7 +825,7 @@ class Model extends BackboneBase {
   initialize(..._args: unknown[]): void {}
 
   // validate is optional — subclasses may define it
-  validate?(attrs: any, options?: any): any;
+  validate?(attrs: Record<string, unknown>, options?: ModelSetOptions | SyncOptions): unknown;
 
   // urlRoot is optional — subclasses may define it
   urlRoot?: string | (() => string);
@@ -810,7 +881,7 @@ class Collection extends BackboneBase {
   comparator?: string | ((a: Model, b?: Model) => number);
   _byId!: Record<string, Model>;
 
-  constructor(models?: any, options: any = {}) {
+  constructor(models?: Model[] | Record<string, unknown>[], options: ModelSetOptions & { model?: typeof Model; comparator?: string | ((a: Model, b?: Model) => number) } = {}) {
     super();
     this.preinitialize.apply(this, arguments as any);
     if (options.model) this.model = options.model;
@@ -834,16 +905,16 @@ class Collection extends BackboneBase {
   // Add a model, or list of models to the set. `models` may be Backbone
   // Models or raw JavaScript objects to be converted to Models, or any
   // combination of the two.
-  add(models: any, options?: any): any {
+  add(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options?: ModelSetOptions): Model | Model[] {
     return this.set(models, { ...{ merge: false }, ...options, ...addOptions });
   }
 
   // Remove a model, or a list of models from the set.
-  remove(models: any, options?: any): any {
+  remove(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options: ModelSetOptions = {}): Model | Model[] {
     options = { ...options };
     const singular = !Array.isArray(models);
-    models = singular ? [models] : models.slice();
-    const removed = this._removeModels(models, options);
+    const list = (singular ? [models] : (models as unknown[]).slice()) as Model[];
+    const removed = this._removeModels(list, options);
     if (!options.silent && removed.length) {
       options.changes = { added: [], merged: [], removed: removed };
       this.trigger('update', this, options);
@@ -855,7 +926,7 @@ class Collection extends BackboneBase {
   // removing models that are no longer present, and merging models that
   // already exist in the collection, as necessary. Similar to **Model#set**,
   // the core operation for updating the data contained by the collection.
-  set(models: any, options?: any): any {
+  set(models: any, options?: ModelSetOptions): any {
     if (models == null) return;
 
     options = { ...setOptions, ...options };
@@ -877,9 +948,9 @@ class Collection extends BackboneBase {
     const toRemove: Model[] = [];
     const modelMap: Record<string, boolean> = {};
 
-    const add: boolean = options.add;
-    const merge: boolean = options.merge;
-    const remove: boolean = options.remove;
+    const add = !!options!.add;
+    const merge = !!options!.merge;
+    const remove = !!options!.remove;
 
     let sort = false;
     const sortable: boolean = this.comparator != null && at == null && options.sort !== false;
@@ -974,7 +1045,7 @@ class Collection extends BackboneBase {
   // you can reset the entire set with a new list of models, without firing
   // any granular `add` or `remove` events. Fires `reset` when finished.
   // Useful for bulk operations and optimizations.
-  reset(models?: any, options?: any): any {
+  reset(models?: any, options?: ModelSetOptions): any {
     options = { ...(options || {}) };
     for (const model of this.models) this._removeReference(model, options);
     options.previousModels = this.models;
@@ -985,30 +1056,30 @@ class Collection extends BackboneBase {
   }
 
   // Add a model to the end of the collection.
-  push(model: any, options?: any): any {
+  push(model: Model | Record<string, unknown>, options?: ModelSetOptions): any {
     return this.add(model, { at: this.length, ...options });
   }
 
   // Remove a model from the end of the collection.
-  pop(options?: any): any {
+  pop(options?: ModelSetOptions): any {
     const model = this.at(this.length - 1);
     return this.remove(model, options);
   }
 
   // Add a model to the beginning of the collection.
-  unshift(model: any, options?: any): any {
+  unshift(model: Model | Record<string, unknown>, options?: ModelSetOptions): any {
     return this.add(model, { at: 0, ...options });
   }
 
   // Remove a model from the beginning of the collection.
-  shift(options?: any): any {
+  shift(options?: ModelSetOptions): any {
     const model = this.at(0);
     return this.remove(model, options);
   }
 
   // Slice out a sub-array of models from the collection.
-  slice(...args: any[]): Model[] {
-    return this.models.slice(...args);
+  slice(start?: number, end?: number): Model[] {
+    return this.models.slice(start, end);
   }
 
   // Get a model from the set by id, cid, model object with id or cid
@@ -1033,21 +1104,21 @@ class Collection extends BackboneBase {
 
   // Return models with matching attributes. Useful for simple cases of
   // `filter`.
-  where(attrs: any, first?: boolean): any {
+  where(attrs: Record<string, unknown>, first?: boolean): Model | Model[] {
     return (this as any)[first ? 'find' : 'filter'](attrs);
   }
 
   // Return the first model with matching attributes. Useful for simple cases
   // of `find`.
-  findWhere(attrs: any): any {
-    return this.where(attrs, true);
+  findWhere(attrs: Record<string, unknown>): Model | undefined {
+    return this.where(attrs, true) as Model | undefined;
   }
 
   // Force the collection to re-sort itself. You don't need to call this under
   // normal circumstances, as the set will maintain sort order as each item
   // is added.
-  sort(options?: any): this {
-    let comparator: any = this.comparator;
+  sort(options?: ModelSetOptions): this {
+    let comparator: string | ((a: Model, b?: Model) => number) | undefined = this.comparator;
     if (!comparator) throw new Error('Cannot sort a set without a comparator');
     options = options || {};
 
@@ -1072,13 +1143,13 @@ class Collection extends BackboneBase {
   // Fetch the default set of models for this collection, resetting the
   // collection when they arrive. If `reset: true` is passed, the response
   // data will be passed through the `reset` method instead of `set`.
-  fetch(options?: any): any {
+  fetch(options?: SyncOptions): XhrLike {
     options = { parse: true, ...options };
     const success = options.success;
-    options.success = (resp: any) => {
-      const method: string = options.reset ? 'reset' : 'set';
+    options.success = (resp: unknown) => {
+      const method: string = options!.reset ? 'reset' : 'set';
       (this as any)[method](resp, options);
-      success?.call(options.context, this, resp, options);
+      success?.call(options!.context, this, resp, options);
       this.trigger('sync', this, resp, options);
     };
     wrapError(this, options);
@@ -1088,14 +1159,14 @@ class Collection extends BackboneBase {
   // Create a new instance of a model in this collection. Add the model to the
   // collection immediately, unless `wait: true` is passed, in which case we
   // wait for the server to agree.
-  create(model: any, options?: any): any {
+  create(model: Model | Record<string, unknown>, options?: SyncOptions): Model | false {
     options = { ...(options || {}) };
-    const wait: boolean = options.wait;
-    model = this._prepareModel(model, options);
-    if (!model) return false;
-    if (!wait) this.add(model, options);
+    const wait = options.wait;
+    const prepared = this._prepareModel(model, options as ModelSetOptions);
+    if (!prepared) return false;
+    if (!wait) this.add(prepared, options as ModelSetOptions);
     const success = options.success;
-    options.success = (m: any, resp: any, callbackOpts: any) => {
+    options.success = (m: any, resp: unknown, callbackOpts: any) => {
       if (wait) {
         m.off('error', this._forwardPristineError, this);
         this.add(m, callbackOpts);
@@ -1107,10 +1178,10 @@ class Collection extends BackboneBase {
     // event. In this special case, we need to listen for it
     // separately and handle the event just once.
     if (wait) {
-      model.once('error', this._forwardPristineError, this);
+      prepared.once('error', this._forwardPristineError, this);
     }
-    model.save(null, options);
-    return model;
+    prepared.save(null, options);
+    return prepared;
   }
 
   // **parse** converts a response into a list of models to be added to the
@@ -1366,11 +1437,11 @@ class View extends BackboneBase {
 
   // Creating a Backbone.View creates its initial element outside of the DOM,
   // if an existing element is not provided...
-  constructor(options?: any) {
+  constructor(options?: Record<string, unknown>) {
     super();
     this.cid = _.uniqueId('view');
     this.preinitialize.apply(this, arguments as any);
-    _.extend(this, _.pick(options, viewOptions));
+    _.extend(this, _.pick(options || {}, viewOptions));
     this._ensureElement();
     this.initialize.apply(this, arguments as any);
   }
@@ -1688,7 +1759,7 @@ class Router extends BackboneBase {
   }
 
   // Simple proxy to `Backbone.history` to save a fragment into the history.
-  navigate(fragment: string, options?: any): this {
+  navigate(fragment: string, options?: { trigger?: boolean; replace?: boolean }): this {
     Backbone.history.navigate(fragment, options);
     return this;
   }
@@ -2077,9 +2148,9 @@ const urlError = (): never => {
 };
 
 // Wrap an optional error callback with a fallback error event.
-const wrapError = (model: Model | Collection, options: Record<string, any>): void => {
+const wrapError = (model: Model | Collection, options: SyncOptions): void => {
   const error = options.error;
-  options.error = function(resp: any) {
+  options.error = function(resp: unknown) {
     if (error) error.call(options.context, model, resp, options);
     model.trigger('error', model, resp, options);
   };
@@ -2099,8 +2170,8 @@ interface BackboneStatic extends EventsMixin {
   Router: typeof Router;
   History: typeof History;
   history: History;
-  sync: (method: string, model: Model | Collection, options?: Record<string, any>) => any;
-  ajax: (options: Record<string, any>) => any;
+  sync: (method: string, model: Model | Collection, options?: SyncOptions) => XhrLike;
+  ajax: (options: AjaxOptions) => XhrLike;
   _debug: () => { root: Record<string, unknown>; _: typeof _ };
   [key: string]: any;
 }
@@ -2140,7 +2211,7 @@ Backbone.Events = EventsImpl;
 _.extend(Backbone, EventsImpl);
 
 // Backbone.sync
-Backbone.sync = (method: string, model: any, options?: any): any => {
+Backbone.sync = (method: string, model: Model | Collection, options?: SyncOptions): XhrLike => {
   const type: string = methodMap[method];
 
   // Default options, unless specified.
@@ -2150,7 +2221,7 @@ Backbone.sync = (method: string, model: any, options?: any): any => {
   _.defaults(options, { emulateHTTP: Backbone.emulateHTTP, emulateJSON: Backbone.emulateJSON });
 
   // Default JSON-request options.
-  const params: any = { type: type, dataType: 'json' };
+  const params: AjaxOptions = { type: type, dataType: 'json', url: '' };
 
   // Ensure that we have a URL.
   if (!options.url) {
@@ -2173,11 +2244,11 @@ Backbone.sync = (method: string, model: any, options?: any): any => {
   // And an `X-HTTP-Method-Override` header.
   if (options.emulateHTTP && (type === 'PUT' || type === 'DELETE' || type === 'PATCH')) {
     params.type = 'POST';
-    if (options.emulateJSON) params.data._method = type;
+    if (options.emulateJSON) (params.data as any)._method = type;
     const beforeSend = options.beforeSend;
-    options.beforeSend = function(xhr: any) {
+    options.beforeSend = function(xhr: { setRequestHeader(name: string, value: string): void }) {
       xhr.setRequestHeader('X-HTTP-Method-Override', type);
-      if (beforeSend) return beforeSend.apply(this, arguments);
+      if (beforeSend) return beforeSend.apply(this, arguments as any);
     };
   }
 
@@ -2188,14 +2259,14 @@ Backbone.sync = (method: string, model: any, options?: any): any => {
 
   // Pass along `textStatus` and `errorThrown` from jQuery.
   const error = options.error;
-  options.error = function(xhr: any, textStatus: any, errorThrown: any) {
-    options.textStatus = textStatus;
-    options.errorThrown = errorThrown;
-    error?.call(options.context, xhr, textStatus, errorThrown);
+  options.error = function(xhr: unknown, textStatus: unknown, errorThrown: unknown) {
+    options!.textStatus = textStatus;
+    options!.errorThrown = errorThrown;
+    (error as Function)?.call(options!.context, xhr, textStatus, errorThrown);
   };
 
   // Make the request, allowing the user to override any Ajax options.
-  const xhr = options.xhr = Backbone.ajax(Object.assign(params, options));
+  const xhr = options.xhr = Backbone.ajax(Object.assign(params, options) as AjaxOptions);
   model.trigger('request', model, xhr, options);
   return xhr;
 };
@@ -2204,8 +2275,8 @@ Backbone.sync = (method: string, model: any, options?: any): any => {
 // Override this function if you need custom request handling.
 // The options object follows the jQuery.ajax convention used by Backbone.sync:
 //   type, url, data, contentType, dataType, beforeSend, success, error, context.
-Backbone.ajax = (options: any): any => {
-  const method: string = (options.type || 'GET').toUpperCase();
+Backbone.ajax = (options: AjaxOptions): XhrLike => {
+  const method: string = ((options.type as string) || 'GET').toUpperCase();
   const url: string = options.url;
   const headers: Record<string, string> = {};
 
@@ -2215,8 +2286,9 @@ Backbone.ajax = (options: any): any => {
   if (options.data != null && method !== 'GET') {
     if (options.emulateJSON && typeof options.data === 'object') {
       // Encode as application/x-www-form-urlencoded.
-      body = Object.keys(options.data).map((k: string) => {
-        return `${encodeURIComponent(k)}=${encodeURIComponent(options.data[k])}`;
+      const data = options.data as Record<string, unknown>;
+      body = Object.keys(data).map((k: string) => {
+        return `${encodeURIComponent(k)}=${encodeURIComponent(String(data[k]))}`;
       }).join('&');
     } else {
       body = typeof options.data === 'string' ? options.data : JSON.stringify(options.data);
@@ -2238,26 +2310,25 @@ Backbone.ajax = (options: any): any => {
   const controller: AbortController | null = typeof AbortController !== 'undefined' ? new AbortController() : null;
   if (controller) fetchOptions.signal = controller.signal;
 
-  const xhr: any = {
+  const xhr: XhrLike = {
     abort: () => controller?.abort()
   };
 
   fetch(url, fetchOptions).then((response: Response) => {
     if (!response.ok) {
-      const err: any = new Error(`HTTP error ${response.status}`);
-      err.status = response.status;
+      const err = Object.assign(new Error(`HTTP error ${response.status}`), { status: response.status });
       options.error?.call(options.context, xhr, response.status, err);
       return;
     }
-    const parse: Promise<any> = options.dataType === 'json' ||
+    const parse: Promise<unknown> = options.dataType === 'json' ||
       (response.headers.get('content-type') || '').indexOf('json') >= 0
       ? response.json()
       : response.text();
-    return parse.then((data: any) => {
+    return parse.then((data: unknown) => {
       options.success?.call(options.context, data, response.status, xhr);
     });
-  }).catch((err: any) => {
-    if (err?.name === 'AbortError') return;
+  }).catch((err: unknown) => {
+    if (err && (err as { name?: string }).name === 'AbortError') return;
     options.error?.call(options.context, xhr, 'error', err);
   });
 
