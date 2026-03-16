@@ -9,7 +9,9 @@
   },
   "globals": {
     "attachEvent": false,
-    "detachEvent": false
+    "detachEvent": false,
+    "Proxy": false,
+    "Reflect": false
   },
   "rules": {
     "array-bracket-spacing": 2,
