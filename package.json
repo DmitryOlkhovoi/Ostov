@@ -1,6 +1,7 @@
 {
   "name": "backbone",
   "description": "Give your JS App some Backbone with Models, Views, Collections, and Events.",
+  "type": "module",
   "url": "http://backbonejs.org",
   "keywords": [
     "model",
@@ -14,30 +15,30 @@
   "author": "Olkhovoy Dmitry",
   "dependencies": {},
   "devDependencies": {
-    "coffeescript": "^2.7.0",
     "cpy-cli": "^5.0.0",
     "docco": "^0.9.1",
     "eslint": "^8.7.0",
     "eslint-plugin-import": "^2.28.1",
-    "karma": "^6.3.11",
-    "karma-qunit": "^4.1.2",
-    "qunit": "^2.17.2",
     "replace-in-file": "^7.0.1",
-    "rollup": "^3.28.1",
-    "uglify-js": "^3.14.5"
+    "terser": "^5.31.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0",
+    "jsdom": "^24.1.0"
   },
   "scripts": {
-    "test": "karma start && coffee test/model.coffee && npm run lint",
-    "build": "uglifyjs utils.js backbone.js --mangle --source-map url=backbone-min.js.map -o backbone-min.js",
-    "build-debug": "npx rollup -e backbone -f umd -g backbone:Backbone -n Backbone.debugInfo -o debug-info.js --no-strict modules/debug-info.js",
-    "alias-sourcemap": "cpy --rename=backbone-min.map backbone-min.js.map .",
+    "build": "tsc && terser dist/backbone.js -o dist/backbone-min.js --source-map",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/*.ts",
     "doc": "docco backbone.js && docco examples/todos/todos.js examples/backbone.localStorage.js",
-    "lint": "eslint backbone.js test/*.js modules/*.js",
-    "mark-release": "replace-in-file MARK_DEVELOPMENT MARK_RELEASE modules/debug-info.js && npm run build-debug",
-    "mark-develop": "replace-in-file MARK_RELEASE MARK_DEVELOPMENT modules/debug-info.js && npm run build-debug",
-    "prepublishOnly": "npm run test && npm run mark-release && npm run build && npm run alias-sourcemap && npm run doc && git add -u && npm run mark-develop"
+    "mark-release": "replace-in-file MARK_DEVELOPMENT MARK_RELEASE modules/debug-info.js",
+    "mark-develop": "replace-in-file MARK_RELEASE MARK_DEVELOPMENT modules/debug-info.js",
+    "prepublishOnly": "npm run test && npm run build"
   },
-  "main": "backbone.js",
+  "main": "dist/backbone.js",
+  "module": "dist/backbone.js",
+  "types": "dist/backbone.d.ts",
   "version": "1.6.1",
   "license": "MIT",
   "repository": {
@@ -45,14 +46,7 @@
     "url": "https://github.com/jashkenas/backbone.git"
   },
   "files": [
-    "backbone.js",
-    "utils.js",
-    "backbone-min.js",
-    "backbone-min.js.map",
-    "backbone-min.map",
-    "debug-info.js",
-    "LICENSE",
-    "modules/debug-info.js",
-    "modules/package.json"
+    "dist/",
+    "LICENSE"
   ]
 }
