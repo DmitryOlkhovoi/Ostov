@@ -53,33 +53,33 @@
 
   QUnit.test('initialize', function(assert) {
     assert.expect(1);
-    var View = Backbone.View.extend({
-      initialize: function() {
+    class View extends Backbone.View {
+      initialize() {
         this.one = 1;
       }
-    });
+    }
 
     assert.strictEqual(new View().one, 1);
   });
 
   QUnit.test('preinitialize', function(assert) {
     assert.expect(1);
-    var View = Backbone.View.extend({
-      preinitialize: function() {
+    class View extends Backbone.View {
+      preinitialize() {
         this.one = 1;
       }
-    });
+    }
 
     assert.strictEqual(new View().one, 1);
   });
 
   QUnit.test('preinitialize occurs before the view is set up', function(assert) {
     assert.expect(2);
-    var View = Backbone.View.extend({
-      preinitialize: function() {
+    class View extends Backbone.View {
+      preinitialize() {
         assert.equal(this.el, undefined);
       }
-    });
+    }
     var _view = new View({});
     assert.notEqual(_view.el, undefined);
   });
@@ -234,61 +234,61 @@
 
   QUnit.test('tagName can be provided as a string', function(assert) {
     assert.expect(1);
-    var View = Backbone.View.extend({
-      tagName: 'span'
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.tagName = 'span';
 
     assert.equal(new View().el.tagName, 'SPAN');
   });
 
   QUnit.test('tagName can be provided as a function', function(assert) {
     assert.expect(1);
-    var View = Backbone.View.extend({
-      tagName: function() {
+    class View extends Backbone.View {
+      tagName() {
         return 'p';
       }
-    });
+    }
 
     assert.ok(new View().$el.is('p'));
   });
 
   QUnit.test('_ensureElement with DOM node el', function(assert) {
     assert.expect(1);
-    var View = Backbone.View.extend({
-      el: document.body
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.el = document.body;
 
     assert.equal(new View().el, document.body);
   });
 
   QUnit.test('_ensureElement with string el', function(assert) {
     assert.expect(3);
-    var View = Backbone.View.extend({
-      el: 'body'
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.el = 'body';
     assert.strictEqual(new View().el, document.body);
 
-    View = Backbone.View.extend({
-      el: '#testElement > h1'
-    });
-    assert.strictEqual(new View().el, $('#testElement > h1').get(0));
+    class View2 extends Backbone.View {
+    }
+    View2.prototype.el = '#testElement > h1';
+    assert.strictEqual(new View2().el, $('#testElement > h1').get(0));
 
-    View = Backbone.View.extend({
-      el: '#nonexistent'
-    });
-    assert.ok(!new View().el);
+    class View3 extends Backbone.View {
+    }
+    View3.prototype.el = '#nonexistent';
+    assert.ok(!new View3().el);
   });
 
   QUnit.test('with className and id functions', function(assert) {
     assert.expect(2);
-    var View = Backbone.View.extend({
-      className: function() {
+    class View extends Backbone.View {
+      className() {
         return 'className';
-      },
-      id: function() {
+      }
+      id() {
         return 'id';
       }
-    });
+    }
 
     assert.strictEqual(new View().el.className, 'className');
     assert.strictEqual(new View().el.id, 'id');
@@ -296,12 +296,12 @@
 
   QUnit.test('with attributes', function(assert) {
     assert.expect(2);
-    var View = Backbone.View.extend({
-      attributes: {
-        'id': 'id',
-        'class': 'class'
-      }
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.attributes = {
+      'id': 'id',
+      'class': 'class'
+    };
 
     assert.strictEqual(new View().el.className, 'class');
     assert.strictEqual(new View().el.id, 'id');
@@ -309,25 +309,25 @@
 
   QUnit.test('with attributes as a function', function(assert) {
     assert.expect(1);
-    var View = Backbone.View.extend({
-      attributes: function() {
+    class View extends Backbone.View {
+      attributes() {
         return {'class': 'dynamic'};
       }
-    });
+    }
 
     assert.strictEqual(new View().el.className, 'dynamic');
   });
 
   QUnit.test('should default to className/id properties', function(assert) {
     assert.expect(4);
-    var View = Backbone.View.extend({
-      className: 'backboneClass',
-      id: 'backboneId',
-      attributes: {
-        'class': 'attributeClass',
-        'id': 'attributeId'
-      }
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.className = 'backboneClass';
+    View.prototype.id = 'backboneId';
+    View.prototype.attributes = {
+      'class': 'attributeClass',
+      'id': 'attributeId'
+    };
 
     var myView = new View;
     assert.strictEqual(myView.el.className, 'backboneClass');
@@ -341,14 +341,14 @@
     var count = 0;
     var $el = $('<p></p>');
 
-    var View = Backbone.View.extend({
-      el: $el,
-      events: {
-        click: function() {
-          count++;
-        }
+    class View extends Backbone.View {
+    }
+    View.prototype.el = $el;
+    View.prototype.events = {
+      click: function() {
+        count++;
       }
-    });
+    };
 
     var view1 = new View;
     $el.trigger('click');
@@ -365,12 +365,12 @@
 
   QUnit.test('custom events', function(assert) {
     assert.expect(2);
-    var View = Backbone.View.extend({
-      el: $('body'),
-      events: {
-        fake$event: function() { assert.ok(true); }
-      }
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.el = $('body');
+    View.prototype.events = {
+      fake$event: function() { assert.ok(true); }
+    };
 
     var myView = new View;
     $('body').trigger('fake$event').trigger('fake$event');
@@ -395,13 +395,13 @@
     var button1 = $('<button></button>');
     var button2 = $('<button></button>');
 
-    var View = Backbone.View.extend({
-      events: {
-        click: function(e) {
-          assert.ok(myView.el === e.target);
-        }
+    class View extends Backbone.View {
+    }
+    View.prototype.events = {
+      click: function(e) {
+        assert.ok(myView.el === e.target);
       }
-    });
+    };
 
     var myView = new View({el: button1});
     myView.setElement(button2);
@@ -412,9 +412,9 @@
 
   QUnit.test('#1172 - Clone attributes object', function(assert) {
     assert.expect(2);
-    var View = Backbone.View.extend({
-      attributes: {foo: 'bar'}
-    });
+    class View extends Backbone.View {
+    }
+    View.prototype.attributes = {foo: 'bar'};
 
     var view1 = new View({id: 'foo'});
     assert.strictEqual(view1.el.id, 'foo');
@@ -425,12 +425,12 @@
 
   QUnit.test('views stopListening', function(assert) {
     assert.expect(0);
-    var View = Backbone.View.extend({
-      initialize: function() {
+    class View extends Backbone.View {
+      initialize() {
         this.listenTo(this.model, 'all x', function() { assert.ok(false); });
         this.listenTo(this.collection, 'all x', function() { assert.ok(false); });
       }
-    });
+    }
 
     var myView = new View({
       model: new Backbone.Model,
@@ -444,11 +444,11 @@
 
   QUnit.test('Provide function for el.', function(assert) {
     assert.expect(2);
-    var View = Backbone.View.extend({
-      el: function() {
+    class View extends Backbone.View {
+      el() {
         return '<p><a></a></p>';
       }
-    });
+    }
 
     var myView = new View;
     assert.ok(myView.$el.is('p'));
@@ -459,12 +459,12 @@
     assert.expect(1);
     var counter = 0;
 
-    var View = Backbone.View.extend({
-      el: '#testElement',
-      increment: function() {
+    class View extends Backbone.View {
+      increment() {
         counter++;
       }
-    });
+    }
+    View.prototype.el = '#testElement';
 
     var myView = new View({
       events: {

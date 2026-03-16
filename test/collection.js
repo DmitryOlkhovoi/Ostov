@@ -46,13 +46,13 @@
 
   QUnit.test('new and parse', function(assert) {
     assert.expect(3);
-    var Collection = Backbone.Collection.extend({
-      parse: function(data) {
+    class Collection extends Backbone.Collection {
+      parse(data) {
         return _.filter(data, function(datum) {
           return datum.a % 2 === 0;
         });
       }
-    });
+    }
     var models = [{a: 1}, {a: 2}, {a: 3}, {a: 4}];
     var collection = new Collection(models, {parse: true});
     assert.strictEqual(collection.length, 2);
@@ -62,7 +62,7 @@
 
   QUnit.test('clone preserves model and comparator', function(assert) {
     assert.expect(3);
-    var Model = Backbone.Model.extend();
+    class Model extends Backbone.Model {}
     var comparator = function(model){ return model.id; };
 
     var collection = new Backbone.Collection([{id: 1}], {
@@ -87,7 +87,8 @@
 
   QUnit.test('get with non-default ids', function(assert) {
     assert.expect(5);
-    var MongoModel = Backbone.Model.extend({idAttribute: '_id'});
+    class MongoModel extends Backbone.Model {}
+    MongoModel.prototype.idAttribute = '_id';
     var model = new MongoModel({_id: 100});
     var collection = new Backbone.Collection([model], {model: MongoModel});
     assert.equal(collection.get(100), model);
@@ -206,11 +207,11 @@
 
   QUnit.test('add; at should have preference over comparator', function(assert) {
     assert.expect(1);
-    var Col = Backbone.Collection.extend({
-      comparator: function(m1, m2) {
+    class Col extends Backbone.Collection {
+      comparator(m1, m2) {
         return m1.id > m2.id ? -1 : 1;
       }
-    });
+    }
 
     var collection = new Col([{id: 2}, {id: 3}]);
     collection.add(new Backbone.Model({id: 1}), {at: 1});
@@ -282,14 +283,15 @@
 
   QUnit.test('add model with parse', function(assert) {
     assert.expect(1);
-    var Model = Backbone.Model.extend({
-      parse: function(obj) {
+    class Model extends Backbone.Model {
+      parse(obj) {
         obj.value += 1;
         return obj;
       }
-    });
+    }
 
-    var Col = Backbone.Collection.extend({model: Model});
+    class Col extends Backbone.Collection {}
+    Col.prototype.model = Model;
     var collection = new Col;
     collection.add({value: 1}, {parse: true});
     assert.equal(collection.at(0).get('value'), 2);
@@ -373,11 +375,11 @@
 
   QUnit.test('add and remove return values', function(assert) {
     assert.expect(13);
-    var Even = Backbone.Model.extend({
-      validate: function(attrs) {
+    class Even extends Backbone.Model {
+      validate(attrs) {
         if (attrs.id % 2 !== 0) return 'odd';
       }
-    });
+    }
     var collection = new Backbone.Collection;
     collection.model = Even;
 
@@ -584,14 +586,13 @@
 
   QUnit.test('create with validate:true enforces validation', function(assert) {
     assert.expect(3);
-    var ValidatingModel = Backbone.Model.extend({
-      validate: function(attrs) {
+    class ValidatingModel extends Backbone.Model {
+      validate(attrs) {
         return 'fail';
       }
-    });
-    var ValidatingCollection = Backbone.Collection.extend({
-      model: ValidatingModel
-    });
+    }
+    class ValidatingCollection extends Backbone.Collection {}
+    ValidatingCollection.prototype.model = ValidatingModel;
     var collection = new ValidatingCollection();
     collection.on('invalid', function(coll, error, options) {
       assert.equal(error, 'fail');
@@ -602,17 +603,16 @@
 
   QUnit.test('create will pass extra options to success callback', function(assert) {
     assert.expect(1);
-    var Model = Backbone.Model.extend({
-      sync: function(method, model, options) {
+    class Model extends Backbone.Model {
+      sync(method, model, options) {
         _.extend(options, {specialSync: true});
         return Backbone.Model.prototype.sync.call(this, method, model, options);
       }
-    });
+    }
 
-    var Collection = Backbone.Collection.extend({
-      model: Model,
-      url: '/test'
-    });
+    class Collection extends Backbone.Collection {}
+    Collection.prototype.model = Model;
+    Collection.prototype.url = '/test';
 
     var collection = new Collection;
 
@@ -626,12 +626,12 @@
 
   QUnit.test('create with wait:true should not call collection.parse', function(assert) {
     assert.expect(0);
-    var Collection = Backbone.Collection.extend({
-      url: '/test',
-      parse: function() {
+    class Collection extends Backbone.Collection {
+      parse() {
         assert.ok(false);
       }
-    });
+    }
+    Collection.prototype.url = '/test';
 
     var collection = new Collection;
 
@@ -640,14 +640,13 @@
   });
 
   QUnit.test('a failing create returns model with errors', function(assert) {
-    var ValidatingModel = Backbone.Model.extend({
-      validate: function(attrs) {
+    class ValidatingModel extends Backbone.Model {
+      validate(attrs) {
         return 'fail';
       }
-    });
-    var ValidatingCollection = Backbone.Collection.extend({
-      model: ValidatingModel
-    });
+    }
+    class ValidatingCollection extends Backbone.Collection {}
+    ValidatingCollection.prototype.model = ValidatingModel;
     var collection = new ValidatingCollection();
     var m = collection.create({foo: 'bar'});
     assert.equal(m.validationError, 'fail');
@@ -707,34 +706,35 @@
 
   QUnit.test('initialize', function(assert) {
     assert.expect(1);
-    var Collection = Backbone.Collection.extend({
-      initialize: function() {
+    class Collection extends Backbone.Collection {
+      initialize() {
         this.one = 1;
       }
-    });
+    }
     var coll = new Collection;
     assert.equal(coll.one, 1);
   });
 
   QUnit.test('preinitialize', function(assert) {
     assert.expect(1);
-    var Collection = Backbone.Collection.extend({
-      preinitialize: function() {
+    class Collection extends Backbone.Collection {
+      preinitialize() {
         this.one = 1;
       }
-    });
+    }
     var coll = new Collection;
     assert.equal(coll.one, 1);
   });
 
   QUnit.test('preinitialize occurs before the collection is set up', function(assert) {
     assert.expect(2);
-    var Collection = Backbone.Collection.extend({
-      preinitialize: function() {
+    class Collection extends Backbone.Collection {
+      preinitialize() {
         assert.notEqual(this.model, FooModel);
       }
-    });
-    var FooModel = Backbone.Model.extend({id: 'foo'});
+    }
+    class FooModel extends Backbone.Model {}
+    FooModel.prototype.id = 'foo';
     var coll = new Collection({}, {
       model: FooModel
     });
@@ -907,12 +907,14 @@
 
   QUnit.test('reset passes caller options', function(assert) {
     assert.expect(3);
-    var Model = Backbone.Model.extend({
-      initialize: function(attrs, options) {
+    class Model extends Backbone.Model {
+      initialize(attrs, options) {
         this.modelParameter = options.modelParameter;
       }
-    });
-    var collection = new (Backbone.Collection.extend({model: Model}))();
+    }
+    class _ResetCollection extends Backbone.Collection {}
+    _ResetCollection.prototype.model = Model;
+    var collection = new _ResetCollection();
     collection.reset([{astring: 'green', anumber: 1}, {astring: 'blue', anumber: 2}], {modelParameter: 'model parameter'});
     assert.equal(collection.length, 2);
     collection.each(function(model) {
@@ -952,13 +954,13 @@
     assert.expect(2);
     var collection = new Backbone.Collection;
     collection.url = '/test';
-    var Model = Backbone.Model.extend({
-      set: function(attrs) {
+    class Model extends Backbone.Model {
+      set(attrs) {
         assert.equal(attrs.prop, 'value');
         assert.equal(this.collection, collection);
         return this;
       }
-    });
+    }
     collection.model = Model;
     collection.create({prop: 'value'});
   });
@@ -975,15 +977,14 @@
 
   QUnit.test('#861, adding models to a collection which do not pass validation, with validate:true', function(assert) {
     assert.expect(2);
-    var Model = Backbone.Model.extend({
-      validate: function(attrs) {
+    class Model extends Backbone.Model {
+      validate(attrs) {
         if (attrs.id === 3) return "id can't be 3";
       }
-    });
+    }
 
-    var Collection = Backbone.Collection.extend({
-      model: Model
-    });
+    class Collection extends Backbone.Collection {}
+    Collection.prototype.model = Model;
 
     var collection = new Collection;
     collection.on('invalid', function() { assert.ok(true); });
@@ -996,9 +997,10 @@
     assert.expect(5);
     var collection = new Backbone.Collection;
     collection.on('test', function() { assert.ok(true); });
-    collection.model = Backbone.Model.extend({
-      validate: function(attrs){ if (!attrs.valid) return 'invalid'; }
-    });
+    class _InvalidModel extends Backbone.Model {
+      validate(attrs){ if (!attrs.valid) return 'invalid'; }
+    }
+    collection.model = _InvalidModel;
     var model = new collection.model({id: 1, valid: true});
     collection.add([model, {id: 2}], {validate: true});
     model.trigger('test');
@@ -1028,7 +1030,7 @@
 
   QUnit.test('#1112 - passing options.model sets collection.model', function(assert) {
     assert.expect(2);
-    var Model = Backbone.Model.extend({});
+    class Model extends Backbone.Model {}
     var collection = new Backbone.Collection([{id: 1}], {model: Model});
     assert.ok(collection.model === Model);
     assert.ok(collection.at(0) instanceof Model);
@@ -1047,9 +1049,9 @@
 
   QUnit.test('falsy comparator', function(assert) {
     assert.expect(4);
-    var Col = Backbone.Collection.extend({
-      comparator: function(model){ return model.id; }
-    });
+    class Col extends Backbone.Collection {
+      comparator(model){ return model.id; }
+    }
     var collection = new Col();
     var colFalse = new Col(null, {comparator: false});
     var colNull = new Col(null, {comparator: null});
@@ -1184,14 +1186,14 @@
   QUnit.test('fetch parses models by default', function(assert) {
     assert.expect(1);
     var model = {};
-    var Collection = Backbone.Collection.extend({
-      url: 'test',
-      model: Backbone.Model.extend({
-        parse: function(resp) {
-          assert.strictEqual(resp, model);
-        }
-      })
-    });
+    class _FetchParsesModel extends Backbone.Model {
+      parse(resp) {
+        assert.strictEqual(resp, model);
+      }
+    }
+    class Collection extends Backbone.Collection {}
+    Collection.prototype.url = 'test';
+    Collection.prototype.model = _FetchParsesModel;
     new Collection().fetch();
     this.ajaxSettings.success([model]);
   });
@@ -1213,17 +1215,18 @@
     var model = {
       namespace: [{id: 1}, {id: 2}]
     };
-    var Collection = Backbone.Collection.extend({
-      model: Backbone.Model.extend({
-        parse: function(m) {
-          m.name = 'test';
-          return m;
-        }
-      }),
-      parse: function(m) {
+    class _ParseModel1 extends Backbone.Model {
+      parse(m) {
+        m.name = 'test';
+        return m;
+      }
+    }
+    class Collection extends Backbone.Collection {
+      parse(m) {
         return m.namespace;
       }
-    });
+    }
+    Collection.prototype.model = _ParseModel1;
     var collection = new Collection(model, {parse: true});
 
     assert.equal(collection.length, 2);
@@ -1235,17 +1238,18 @@
     var model = {
       namespace: [{id: 1}, {id: 2}]
     };
-    var Collection = Backbone.Collection.extend({
-      model: Backbone.Model.extend({
-        parse: function(m) {
-          m.name = 'test';
-          return m;
-        }
-      }),
-      parse: function(m) {
+    class _ParseModel2 extends Backbone.Model {
+      parse(m) {
+        m.name = 'test';
+        return m;
+      }
+    }
+    class Collection extends Backbone.Collection {
+      parse(m) {
         return m.namespace;
       }
-    });
+    }
+    Collection.prototype.model = _ParseModel2;
     var collection = new Collection();
     collection.reset(model, {parse: true});
 
@@ -1334,11 +1338,10 @@
     assert.expect(3);
     var m1 = {_id: 1};
     var m2 = {_id: 2};
-    var Col = Backbone.Collection.extend({
-      model: Backbone.Model.extend({
-        idAttribute: '_id'
-      })
-    });
+    class _IdAttrModel extends Backbone.Model {}
+    _IdAttrModel.prototype.idAttribute = '_id';
+    class Col extends Backbone.Collection {}
+    Col.prototype.model = _IdAttrModel;
     var collection = new Col;
     collection.set([m1, m2]);
     assert.equal(collection.length, 2);
@@ -1349,11 +1352,8 @@
   });
 
   QUnit.test('set + merge with default values defined', function(assert) {
-    var Model = Backbone.Model.extend({
-      defaults: {
-        key: 'value'
-      }
-    });
+    class Model extends Backbone.Model {}
+    Model.prototype.defaults = {key: 'value'};
     var m = new Model({id: 1});
     var collection = new Backbone.Collection([m], {model: Model});
     assert.equal(collection.first().get('key'), 'value');
@@ -1367,14 +1367,15 @@
   });
 
   QUnit.test('merge without mutation', function(assert) {
-    var Model = Backbone.Model.extend({
-      initialize: function(attrs, options) {
+    class Model extends Backbone.Model {
+      initialize(attrs, options) {
         if (attrs.child) {
           this.set('child', new Model(attrs.child, options), options);
         }
       }
-    });
-    var Collection = Backbone.Collection.extend({model: Model});
+    }
+    class Collection extends Backbone.Collection {}
+    Collection.prototype.model = Model;
     var data = [{id: 1, child: {id: 2}}];
     var collection = new Collection(data);
     assert.equal(collection.first().id, 1);
@@ -1385,11 +1386,11 @@
   });
 
   QUnit.test('`set` and model level `parse`', function(assert) {
-    var Model = Backbone.Model.extend({});
-    var Collection = Backbone.Collection.extend({
-      model: Model,
-      parse: function(res) { return _.map(res.models, 'model'); }
-    });
+    class Model extends Backbone.Model {}
+    class Collection extends Backbone.Collection {
+      parse(res) { return _.map(res.models, 'model'); }
+    }
+    Collection.prototype.model = Model;
     var model = new Model({id: 1});
     var collection = new Collection(model);
     collection.set({models: [
@@ -1401,13 +1402,14 @@
 
   QUnit.test('`set` data is only parsed once', function(assert) {
     var collection = new Backbone.Collection();
-    collection.model = Backbone.Model.extend({
-      parse: function(data) {
+    class _ParseOnceModel extends Backbone.Model {
+      parse(data) {
         assert.equal(data.parsed, void 0);
         data.parsed = true;
         return data;
       }
-    });
+    }
+    collection.model = _ParseOnceModel;
     collection.set({}, {parse: true});
   });
 
@@ -1432,10 +1434,10 @@
 
   QUnit.test('#1894 - Push should not trigger a sort', function(assert) {
     assert.expect(0);
-    var Collection = Backbone.Collection.extend({
-      comparator: 'id',
-      sort: function() { assert.ok(false); }
-    });
+    class Collection extends Backbone.Collection {
+      sort() { assert.ok(false); }
+    }
+    Collection.prototype.comparator = 'id';
     new Collection().push({id: 1});
   });
 
@@ -1448,9 +1450,10 @@
   });
 
   QUnit.test('`set` with non-normal id', function(assert) {
-    var Collection = Backbone.Collection.extend({
-      model: Backbone.Model.extend({idAttribute: '_id'})
-    });
+    class _NonNormalIdModel extends Backbone.Model {}
+    _NonNormalIdModel.prototype.idAttribute = '_id';
+    class Collection extends Backbone.Collection {}
+    Collection.prototype.model = _NonNormalIdModel;
     var collection = new Collection({_id: 1});
     collection.set([{_id: 1, a: 1}], {add: false});
     assert.equal(collection.first().get('a'), 1);
@@ -1458,20 +1461,21 @@
 
   QUnit.test('#1894 - `sort` can optionally be turned off', function(assert) {
     assert.expect(0);
-    var Collection = Backbone.Collection.extend({
-      comparator: 'id',
-      sort: function() { assert.ok(false); }
-    });
+    class Collection extends Backbone.Collection {
+      sort() { assert.ok(false); }
+    }
+    Collection.prototype.comparator = 'id';
     new Collection().add({id: 1}, {sort: false});
   });
 
   QUnit.test('#1915 - `parse` data in the right order in `set`', function(assert) {
-    var collection = new (Backbone.Collection.extend({
-      parse: function(data) {
+    class _ParseOrderCollection extends Backbone.Collection {
+      parse(data) {
         assert.strictEqual(data.status, 'ok');
         return data.data;
       }
-    }));
+    }
+    var collection = new _ParseOrderCollection();
     var res = {status: 'ok', data: [{id: 1}]};
     collection.set(res, {parse: true});
   });
@@ -1479,13 +1483,14 @@
   QUnit.test('#1939 - `parse` is passed `options`', function(assert) {
     var done = assert.async();
     assert.expect(1);
-    var collection = new (Backbone.Collection.extend({
-      url: '/',
-      parse: function(data, options) {
+    class _ParseOptionsCollection extends Backbone.Collection {
+      parse(data, options) {
         assert.strictEqual(options.xhr.someHeader, 'headerValue');
         return data;
       }
-    }));
+    }
+    _ParseOptionsCollection.prototype.url = '/';
+    var collection = new _ParseOptionsCollection();
     var ajax = Backbone.ajax;
     Backbone.ajax = function(params) {
       _.defer(params.success, []);
@@ -1499,13 +1504,13 @@
 
   QUnit.test('fetch will pass extra options to success callback', function(assert) {
     assert.expect(1);
-    var SpecialSyncCollection = Backbone.Collection.extend({
-      url: '/test',
-      sync: function(method, collection, options) {
+    class SpecialSyncCollection extends Backbone.Collection {
+      sync(method, collection, options) {
         _.extend(options, {specialSync: true});
         return Backbone.Collection.prototype.sync.call(this, method, collection, options);
       }
-    });
+    }
+    SpecialSyncCollection.prototype.url = '/test';
 
     var collection = new SpecialSyncCollection();
 
@@ -1519,9 +1524,9 @@
 
   QUnit.test('`add` only `sort`s when necessary', function(assert) {
     assert.expect(2);
-    var collection = new (Backbone.Collection.extend({
-      comparator: 'a'
-    }))([{id: 1}, {id: 2}, {id: 3}]);
+    class _SortNecessaryCollection extends Backbone.Collection {}
+    _SortNecessaryCollection.prototype.comparator = 'a';
+    var collection = new _SortNecessaryCollection([{id: 1}, {id: 2}, {id: 3}]);
     collection.on('sort', function() { assert.ok(true); });
     collection.add({id: 4}); // do sort, new model
     collection.add({id: 1, a: 1}, {merge: true}); // do sort, comparator change
@@ -1533,11 +1538,12 @@
 
   QUnit.test('`add` only `sort`s when necessary with comparator function', function(assert) {
     assert.expect(3);
-    var collection = new (Backbone.Collection.extend({
-      comparator: function(m1, m2) {
+    class _SortNecessaryFnCollection extends Backbone.Collection {
+      comparator(m1, m2) {
         return m1.get('a') > m2.get('a') ? 1 : m1.get('a') < m2.get('a') ? -1 : 0;
       }
-    }))([{id: 1}, {id: 2}, {id: 3}]);
+    }
+    var collection = new _SortNecessaryFnCollection([{id: 1}, {id: 2}, {id: 3}]);
     collection.on('sort', function() { assert.ok(true); });
     collection.add({id: 4}); // do sort, new model
     collection.add({id: 1, a: 1}, {merge: true}); // do sort, model change
@@ -1565,12 +1571,12 @@
     assert.expect(9);
     var opts = {a: 1, b: 2};
     _.forEach([undefined, null, false], function(falsey) {
-      var Collection = Backbone.Collection.extend({
-        initialize: function(models, options) {
+      class Collection extends Backbone.Collection {
+        initialize(models, options) {
           assert.strictEqual(models, falsey);
           assert.strictEqual(options, opts);
         }
-      });
+      }
 
       var collection = new Collection(falsey, opts);
       assert.strictEqual(collection.length, 0);
@@ -1600,31 +1606,28 @@
 
   QUnit.test('#2612 - nested `parse` works with `Collection#set`', function(assert) {
 
-    var Job = Backbone.Model.extend({
-      constructor: function() {
-        this.items = new Items();
-        Backbone.Model.apply(this, arguments);
-      },
-      parse: function(attrs) {
-        this.items.set(attrs.items, {parse: true});
-        return _.omit(attrs, 'items');
-      }
-    });
-
-    var Item = Backbone.Model.extend({
-      constructor: function() {
+    class Item extends Backbone.Model {
+      preinitialize() {
         this.subItems = new Backbone.Collection();
-        Backbone.Model.apply(this, arguments);
-      },
-      parse: function(attrs) {
+      }
+      parse(attrs) {
         this.subItems.set(attrs.subItems, {parse: true});
         return _.omit(attrs, 'subItems');
       }
-    });
+    }
 
-    var Items = Backbone.Collection.extend({
-      model: Item
-    });
+    class Items extends Backbone.Collection {}
+    Items.prototype.model = Item;
+
+    class Job extends Backbone.Model {
+      preinitialize() {
+        this.items = new Items();
+      }
+      parse(attrs) {
+        this.items.set(attrs.items, {parse: true});
+        return _.omit(attrs, 'items');
+      }
+    }
 
     var data = {
       name: 'JobName',
@@ -1685,17 +1688,17 @@
 
     var calls = {add: 0, remove: 0};
 
-    var Collection = Backbone.Collection.extend({
+    class Collection extends Backbone.Collection {
 
-      _addReference: function(model) {
+      _addReference(model) {
         Backbone.Collection.prototype._addReference.apply(this, arguments);
         calls.add++;
         assert.equal(model, this._byId[model.id]);
         assert.equal(model, this._byId[model.cid]);
         assert.equal(model._events.all.length, 1);
-      },
+      }
 
-      _removeReference: function(model) {
+      _removeReference(model) {
         Backbone.Collection.prototype._removeReference.apply(this, arguments);
         calls.remove++;
         assert.equal(this._byId[model.id], void 0);
@@ -1703,7 +1706,7 @@
         assert.equal(model.collection, void 0);
       }
 
-    });
+    }
 
     var collection = new Collection();
     var model = collection.add({id: 1});
@@ -1744,8 +1747,8 @@
   });
 
   QUnit.test('modelId', function(assert) {
-    var Stooge = Backbone.Model.extend();
-    var StoogeCollection = Backbone.Collection.extend();
+    class Stooge extends Backbone.Model {}
+    class StoogeCollection extends Backbone.Collection {}
 
     // Default to using `id` if `model::idAttribute` and `Collection::model::idAttribute` not present.
     assert.equal(StoogeCollection.prototype.modelId({id: 1}), 1);
@@ -1762,13 +1765,12 @@
   });
 
   QUnit.test('Polymorphic models work with "simple" constructors', function(assert) {
-    var A = Backbone.Model.extend();
-    var B = Backbone.Model.extend();
-    var C = Backbone.Collection.extend({
-      model: function(attrs) {
-        return attrs.type === 'a' ? new A(attrs) : new B(attrs);
-      }
-    });
+    class A extends Backbone.Model {}
+    class B extends Backbone.Model {}
+    class C extends Backbone.Collection {}
+    C.prototype.model = function(attrs) {
+      return attrs.type === 'a' ? new A(attrs) : new B(attrs);
+    };
     var collection = new C([{id: 1, type: 'a'}, {id: 2, type: 'b'}]);
     assert.equal(collection.length, 2);
     assert.ok(collection.at(0) instanceof A);
@@ -1778,17 +1780,18 @@
   });
 
   QUnit.test('Polymorphic models work with "advanced" constructors', function(assert) {
-    var A = Backbone.Model.extend({idAttribute: '_id'});
-    var B = Backbone.Model.extend({idAttribute: '_id'});
-    var C = Backbone.Collection.extend({
-      model: Backbone.Model.extend({
-        constructor: function(attrs) {
-          return attrs.type === 'a' ? new A(attrs) : new B(attrs);
-        },
-
-        idAttribute: '_id'
-      })
-    });
+    class A extends Backbone.Model {}
+    A.prototype.idAttribute = '_id';
+    class B extends Backbone.Model {}
+    B.prototype.idAttribute = '_id';
+    class _AdvancedPolyModel extends Backbone.Model {
+      constructor(attrs) {
+        return attrs.type === 'a' ? new A(attrs) : new B(attrs);
+      }
+    }
+    _AdvancedPolyModel.prototype.idAttribute = '_id';
+    class C extends Backbone.Collection {}
+    C.prototype.model = _AdvancedPolyModel;
     var collection = new C([{_id: 1, type: 'a'}, {_id: 2, type: 'b'}]);
     assert.equal(collection.length, 2);
     assert.ok(collection.at(0) instanceof A);
@@ -1796,15 +1799,15 @@
     assert.ok(collection.at(1) instanceof B);
     assert.equal(collection.at(1), collection.get(2));
 
-    C = Backbone.Collection.extend({
-      model: function(attrs) {
-        return attrs.type === 'a' ? new A(attrs) : new B(attrs);
-      },
-
-      modelId: function(attrs) {
+    class C2 extends Backbone.Collection {
+      modelId(attrs) {
         return attrs.type + '-' + attrs.id;
       }
-    });
+    }
+    C2.prototype.model = function(attrs) {
+      return attrs.type === 'a' ? new A(attrs) : new B(attrs);
+    };
+    C = C2;
     collection = new C([{id: 1, type: 'a'}, {id: 1, type: 'b'}]);
     assert.equal(collection.length, 2);
     assert.ok(collection.at(0) instanceof A);
@@ -1816,11 +1819,10 @@
   QUnit.test('Collection with polymorphic models receives id from modelId using model instance idAttribute', function(assert) {
     assert.expect(6);
     // When the polymorphic models use 'id' for the idAttribute, all is fine.
-    var C1 = Backbone.Collection.extend({
-      model: function(attrs) {
-        return new Backbone.Model(attrs);
-      }
-    });
+    class C1 extends Backbone.Collection {}
+    C1.prototype.model = function(attrs) {
+      return new Backbone.Model(attrs);
+    };
     var c1 = new C1({id: 1});
     assert.equal(c1.get(1).id, 1);
     assert.equal(c1.modelId({id: 1}), 1);
@@ -1828,14 +1830,12 @@
     // If the polymorphic models define their own idAttribute,
     // the modelId method will use the model's idAttribute property before the
     // collection's model constructor's.
-    var M = Backbone.Model.extend({
-      idAttribute: '_id'
-    });
-    var C2 = Backbone.Collection.extend({
-      model: function(attrs) {
-        return new M(attrs);
-      }
-    });
+    class M extends Backbone.Model {}
+    M.prototype.idAttribute = '_id';
+    class C2 extends Backbone.Collection {}
+    C2.prototype.model = function(attrs) {
+      return new M(attrs);
+    };
     var c2 = new C2({_id: 1});
     assert.equal(c2.get(1), c2.at(0));
     assert.equal(c2.modelId(c2.at(0).attributes, c2.at(0).idAttribute), 1);
@@ -2010,16 +2010,15 @@
 
   QUnit.test('#3610 - invoke collects arguments', function(assert) {
     assert.expect(3);
-    var Model = Backbone.Model.extend({
-      method: function(x, y, z) {
+    class Model extends Backbone.Model {
+      method(x, y, z) {
         assert.equal(x, 1);
         assert.equal(y, 2);
         assert.equal(z, 3);
       }
-    });
-    var Collection = Backbone.Collection.extend({
-      model: Model
-    });
+    }
+    class Collection extends Backbone.Collection {}
+    Collection.prototype.model = Model;
     var collection = new Collection([{id: 1}]);
     collection.invoke('method', 1, 2, 3);
   });
@@ -2035,9 +2034,10 @@
   });
 
   QUnit.test('#3871 - falsy parse result creates empty collection', function(assert) {
-    var collection = new (Backbone.Collection.extend({
-      parse: function(data, options) {}
-    }));
+    class _FalsyParseCollection extends Backbone.Collection {
+      parse(data, options) {}
+    }
+    var collection = new _FalsyParseCollection();
     collection.set('', {parse: true});
     assert.equal(collection.length, 0);
   });
@@ -2182,35 +2182,20 @@
   });
 
   QUnit.test('#4233 - can instantiate new model in ES class Collection', function(assert) {
-    var model;
-    try {
-      model = new Function('return ({\n' +
-          '    model(attrs, options) {\n' +
-          '        var MyModel = Backbone.Model.extend({});\n' +
-          '        return new MyModel(attrs, options);\n' +
-          '    }\n' +
-          '}).model')();
-    } catch (error) {
-      model = error;
-    }
-
-    if (model instanceof SyntaxError) {
-      assert.expect(0);
-      return;
-    }
-
     assert.expect(1);
 
-    var MyCollection = Backbone.Collection.extend({
-      modelId: function(attr) {
+    var model = function(attrs, options) {
+      return new Backbone.Model(attrs, options);
+    };
+
+    class MyCollection extends Backbone.Collection {
+      modelId(attr) {
         return attr.x;
-      },
+      }
+    }
+    MyCollection.prototype.model = model;
 
-      model: model
-    });
-
-    var instance = new MyCollection([{a: 2}]);
-
+    var instance = new MyCollection([{x: 1}]);
     assert.ok(instance, 'Should instantiate collection with model');
   });
 })(QUnit);

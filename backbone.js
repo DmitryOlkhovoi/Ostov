@@ -394,12 +394,6 @@
   class Model extends BackboneBase {
     constructor(attributes, options = {}) {
       super();
-      this._backboneInit(attributes, options);
-    }
-
-    // Extracted so that `Backbone.Model.apply(this, args)` can work in legacy
-    // Backbone.extend custom constructors (see backboneExtend below).
-    _backboneInit(attributes, options = {}) {
       var attrs = attributes || {};
       this.preinitialize.apply(this, arguments);
       this.cid = _.uniqueId(this.cidPrefix);
@@ -733,15 +727,6 @@
   // preinitialize/initialize are empty by default. Override with your own logic.
   Model.prototype.preinitialize = function(){};
   Model.prototype.initialize = function(){};
-
-  // Wrap Model with a Proxy so that `Backbone.Model.apply(this, args)` works
-  // inside legacy Backbone.extend custom constructors. ES6 class constructors
-  // cannot be invoked without `new`; the apply trap calls `_backboneInit` instead.
-  Model = new Proxy(Model, {
-    apply(target, thisArg, args) {
-      target.prototype._backboneInit.apply(thisArg, args);
-    }
-  });
 
   // Backbone.Collection
   // -------------------
@@ -1124,13 +1109,7 @@
         return attrs;
       }
       options = {...options || {}, collection: this};
-      var model;
-      if (this.model.prototype) {
-        model = new this.model(attrs, options);
-      } else {
-        // Factory function (shorthand method or arrow function — no .prototype)
-        model = this.model(attrs, options);
-      }
+      var model = new this.model(attrs, options);
       if (!model.validationError) return model;
       this.trigger('invalid', this, model.validationError, {...options, validationError: model.validationError});
       return false;
@@ -2120,60 +2099,6 @@
 
   // Create the default Backbone.history.
   Backbone.history = new History;
-
-  // Helpers
-  // -------
-
-  // Helper function to correctly set up the prototype chain for subclasses.
-  // Similar to `goog.inherits`, but uses a hash of prototype properties and
-  // class properties to be extended. Generates function constructors so that:
-  //   - returning an object from a custom constructor works (factory pattern)
-  //   - `Parent.apply(this, args)` works inside custom constructors (see Proxy
-  //     on Model above)
-  var backboneExtend = function(protoProps, staticProps) {
-    const Parent = this;
-    const hasCustomCtor = protoProps && Object.prototype.hasOwnProperty.call(protoProps, 'constructor');
-    const ctor = hasCustomCtor ? protoProps.constructor : null;
-
-    let Child;
-    if (ctor) {
-      // User-supplied constructor. Run it first so it can set up `this` state
-      // before calling the parent (via `Parent.apply(this, args)`). If the ctor
-      // returns an object (factory/polymorphic pattern), that object is used.
-      Child = function(...args) {
-        const result = ctor.apply(this, args);
-        if (result instanceof Object) return result;
-      };
-    } else {
-      // No custom ctor: delegate to parent via Reflect.construct so the ES6
-      // class parent initialises correctly with the right `new.target`.
-      Child = function(...args) {
-        return Reflect.construct(Parent, args, new.target || Child);
-      };
-    }
-
-    // Set up the prototype chain.
-    Object.setPrototypeOf(Child, Parent);
-    Child.prototype = Object.create(Parent.prototype);
-    Child.prototype.constructor = Child;
-
-    // Add prototype properties, excluding constructor.
-    if (protoProps) {
-      const proto = {...protoProps};
-      delete proto.constructor;
-      Object.assign(Child.prototype, proto);
-    }
-
-    if (staticProps) Object.assign(Child, staticProps);
-
-    // Set a convenience property in case the parent's prototype is needed later.
-    Child.__super__ = Parent.prototype;
-
-    return Child;
-  };
-
-  // Set up inheritance for the model, collection, router, view and history.
-  Model.extend = Collection.extend = Router.extend = View.extend = History.extend = backboneExtend;
 
   // Expose classes on Backbone namespace.
   Backbone.Model = Model;
