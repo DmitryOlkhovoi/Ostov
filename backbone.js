@@ -1473,12 +1473,6 @@
     }
   };
 
-  const addUnderscoreMethods = (Class, base, methods, attribute) => {
-    _.each(methods, (length, method) => {
-      if (base[method]) Class.prototype[method] = addMethod(base, length, method, attribute);
-    });
-  };
-
   // Support `collection.sortBy('attr')` and `collection.findWhere({id: 1})`.
   const cb = (iteratee, instance) => {
     if (typeof iteratee === 'function') return iteratee;
@@ -1503,31 +1497,29 @@
     isEmpty: 1, chain: 1, sample: 3, partition: 3, groupBy: 3, countBy: 3,
     sortBy: 3, indexBy: 3, findIndex: 3, findLastIndex: 3};
 
-
   // Underscore methods that we want to implement on the Model, mapped to the
   // number of arguments they take.
   const modelMethods = {keys: 1, values: 1, pairs: 1, invert: 1, pick: 0,
     omit: 0, chain: 1, isEmpty: 1};
 
   // Mix in each Underscore method as a proxy to `Collection#models`.
-
   _.each([
     [Collection, collectionMethods, 'models'],
     [Model, modelMethods, 'attributes']
-  ], (config) => {
-    const Base = config[0],
-        methods = config[1],
-        attribute = config[2];
-
+  ], ([Base, methods, attribute]) => {
     Base.mixin = (obj) => {
       const mappings = _.reduce(_.functions(obj), (memo, name) => {
         memo[name] = 0;
         return memo;
       }, {});
-      addUnderscoreMethods(Base, obj, mappings, attribute);
+      _.each(mappings, (length, method) => {
+        if (obj[method]) Base.prototype[method] = addMethod(obj, length, method, attribute);
+      });
     };
 
-    addUnderscoreMethods(Base, _, methods, attribute);
+    _.each(methods, (length, method) => {
+      if (_[method]) Base.prototype[method] = addMethod(_, length, method, attribute);
+    });
   });
 
   // Backbone.sync
