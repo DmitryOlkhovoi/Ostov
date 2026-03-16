@@ -9,7 +9,7 @@ import _ from './utils.js';
 
 // Establish the root object, `window` (`self`) in the browser, or `global` on the server.
 // We use `self` instead of `window` for `WebWorker` support.
-const root: any =
+const root: Record<string, unknown> =
   (typeof self === 'object' && (self as any).self === self && self) ||
   (typeof globalThis === 'object' && globalThis) ||
   {};
@@ -19,7 +19,7 @@ const root: any =
 
 // Save the previous value of the `Backbone` variable, so that it can be
 // restored later on, if `noConflict` is used.
-const previousBackbone: any = root.Backbone;
+const previousBackbone: unknown = root.Backbone;
 
 // Backbone.Events
 // ---------------
@@ -42,19 +42,19 @@ interface EventsHash {
 
 interface EventHandler {
   callback: Function;
-  context: any;
-  ctx: any;
+  context: unknown;
+  ctx: unknown;
   listening: Listening | undefined;
 }
 
 interface OnApiOptions {
-  context: any;
-  ctx: any;
+  context: unknown;
+  ctx: unknown;
   listening: Listening | undefined;
 }
 
 interface OffApiOptions {
-  context: any;
+  context: unknown;
   listeners: { [id: string]: Listening } | undefined;
 }
 
@@ -83,7 +83,7 @@ let _listening: Listening | undefined;
 // Iterates over the standard `event, callback` (as well as the fancy multiple
 // space-separated events `"change blur", callback` and jQuery-style event
 // maps `{event: callback}`).
-const eventsApi = (iteratee: Function, events: any, name: any, callback: any, opts: any): any => {
+const eventsApi = (iteratee: Function, events: EventsHash | Record<string, Function> | undefined, name: string | Record<string, Function> | undefined, callback: Function | undefined, opts: any): any => {
   let i = 0, names: string[];
   if (name && typeof name === 'object') {
     // Handle event maps.
@@ -169,7 +169,7 @@ const onApi = (events: EventsHash, name: string, callback: Function | undefined,
 
 // An try-catch guarded #on function, to prevent poisoning the global
 // `_listening` variable.
-const tryCatchOn = (obj: any, name: any, callback: any, context: any): any => {
+const tryCatchOn = (obj: any, name: string | Record<string, Function>, callback: Function | undefined, context: unknown): unknown => {
   try {
     obj.on(name, callback, context);
   } catch (e) {
@@ -304,7 +304,7 @@ EventsImpl.trigger = function(this: any, name: string, ...args: any[]): any {
 };
 
 // Handles triggering the appropriate event callbacks.
-const triggerApi = (objEvents: EventsHash, name: string, callback: any, args: any[]): EventsHash => {
+const triggerApi = (objEvents: EventsHash, name: string, _callback: Function | undefined, args: any[]): EventsHash => {
   if (objEvents) {
     const events = objEvents[name];
     let allEvents = objEvents.all;
@@ -415,24 +415,24 @@ Object.assign(BackboneBase.prototype, EventsImpl);
 
 class Model extends BackboneBase {
   cid!: string;
-  attributes!: Record<string, any>;
-  changed!: Record<string, any> | null;
-  validationError!: any;
+  attributes!: Record<string, unknown>;
+  changed!: Record<string, unknown> | null;
+  validationError!: unknown;
   idAttribute!: string;
   cidPrefix!: string;
-  id!: any;
-  collection?: any;
+  id!: string | number | undefined;
+  collection?: Collection;
   _changing!: boolean;
-  _pending!: any;
-  _previousAttributes!: Record<string, any>;
+  _pending!: boolean | Record<string, unknown>;
+  _previousAttributes!: Record<string, unknown>;
 
-  constructor(attributes?: any, options: any = {}) {
+  constructor(attributes?: Record<string, unknown> | unknown, options: Record<string, unknown> = {}) {
     super();
     let attrs = attributes || {};
     this.preinitialize.apply(this, arguments as any);
     this.cid = _.uniqueId(this.cidPrefix);
     this.attributes = {};
-    if (options.collection) this.collection = options.collection;
+    if (options.collection) this.collection = options.collection as Collection;
     if (options.parse) attrs = this.parse(attrs, options) || {};
     const defaults = _.result(this, 'defaults');
     // Just _.defaults would work fine, but the additional _.extends
@@ -444,7 +444,7 @@ class Model extends BackboneBase {
   }
 
   // Return a copy of the model's `attributes` object.
-  toJSON(options?: any): any {
+  toJSON(_options?: unknown): Record<string, unknown> {
     return _.clone(this.attributes);
   }
 
@@ -455,7 +455,7 @@ class Model extends BackboneBase {
   }
 
   // Get the value of an attribute.
-  get(attr: string): any {
+  get(attr: string): unknown {
     return this.attributes[attr];
   }
 
@@ -482,12 +482,12 @@ class Model extends BackboneBase {
     if (key == null) return this;
 
     // Handle both `"key", value` and `{key: value}` -style arguments.
-    let attrs: Record<string, any>;
+    let attrs: Record<string, unknown>;
     if (typeof key === 'object') {
       attrs = key;
       options = val || {};
     } else {
-      (attrs = {} as Record<string, any>)[key] = val;
+      (attrs = {} as Record<string, unknown>)[key] = val;
     }
 
     // Run validation.
@@ -524,7 +524,7 @@ class Model extends BackboneBase {
     // Update the `id`.
     if (this.idAttribute in attrs) {
       const prevId = this.id;
-      this.id = this.get(this.idAttribute);
+      this.id = this.get(this.idAttribute) as string | number | undefined;
       if (this.id !== prevId) {
         this.trigger('changeId', this, prevId, options);
       }
@@ -561,7 +561,7 @@ class Model extends BackboneBase {
 
   // Clear all attributes on the model, firing `"change"`.
   clear(options?: any): any {
-    const attrs: Record<string, any> = {};
+    const attrs: Record<string, unknown> = {};
     for (const key in this.attributes) attrs[key] = void 0;
     return this.set(attrs, { ...options, unset: true });
   }
@@ -579,13 +579,13 @@ class Model extends BackboneBase {
   // persisted to the server. Unset attributes will be set to undefined.
   // You can also pass an attributes object to diff against the model,
   // determining if there *would be* a change.
-  changedAttributes(diff?: Record<string, any>): Record<string, any> | false {
-    if (!diff) return this.hasChanged() ? _.clone(this.changed) : false;
+  changedAttributes(diff?: Record<string, unknown>): Record<string, unknown> | false {
+    if (!diff) return this.hasChanged() ? _.clone(this.changed!) : false;
     const old = this._changing ? this._previousAttributes : this.attributes;
-    const changed: Record<string, any> = {};
+    const changed: Record<string, unknown> = {};
     let hasChanged: boolean | undefined;
     for (const attr in diff) {
-      const val = diff[attr];
+      const val = diff![attr];
       if (_.isEqual(old[attr], val)) continue;
       changed[attr] = val;
       hasChanged = true;
@@ -595,14 +595,14 @@ class Model extends BackboneBase {
 
   // Get the previous value of an attribute, recorded at the time the last
   // `"change"` event was fired.
-  previous(attr?: string): any {
+  previous(attr?: string): unknown {
     if (attr == null || !this._previousAttributes) return null;
     return this._previousAttributes[attr];
   }
 
   // Get all of the attributes of the model at the time of the previous
   // `"change"` event.
-  previousAttributes(): Record<string, any> {
+  previousAttributes(): Record<string, unknown> {
     return _.clone(this._previousAttributes);
   }
 
@@ -714,12 +714,12 @@ class Model extends BackboneBase {
       urlError();
     if (this.isNew()) return base;
     const id = this.get(this.idAttribute);
-    return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
+    return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id as string | number);
   }
 
   // **parse** converts a response into the hash of attributes to be `set` on
   // the model. The default implementation is just to pass the response along.
-  parse(resp: any, options?: any): any {
+  parse(resp: unknown, _options?: unknown): unknown {
     return resp;
   }
 
@@ -750,8 +750,8 @@ class Model extends BackboneBase {
   }
 
   // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(...args: any[]): void {}
-  initialize(...args: any[]): void {}
+  preinitialize(..._args: unknown[]): void {}
+  initialize(..._args: unknown[]): void {}
 
   // validate is optional — subclasses may define it
   validate?(attrs: any, options?: any): any;
@@ -760,7 +760,7 @@ class Model extends BackboneBase {
   urlRoot?: string | (() => string);
 
   // defaults is optional — subclasses may define it
-  defaults?: any;
+  defaults?: Record<string, unknown> | (() => Record<string, unknown>);
 
   // Allow any additional proxy methods from underscore
   [key: string]: any;
@@ -793,7 +793,7 @@ const setOptions: Record<string, boolean> = { add: true, remove: true, merge: tr
 const addOptions: Record<string, boolean> = { add: true, remove: false };
 
 // Splices `insert` into `array` at index `at`.
-const splice = (array: any[], insert: any[], at: number): void => {
+const splice = (array: unknown[], insert: unknown[], at: number): void => {
   at = Math.min(Math.max(at, 0), array.length);
   const tail = Array(array.length - at);
   const length = insert.length;
@@ -804,10 +804,10 @@ const splice = (array: any[], insert: any[], at: number): void => {
 };
 
 class Collection extends BackboneBase {
-  model!: any;
+  model!: typeof Model;
   models!: Model[];
   length!: number;
-  comparator?: string | ((a: any, b?: any) => number);
+  comparator?: string | ((a: Model, b?: Model) => number);
   _byId!: Record<string, Model>;
 
   constructor(models?: any, options: any = {}) {
@@ -822,8 +822,8 @@ class Collection extends BackboneBase {
 
   // The JSON representation of a Collection is an array of the
   // models' attributes.
-  toJSON(options?: any): any[] {
-    return this.map((model: any) => model.toJSON(options));
+  toJSON(options?: unknown): Record<string, unknown>[] {
+    return this.map((model: Model) => model.toJSON(options));
   }
 
   // Proxy `Backbone.sync` by default.
@@ -1115,7 +1115,7 @@ class Collection extends BackboneBase {
 
   // **parse** converts a response into a list of models to be added to the
   // collection. The default implementation is just to pass it through.
-  parse(resp: any, options?: any): any {
+  parse(resp: unknown, _options?: unknown): unknown {
     return resp;
   }
 
@@ -1205,7 +1205,7 @@ class Collection extends BackboneBase {
   }
 
   // Internal method to create a model's ties to a collection.
-  _addReference(model: Model, options?: any): void {
+  _addReference(model: Model, _options?: unknown): void {
     this._byId[model.cid] = model;
     const id = this.modelId(model.attributes, model.idAttribute);
     if (id != null) this._byId[id] = model;
@@ -1213,7 +1213,7 @@ class Collection extends BackboneBase {
   }
 
   // Internal method to sever a model's ties to a collection.
-  _removeReference(model: Model, options?: any): void {
+  _removeReference(model: Model, _options?: unknown): void {
     delete this._byId[model.cid];
     const id = this.modelId(model.attributes, model.idAttribute);
     if (id != null) delete this._byId[id];
@@ -1252,8 +1252,8 @@ class Collection extends BackboneBase {
   }
 
   // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(...args: any[]): void {}
-  initialize(...args: any[]): void {}
+  preinitialize(..._args: unknown[]): void {}
+  initialize(..._args: unknown[]): void {}
 
   // Allow any additional proxy methods from underscore
   [key: string]: any;
@@ -1354,15 +1354,15 @@ const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 
 
 class View extends BackboneBase {
   cid!: string;
-  el!: any;
+  el!: Element;
   $el!: any;
-  model?: any;
-  collection?: any;
+  model?: Model;
+  collection?: Collection;
   id?: string;
-  attributes?: any;
+  attributes?: Record<string, string>;
   className?: string;
   tagName!: string;
-  events?: any;
+  events?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
 
   // Creating a Backbone.View creates its initial element outside of the DOM,
   // if an existing element is not provided...
@@ -1514,8 +1514,8 @@ class View extends BackboneBase {
   }
 
   // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(...args: any[]): void {}
-  initialize(...args: any[]): void {}
+  preinitialize(..._args: unknown[]): void {}
+  initialize(..._args: unknown[]): void {}
 
   // Allow any additional properties
   [key: string]: any;
@@ -1683,7 +1683,7 @@ class Router extends BackboneBase {
 
   // Execute a route handler with the provided parameters.  This is an
   // excellent place to do pre-route setup or post-route cleanup.
-  execute(callback: Function, args: any[], name: string): any {
+  execute(callback: Function, args: (string | null)[], _name: string): void | false {
     if (callback) callback.apply(this, args);
   }
 
@@ -1730,8 +1730,8 @@ class Router extends BackboneBase {
   }
 
   // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(...args: any[]): void {}
-  initialize(...args: any[]): void {}
+  preinitialize(..._args: unknown[]): void {}
+  initialize(..._args: unknown[]): void {}
 
   // Allow any additional properties
   [key: string]: any;
@@ -1756,7 +1756,7 @@ const rootStripper: RegExp = /^\/+|\/+$/g;
 const pathStripper: RegExp = /#.*$/;
 
 class History extends BackboneBase {
-  handlers!: Array<{ route: RegExp; callback: Function }>;
+  handlers!: Array<{ route: RegExp; callback: (fragment: string) => void }>;
   interval!: number;
   location!: Location;
   history!: globalThis.History;
@@ -1945,7 +1945,7 @@ class History extends BackboneBase {
 
   // Add a route to be tested when the fragment changes. Routes added later
   // may override previous routes.
-  route(route: RegExp, callback: Function): void {
+  route(route: RegExp, callback: (fragment: string) => void): void {
     this.handlers.unshift({ route: route, callback: callback });
   }
 
@@ -1975,7 +1975,7 @@ class History extends BackboneBase {
     // If the root doesn't match, no routes can match either.
     if (!this.matchRoot()) return this.notfound();
     fragment = this.fragment = this.getFragment(fragment);
-    return _.some(this.handlers, (handler: { route: RegExp; callback: Function }) => {
+    return _.some(this.handlers, (handler: { route: RegExp; callback: (fragment: string) => void }) => {
       if (handler.route.test(fragment!)) {
         handler.callback(fragment);
         return true;
@@ -2077,7 +2077,7 @@ const urlError = (): never => {
 };
 
 // Wrap an optional error callback with a fallback error event.
-const wrapError = (model: any, options: any): void => {
+const wrapError = (model: Model | Collection, options: Record<string, any>): void => {
   const error = options.error;
   options.error = function(resp: any) {
     if (error) error.call(options.context, model, resp, options);
@@ -2099,9 +2099,9 @@ interface BackboneStatic extends EventsMixin {
   Router: typeof Router;
   History: typeof History;
   history: History;
-  sync: (method: string, model: any, options?: any) => any;
-  ajax: (options: any) => any;
-  _debug: () => { root: any; _: any };
+  sync: (method: string, model: Model | Collection, options?: Record<string, any>) => any;
+  ajax: (options: Record<string, any>) => any;
+  _debug: () => { root: Record<string, unknown>; _: typeof _ };
   [key: string]: any;
 }
 
@@ -2278,7 +2278,7 @@ Backbone.History = History;
 // to be used directly; it merely provides the necessary introspection for the
 // external `debugInfo` function.
 // Note: `_` is the built-in utils library (no underscore.js dependency).
-Backbone._debug = (): { root: any; _: any } => {
+Backbone._debug = (): { root: Record<string, unknown>; _: typeof _ } => {
   return { root: root, _: _ };
 };
 

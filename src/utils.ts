@@ -5,7 +5,7 @@
 'use strict';
 
 type Iteratee = (value: any, key: any, obj: any) => any;
-type MatcherFn = (obj: any) => boolean;
+type MatcherFn = (obj: unknown) => boolean;
 
 interface EventEntry {
   namespace: string;
@@ -15,113 +15,136 @@ interface EventEntry {
   wrapped: EventListener;
 }
 
+type QuerySelector = string | Element | null | { [index: number]: Element; nodeType?: undefined };
+
 interface DomUtilities {
-  query(selector: any): Element | null;
+  query(selector: QuerySelector): Element | null;
   setAttributes(el: Element, attrs: Record<string, string | null | undefined>): void;
-  remove(el: Element): void;
+  remove(el: Element | null): void;
   _registry: WeakMap<object, EventEntry[]> | null;
-  _entries(el: any): EventEntry[] | null;
+  _entries(el: Element | null): EventEntry[] | null;
   on(el: Element, namespace: string, eventName: string, selector: string | null, listener: EventListener): void;
   off(el: Element, namespace: string, eventName?: string | null, selector?: string | null, listener?: EventListener | null): void;
 }
 
-interface Chain {
-  _wrapped: any;
-  value(): any;
+interface Chain<T = any> {
+  _wrapped: T;
+  value(): T;
   [method: string]: any;
 }
 
 interface ChainConstructor {
-  new (obj: any): Chain;
+  new <T>(obj: T): Chain<T>;
   prototype: Chain;
 }
 
 interface Underscore {
   VERSION: string;
-  identity: (v: any) => any;
-  isFunction(obj: any): obj is Function;
-  isString(obj: any): obj is string;
-  isArray(obj: any): obj is any[];
-  isRegExp(obj: any): obj is RegExp;
-  isObject(obj: any): boolean;
-  isEqual(a: any, b: any): boolean;
-  keys(obj: any): string[];
-  values(obj: any): any[];
-  pairs(obj: any): [string, any][];
-  invert(obj: Record<string, any>): Record<string, string>;
-  extend(obj: any, ...sources: any[]): any;
-  defaults(obj: any, ...sources: any[]): any;
-  clone(obj: any): any;
-  has(obj: any, key: string): boolean;
-  pick(obj: any, ...args: any[]): any;
-  omit(obj: any, ...args: any[]): any;
-  functions(obj: any): string[];
-  create(proto: any, props?: any): any;
+  identity: <T>(v: T) => T;
+  isFunction(obj: unknown): obj is Function;
+  isString(obj: unknown): obj is string;
+  isArray(obj: unknown): obj is any[];
+  isRegExp(obj: unknown): obj is RegExp;
+  isObject(obj: unknown): obj is object;
+  isEqual(a: unknown, b: unknown): boolean;
+  keys(obj: object): string[];
+  values<T>(obj: Record<string, T>): T[];
+  values(obj: object): unknown[];
+  pairs(obj: object): [string, unknown][];
+  invert(obj: Record<string, string | number>): Record<string, string>;
+  extend<T extends object>(obj: T, ...sources: object[]): T;
+  defaults<T extends object>(obj: T, ...sources: object[]): T;
+  clone<T>(obj: T): T;
+  has(obj: unknown, key: string): boolean;
+  pick(obj: object, ...args: any[]): Record<string, any>;
+  omit(obj: object, ...args: any[]): Record<string, any>;
+  functions(obj: object): string[];
+  create(proto: object, props?: object): any;
   result(obj: any, prop: string, fallback?: any): any;
   uniqueId(prefix?: string): string;
-  isEmpty(obj: any): boolean;
-  escape(str: any): string;
-  once<T extends Function>(fn: T): T;
+  isEmpty(obj: unknown): boolean;
+  escape(str: unknown): string;
+  once<T extends (...args: any[]) => any>(fn: T): T;
   defer(fn: Function, ...args: any[]): number;
-  matches: (attrs: any) => MatcherFn;
+  matches: (attrs: object) => MatcherFn;
   iteratee: (value: any, context?: any) => Iteratee;
   property(path: string): (obj: any) => any;
-  pluck(obj: any, key: string): any[];
-  each: (obj: any, iteratee: (val: any, key: any, obj: any) => void, context?: any) => any;
-  forEach: (obj: any, iteratee: (val: any, key: any, obj: any) => void, context?: any) => any;
-  map: (obj: any, iteratee: any, context?: any) => any[];
-  collect: (obj: any, iteratee: any, context?: any) => any[];
-  reduce: (obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any) => any;
-  foldl: (obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any) => any;
-  inject: (obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any) => any;
-  reduceRight: (obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any) => any;
-  foldr: (obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any) => any;
-  findIndex(array: any[], predicate: any, context?: any): number;
-  findLastIndex(array: any[], predicate: any, context?: any): number;
-  find: (obj: any, predicate: any, context?: any) => any;
-  detect: (obj: any, predicate: any, context?: any) => any;
-  filter: (obj: any, predicate: any, context?: any) => any[];
-  select: (obj: any, predicate: any, context?: any) => any[];
+  pluck(obj: any[], key: string): any[];
+  each<T>(obj: T[], iteratee: (val: T, index: number, obj: T[]) => void, context?: any): T[];
+  each(obj: object, iteratee: (val: any, key: string, obj: object) => void, context?: any): object;
+  forEach<T>(obj: T[], iteratee: (val: T, index: number, obj: T[]) => void, context?: any): T[];
+  forEach(obj: object, iteratee: (val: any, key: string, obj: object) => void, context?: any): object;
+  map<T, R>(obj: T[], iteratee: (val: T, index: number, obj: T[]) => R, context?: any): R[];
+  map(obj: any, iteratee: any, context?: any): any[];
+  collect<T, R>(obj: T[], iteratee: (val: T, index: number, obj: T[]) => R, context?: any): R[];
+  collect(obj: any, iteratee: any, context?: any): any[];
+  reduce<T, R>(obj: T[], iteratee: (memo: R, val: T, index: number, obj: T[]) => R, memo: R, context?: any): R;
+  reduce(obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any): any;
+  foldl<T, R>(obj: T[], iteratee: (memo: R, val: T, index: number, obj: T[]) => R, memo: R, context?: any): R;
+  foldl(obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any): any;
+  inject<T, R>(obj: T[], iteratee: (memo: R, val: T, index: number, obj: T[]) => R, memo: R, context?: any): R;
+  inject(obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any): any;
+  reduceRight<T, R>(obj: T[], iteratee: (memo: R, val: T, index: number, obj: T[]) => R, memo: R, context?: any): R;
+  reduceRight(obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any): any;
+  foldr<T, R>(obj: T[], iteratee: (memo: R, val: T, index: number, obj: T[]) => R, memo: R, context?: any): R;
+  foldr(obj: any, iteratee: (memo: any, val: any, key: any, obj: any) => any, memo?: any, context?: any): any;
+  findIndex<T>(array: T[], predicate: ((val: T, index: number, array: T[]) => boolean) | object | string, context?: any): number;
+  findLastIndex<T>(array: T[], predicate: ((val: T, index: number, array: T[]) => boolean) | object | string, context?: any): number;
+  find<T>(obj: T[], predicate: ((val: T, index: number, obj: T[]) => boolean) | object | string, context?: any): T | undefined;
+  find(obj: any, predicate: any, context?: any): any;
+  detect<T>(obj: T[], predicate: ((val: T, index: number, obj: T[]) => boolean) | object | string, context?: any): T | undefined;
+  detect(obj: any, predicate: any, context?: any): any;
+  filter<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): T[];
+  filter(obj: any, predicate: any, context?: any): any[];
+  select<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): T[];
+  select(obj: any, predicate: any, context?: any): any[];
+  reject<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): T[];
   reject(obj: any, predicate: any, context?: any): any[];
-  every: (obj: any, predicate: any, context?: any) => boolean;
-  all: (obj: any, predicate: any, context?: any) => boolean;
-  some: (obj: any, predicate: any, context?: any) => boolean;
-  any: (obj: any, predicate: any, context?: any) => boolean;
-  contains: (obj: any, item: any, fromIndex?: number) => boolean;
-  includes: (obj: any, item: any, fromIndex?: number) => boolean;
-  include: (obj: any, item: any, fromIndex?: number) => boolean;
-  invoke(obj: any, path: any, ...args: any[]): any[];
-  max(obj: any, iteratee?: any, context?: any): any;
-  min(obj: any, iteratee?: any, context?: any): any;
-  shuffle(obj: any): any[];
-  sample(obj: any, n?: number): any;
+  every<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): boolean;
+  every(obj: any, predicate: any, context?: any): boolean;
+  all<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): boolean;
+  all(obj: any, predicate: any, context?: any): boolean;
+  some<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): boolean;
+  some(obj: any, predicate: any, context?: any): boolean;
+  any<T>(obj: T[], predicate: (val: T, index: number, obj: T[]) => boolean, context?: any): boolean;
+  any(obj: any, predicate: any, context?: any): boolean;
+  contains<T>(obj: T[] | Record<string, T>, item: T, fromIndex?: number): boolean;
+  includes<T>(obj: T[] | Record<string, T>, item: T, fromIndex?: number): boolean;
+  include<T>(obj: T[] | Record<string, T>, item: T, fromIndex?: number): boolean;
+  invoke(obj: any[], path: string | Function, ...args: any[]): any[];
+  max<T>(obj: T[] | Record<string, T>, iteratee?: ((val: T, key: any, obj: any) => number) | string, context?: any): T;
+  min<T>(obj: T[] | Record<string, T>, iteratee?: ((val: T, key: any, obj: any) => number) | string, context?: any): T;
+  shuffle<T>(obj: T[] | Record<string, T>): T[];
+  sample<T>(obj: T[] | Record<string, T>, n?: number): T | T[];
+  sortBy<T>(obj: T[], iteratee: ((val: T, index: number, obj: T[]) => any) | string, context?: any): T[];
   sortBy(obj: any, iteratee: any, context?: any): any[];
   groupBy: (obj: any, iteratee: any, context?: any) => Record<string, any[]>;
   indexBy: (obj: any, iteratee: any, context?: any) => Record<string, any>;
   countBy: (obj: any, iteratee: any, context?: any) => Record<string, number>;
   partition: (obj: any, iteratee: any, context?: any) => [any[], any[]];
-  toArray(obj: any): any[];
-  size(obj: any): number;
-  first: (array: any[] | null | undefined, n?: number) => any;
-  head: (array: any[] | null | undefined, n?: number) => any;
-  take: (array: any[] | null | undefined, n?: number) => any;
-  initial(array: any[], n?: number): any[];
-  last(array: any[] | null | undefined, n?: number): any;
-  rest: (array: any[], n?: number) => any[];
-  tail: (array: any[], n?: number) => any[];
-  drop: (array: any[], n?: number) => any[];
-  compact(array: any[]): any[];
-  without(array: any[], ...values: any[]): any[];
-  difference(array: any[], ...others: any[][]): any[];
-  indexOf(array: any[], item: any, from?: number): number;
-  lastIndexOf(array: any[], item: any, from?: number): number;
-  chain(obj: any): Chain;
+  toArray<T>(obj: T[] | Record<string, T>): T[];
+  toArray(obj: unknown): any[];
+  size(obj: unknown): number;
+  first<T>(array: T[] | null | undefined, n?: number): T | T[] | undefined;
+  head<T>(array: T[] | null | undefined, n?: number): T | T[] | undefined;
+  take<T>(array: T[] | null | undefined, n?: number): T | T[] | undefined;
+  initial<T>(array: T[], n?: number): T[];
+  last<T>(array: T[] | null | undefined, n?: number): T | T[] | undefined;
+  rest<T>(array: T[], n?: number): T[];
+  tail<T>(array: T[], n?: number): T[];
+  drop<T>(array: T[], n?: number): T[];
+  compact<T>(array: T[]): T[];
+  without<T>(array: T[], ...values: T[]): T[];
+  difference<T>(array: T[], ...others: T[][]): T[];
+  indexOf<T>(array: T[], item: T, from?: number): number;
+  lastIndexOf<T>(array: T[], item: T, from?: number): number;
+  chain<T>(obj: T): Chain<T>;
   dom: DomUtilities;
 }
 
 let idCounter: number = 0;
 
-function identity(v: any): any { return v; }
+function identity<T>(v: T): T { return v; }
 
 function makeIteratee(value: any, context?: any): Iteratee {
   if (value == null) return identity;
@@ -135,20 +158,20 @@ function makeIteratee(value: any, context?: any): Iteratee {
   return identity;
 }
 
-function makeMatches(attrs: any): MatcherFn {
-  const pairs: [string, any][] = Object.entries(attrs);
-  return function(obj: any): boolean {
+function makeMatches(attrs: object): MatcherFn {
+  const pairs: [string, unknown][] = Object.entries(attrs);
+  return function(obj: unknown): boolean {
     if (obj == null) return !pairs.length;
-    obj = Object(obj);
+    const o = Object(obj) as Record<string, unknown>;
     for (let i = 0; i < pairs.length; i++) {
-      if (pairs[i][1] !== obj[pairs[i][0]] || !(pairs[i][0] in obj)) return false;
+      if (pairs[i][1] !== o[pairs[i][0]] || !(pairs[i][0] in o)) return false;
     }
     return true;
   };
 }
 
-function deepEqual(a: any, b: any, aStack: any[], bStack: any[]): boolean {
-  if (a === b) return a !== 0 || (1 / a) === (1 / b);
+function deepEqual(a: unknown, b: unknown, aStack: unknown[], bStack: unknown[]): boolean {
+  if (a === b) return (a as number) !== 0 || (1 / (a as number)) === (1 / (b as number));
   if (a == null || b == null) return a === b;
 
   const tag: string = Object.prototype.toString.call(a);
@@ -158,10 +181,10 @@ function deepEqual(a: any, b: any, aStack: any[], bStack: any[]): boolean {
     case '[object RegExp]':
     case '[object String]':  return '' + a === '' + b;
     case '[object Number]':
-      if (+a !== +a) return +b !== +b;
-      return +a === 0 ? (1 / +a) === (1 / +b) : +a === +b;
+      if (+(a as number) !== +(a as number)) return +(b as number) !== +(b as number);
+      return +(a as number) === 0 ? (1 / +(a as number)) === (1 / +(b as number)) : +(a as number) === +(b as number);
     case '[object Date]':
-    case '[object Boolean]': return +a === +b;
+    case '[object Boolean]': return +(a as number) === +(b as number);
     case '[object Symbol]':
       return Symbol.prototype.valueOf.call(a) === Symbol.prototype.valueOf.call(b);
   }
@@ -169,11 +192,13 @@ function deepEqual(a: any, b: any, aStack: any[], bStack: any[]): boolean {
   const areArrays: boolean = tag === '[object Array]';
   if (!areArrays) {
     if (typeof a !== 'object' || typeof b !== 'object') return false;
-    const aC = a.constructor, bC = b.constructor;
+    const aObj = a as Record<string, any>;
+    const bObj = b as Record<string, any>;
+    const aC = aObj.constructor, bC = bObj.constructor;
     if (aC !== bC &&
         !(typeof aC === 'function' && aC instanceof aC &&
           typeof bC === 'function' && bC instanceof bC) &&
-        ('constructor' in a && 'constructor' in b)) return false;
+        ('constructor' in aObj && 'constructor' in bObj)) return false;
   }
 
   let len: number = aStack.length;
@@ -183,20 +208,24 @@ function deepEqual(a: any, b: any, aStack: any[], bStack: any[]): boolean {
   aStack.push(a); bStack.push(b);
 
   if (areArrays) {
-    len = a.length;
-    if (len !== b.length) { aStack.pop(); bStack.pop(); return false; }
+    const aArr = a as unknown[];
+    const bArr = b as unknown[];
+    len = aArr.length;
+    if (len !== bArr.length) { aStack.pop(); bStack.pop(); return false; }
     while (len--) {
-      if (!deepEqual(a[len], b[len], aStack, bStack)) { aStack.pop(); bStack.pop(); return false; }
+      if (!deepEqual(aArr[len], bArr[len], aStack, bStack)) { aStack.pop(); bStack.pop(); return false; }
     }
   } else {
-    const keys: string[] = Object.keys(a);
+    const aRec = a as Record<string, unknown>;
+    const bRec = b as Record<string, unknown>;
+    const keys: string[] = Object.keys(aRec);
     let key: string;
     len = keys.length;
-    if (Object.keys(b).length !== len) { aStack.pop(); bStack.pop(); return false; }
+    if (Object.keys(bRec).length !== len) { aStack.pop(); bStack.pop(); return false; }
     while (len--) {
       key = keys[len];
-      if (!Object.prototype.hasOwnProperty.call(b, key) ||
-          !deepEqual(a[key], b[key], aStack, bStack)) { aStack.pop(); bStack.pop(); return false; }
+      if (!Object.prototype.hasOwnProperty.call(bRec, key) ||
+          !deepEqual(aRec[key], bRec[key], aStack, bStack)) { aStack.pop(); bStack.pop(); return false; }
     }
   }
 
@@ -218,33 +247,33 @@ const _: Underscore = {} as Underscore;
 _.VERSION = '1.0.0';
 _.identity = identity;
 
-_.isFunction = function(obj: any): obj is Function { return typeof obj === 'function'; };
-_.isString   = function(obj: any): obj is string { return typeof obj === 'string'; };
+_.isFunction = function(obj: unknown): obj is Function { return typeof obj === 'function'; };
+_.isString   = function(obj: unknown): obj is string { return typeof obj === 'string'; };
 _.isArray    = Array.isArray;
-_.isRegExp   = function(obj: any): obj is RegExp { return obj instanceof RegExp; };
-_.isObject   = function(obj: any): boolean {
+_.isRegExp   = function(obj: unknown): obj is RegExp { return obj instanceof RegExp; };
+_.isObject   = function(obj: unknown): obj is object {
   const t: string = typeof obj;
   return t === 'function' || (t === 'object' && !!obj);
 };
 
-_.isEqual = function(a: any, b: any): boolean { return deepEqual(a, b, [], []); };
+_.isEqual = function(a: unknown, b: unknown): boolean { return deepEqual(a, b, [], []); };
 
-_.keys = function(obj: any): string[] {
+_.keys = function(obj: unknown): string[] {
   if (!_.isObject(obj)) return [];
   return Object.keys(obj);
 };
 
-_.values = function(obj: any): any[] { return Object.values(obj); };
-_.pairs  = function(obj: any): [string, any][] { return Object.entries(obj) as [string, any][]; };
+_.values = function(obj: object): any[] { return Object.values(obj); };
+_.pairs  = function(obj: object): [string, unknown][] { return Object.entries(obj) as [string, unknown][]; };
 
-_.invert = function(obj: Record<string, any>): Record<string, string> {
+_.invert = function(obj: Record<string, string | number>): Record<string, string> {
   const result: Record<string, string> = {};
   const keys: string[] = Object.keys(obj);
-  for (let i = 0; i < keys.length; i++) result[obj[keys[i]]] = keys[i];
+  for (let i = 0; i < keys.length; i++) result[String(obj[keys[i]])] = keys[i];
   return result;
 };
 
-_.extend = function(obj: any, ...rest: any[]): any {
+_.extend = function<T extends object>(obj: T, ...rest: object[]): T {
   if (!_.isObject(obj)) return obj;
   for (let i = 0; i < rest.length; i++) {
     if (rest[i]) Object.assign(obj, rest[i]);
@@ -252,30 +281,30 @@ _.extend = function(obj: any, ...rest: any[]): any {
   return obj;
 };
 
-_.defaults = function(obj: any, ...rest: any[]): any {
+_.defaults = function<T extends object>(obj: T, ...rest: object[]): T {
   if (!_.isObject(obj)) return obj;
   for (let i = 0; i < rest.length; i++) {
-    const src: any = rest[i];
+    const src = rest[i] as Record<string, unknown>;
     if (src) {
       for (const key in src) {
-        if (obj[key] === void 0) obj[key] = src[key];
+        if ((obj as Record<string, unknown>)[key] === void 0) (obj as Record<string, unknown>)[key] = src[key];
       }
     }
   }
   return obj;
 };
 
-_.clone = function(obj: any): any {
+_.clone = function<T>(obj: T): T {
   if (!_.isObject(obj)) return obj;
-  return _.isArray(obj) ? obj.slice() : Object.assign({}, obj);
+  return (_.isArray(obj) ? obj.slice() : Object.assign({}, obj)) as T;
 };
 
-_.has = function(obj: any, key: string): boolean {
+_.has = function(obj: unknown, key: string): boolean {
   return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
 };
 
-_.pick = function(obj: any, ...args: any[]): any {
-  const result: any = {};
+_.pick = function(obj: any, ...args: any[]): Record<string, any> {
+  const result: Record<string, any> = {};
   if (obj == null) return result;
   let i: number, key: string;
   if (args.length > 0 && !_.isFunction(args[0])) {
@@ -296,8 +325,8 @@ _.pick = function(obj: any, ...args: any[]): any {
   return result;
 };
 
-_.omit = function(obj: any, ...args: any[]): any {
-  const result: any = {};
+_.omit = function(obj: any, ...args: any[]): Record<string, any> {
+  const result: Record<string, any> = {};
   if (obj == null) return result;
   const omitMap: Record<string, boolean> = {};
   let keys: string[], key: string;
@@ -312,13 +341,13 @@ _.omit = function(obj: any, ...args: any[]): any {
   return result;
 };
 
-_.functions = function(obj: any): string[] {
+_.functions = function(obj: object): string[] {
   const names: string[] = [];
-  for (const key in obj) { if (_.isFunction(obj[key])) names.push(key); }
+  for (const key in obj) { if (_.isFunction((obj as any)[key])) names.push(key); }
   return names.sort();
 };
 
-_.create = function(proto: any, props?: any): any {
+_.create = function(proto: object, props?: object): any {
   const result: any = Object.create(proto);
   if (props) Object.assign(result, props);
   return result;
@@ -335,28 +364,27 @@ _.uniqueId = function(prefix?: string): string {
   return prefix ? prefix + id : id;
 };
 
-_.isEmpty = function(obj: any): boolean {
+_.isEmpty = function(obj: unknown): boolean {
   if (obj == null) return true;
   if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
-  return Object.keys(obj).length === 0;
+  return Object.keys(obj as object).length === 0;
 };
 
 const escapeMap: Record<string, string> = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;', '`': '&#x60;'};
 
-_.escape = function(str: any): string {
+_.escape = function(str: unknown): string {
   if (str == null) return '';
   return ('' + str).replace(/[&<>"'`]/g, function(m: string) { return escapeMap[m]; });
 };
 
-_.once = function(fn: any): any {
+_.once = function<T extends (...args: any[]) => any>(fn: T): T {
   let ran: boolean = false, memo: any;
   return function(this: any) {
     if (ran) return memo;
     ran = true;
-    memo = fn.apply(this, arguments);
-    fn = null;
+    memo = fn.apply(this, arguments as any);
     return memo;
-  };
+  } as unknown as T;
 };
 
 _.defer = function(fn: Function, ...args: any[]): number {
@@ -370,7 +398,7 @@ _.property = function(path: string): (obj: any) => any {
   return function(obj: any): any { return obj == null ? void 0 : obj[path]; };
 };
 
-_.pluck = function(obj: any, key: string): any[] { return _.map(obj, _.property(key)); };
+_.pluck = function(obj: any[], key: string): any[] { return _.map(obj, _.property(key)); };
 
 _.each = _.forEach = function(obj: any, iteratee: (val: any, key: any, obj: any) => void, context?: any): any {
   if (obj == null) return obj;
@@ -392,7 +420,7 @@ _.map = _.collect = function(obj: any, iteratee: any, context?: any): any[] {
   const len: number = (keys || obj).length;
   const result: any[] = Array(len);
   for (let i = 0; i < len; i++) {
-    const key: any = keys ? keys[i] : i;
+    const key: string | number = keys ? keys[i] : i;
     result[i] = iteratee(obj[key], key, obj);
   }
   return result;
@@ -408,7 +436,7 @@ _.reduce = _.foldl = _.inject = function(obj: any, iteratee: (memo: any, val: an
   let i: number = 0;
   if (arguments.length < 3) { memo = obj[keys ? keys[0] : 0]; i = 1; }
   for (; i < len; i++) {
-    const k: any = keys ? keys[i] : i;
+    const k: string | number = keys ? keys[i] : i;
     memo = iteratee(memo, obj[k], k, obj);
   }
   return memo;
@@ -424,7 +452,7 @@ _.reduceRight = _.foldr = function(obj: any, iteratee: (memo: any, val: any, key
   let i: number = len - 1;
   if (arguments.length < 3) { memo = obj[keys ? keys[i] : i]; i--; }
   for (; i >= 0; i--) {
-    const k: any = keys ? keys[i] : i;
+    const k: string | number = keys ? keys[i] : i;
     memo = iteratee(memo, obj[k], k, obj);
   }
   return memo;
@@ -477,7 +505,7 @@ _.every = _.all = function(obj: any, predicate: any, context?: any): boolean {
   const keys: string[] | false = !_.isArray(obj) && Object.keys(obj);
   const len: number = (keys || obj).length;
   for (let i = 0; i < len; i++) {
-    const k: any = keys ? keys[i] : i;
+    const k: string | number = keys ? keys[i] : i;
     if (!predicate(obj[k], k, obj)) return false;
   }
   return true;
@@ -488,21 +516,21 @@ _.some = _.any = function(obj: any, predicate: any, context?: any): boolean {
   const keys: string[] | false = !_.isArray(obj) && Object.keys(obj);
   const len: number = (keys || obj).length;
   for (let i = 0; i < len; i++) {
-    const k: any = keys ? keys[i] : i;
+    const k: string | number = keys ? keys[i] : i;
     if (predicate(obj[k], k, obj)) return true;
   }
   return false;
 };
 
-_.contains = _.includes = _.include = function(obj: any, item: any, fromIndex?: number): boolean {
+_.contains = _.includes = _.include = function(obj: any, item: unknown, fromIndex?: number): boolean {
   if (!_.isArray(obj)) obj = Object.values(obj);
   return obj.indexOf(item, fromIndex) >= 0;
 };
 
-_.invoke = function(obj: any, path: any, ...args: any[]): any[] {
+_.invoke = function(obj: any[], path: string | Function, ...args: any[]): any[] {
   const isFn: boolean = _.isFunction(path);
   return _.map(obj, function(ctx: any) {
-    const fn: any = isFn ? path : (ctx == null ? void 0 : ctx[path]);
+    const fn: any = isFn ? path : (ctx == null ? void 0 : ctx[path as string]);
     return fn == null ? fn : fn.apply(ctx, args);
   });
 };
@@ -568,8 +596,8 @@ _.sortBy = function(obj: any, iteratee: any, context?: any): any[] {
   return _.pluck(
     _.map(obj, function(val: any, key: any, list: any) {
       return {value: val, index: i++, criteria: iteratee(val, key, list)};
-    }).sort(function(left: any, right: any) {
-      const a: any = left.criteria, b: any = right.criteria;
+    }).sort(function(left: {value: any; index: number; criteria: any}, right: {value: any; index: number; criteria: any}) {
+      const a = left.criteria, b = right.criteria;
       if (a !== b) {
         if (a > b || a === void 0) return 1;
         if (a < b || b === void 0) return -1;
@@ -580,21 +608,21 @@ _.sortBy = function(obj: any, iteratee: any, context?: any): any[] {
   );
 };
 
-_.groupBy   = createGrouper(function(r: any, v: any, k: any) { if (_.has(r, k)) r[k].push(v); else r[k] = [v]; });
-_.indexBy   = createGrouper(function(r: any, v: any, k: any) { r[k] = v; });
-_.countBy   = createGrouper(function(r: any, _v: any, k: any) { if (_.has(r, k)) r[k]++; else r[k] = 1; });
-_.partition = createGrouper(function(r: any, v: any, pass: any) { r[pass ? 0 : 1].push(v); }, true);
+_.groupBy   = createGrouper(function(r: Record<string, any[]>, v: any, k: string) { if (_.has(r, k)) r[k].push(v); else r[k] = [v]; });
+_.indexBy   = createGrouper(function(r: Record<string, any>, v: any, k: string) { r[k] = v; });
+_.countBy   = createGrouper(function(r: Record<string, number>, _v: any, k: string) { if (_.has(r, k)) r[k]++; else r[k] = 1; });
+_.partition = createGrouper(function(r: [any[], any[]], v: any, pass: boolean) { r[pass ? 0 : 1].push(v); }, true);
 
-_.toArray = function(obj: any): any[] {
+_.toArray = function(obj: unknown): any[] {
   if (!obj) return [];
   if (_.isArray(obj)) return obj.slice();
   if (_.isString(obj)) return obj.split('');
-  return Object.values(obj);
+  return Object.values(obj as object);
 };
 
-_.size = function(obj: any): number {
+_.size = function(obj: unknown): number {
   if (obj == null) return 0;
-  return (_.isArray(obj) || _.isString(obj)) ? obj.length : Object.keys(obj).length;
+  return (_.isArray(obj) || _.isString(obj)) ? obj.length : Object.keys(obj as object).length;
 };
 
 _.first = _.head = _.take = function(array: any[] | null | undefined, n?: number): any {
@@ -667,7 +695,7 @@ ChainCtor.prototype.value = function(this: Chain): any { return this._wrapped; }
 _.chain = function(obj: any): Chain { return new ChainCtor(obj); };
 
 _.dom = {
-  query: function(selector: any): Element | null {
+  query: function(selector: QuerySelector): Element | null {
     if (selector == null) return null;
     if (typeof selector === 'string') {
       if (/^\s*</.test(selector)) {
@@ -677,8 +705,8 @@ _.dom = {
       }
       return document.querySelector(selector);
     }
-    if (selector.nodeType) return selector;
-    if (selector[0] && selector[0].nodeType) return selector[0];
+    if ((selector as Element).nodeType) return selector as Element;
+    if ((selector as { [index: number]: Element })[0] && ((selector as { [index: number]: Element })[0] as Element).nodeType) return (selector as { [index: number]: Element })[0];
     return null;
   },
 
@@ -694,13 +722,13 @@ _.dom = {
     }
   },
 
-  remove: function(el: Element): void {
+  remove: function(el: Element | null): void {
     if (el && el.parentNode) el.parentNode.removeChild(el);
   },
 
   _registry: (function(): WeakMap<object, EventEntry[]> | null { try { return new WeakMap(); } catch (e) { return null; } }()),
 
-  _entries: function(el: any): EventEntry[] | null {
+  _entries: function(el: Element | null): EventEntry[] | null {
     const reg: WeakMap<object, EventEntry[]> | null = _.dom._registry;
     if (!reg || !el || typeof el !== 'object') return null;
     if (!reg.has(el)) reg.set(el, []);

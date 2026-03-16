@@ -4,8 +4,8 @@ interface EventsHash {
 }
 interface EventHandler {
     callback: Function;
-    context: any;
-    ctx: any;
+    context: unknown;
+    ctx: unknown;
     listening: Listening | undefined;
 }
 export interface EventsMixin {
@@ -77,20 +77,20 @@ declare class BackboneBase {
 }
 declare class Model extends BackboneBase {
     cid: string;
-    attributes: Record<string, any>;
-    changed: Record<string, any> | null;
-    validationError: any;
+    attributes: Record<string, unknown>;
+    changed: Record<string, unknown> | null;
+    validationError: unknown;
     idAttribute: string;
     cidPrefix: string;
-    id: any;
-    collection?: any;
+    id: string | number | undefined;
+    collection?: Collection;
     _changing: boolean;
-    _pending: any;
-    _previousAttributes: Record<string, any>;
-    constructor(attributes?: any, options?: any);
-    toJSON(options?: any): any;
+    _pending: boolean | Record<string, unknown>;
+    _previousAttributes: Record<string, unknown>;
+    constructor(attributes?: Record<string, unknown> | unknown, options?: Record<string, unknown>);
+    toJSON(_options?: unknown): Record<string, unknown>;
     sync(...args: any[]): any;
-    get(attr: string): any;
+    get(attr: string): unknown;
     escape(attr: string): string;
     has(attr: string): boolean;
     matches(attrs: any): boolean;
@@ -98,34 +98,34 @@ declare class Model extends BackboneBase {
     unset(attr: string, options?: any): any;
     clear(options?: any): any;
     hasChanged(attr?: string): boolean;
-    changedAttributes(diff?: Record<string, any>): Record<string, any> | false;
-    previous(attr?: string): any;
-    previousAttributes(): Record<string, any>;
+    changedAttributes(diff?: Record<string, unknown>): Record<string, unknown> | false;
+    previous(attr?: string): unknown;
+    previousAttributes(): Record<string, unknown>;
     fetch(options?: any): any;
     save(key?: any, val?: any, options?: any): any;
     destroy(options?: any): any;
     url(): string;
-    parse(resp: any, options?: any): any;
+    parse(resp: unknown, _options?: unknown): unknown;
     clone(): Model;
     isNew(): boolean;
     isValid(options?: any): boolean;
     _validate(attrs: any, options: any): boolean;
-    preinitialize(...args: any[]): void;
-    initialize(...args: any[]): void;
+    preinitialize(..._args: unknown[]): void;
+    initialize(..._args: unknown[]): void;
     validate?(attrs: any, options?: any): any;
     urlRoot?: string | (() => string);
-    defaults?: any;
+    defaults?: Record<string, unknown> | (() => Record<string, unknown>);
     [key: string]: any;
     static mixin: (obj: any) => void;
 }
 declare class Collection extends BackboneBase {
-    model: any;
+    model: typeof Model;
     models: Model[];
     length: number;
-    comparator?: string | ((a: any, b?: any) => number);
+    comparator?: string | ((a: Model, b?: Model) => number);
     _byId: Record<string, Model>;
     constructor(models?: any, options?: any);
-    toJSON(options?: any): any[];
+    toJSON(options?: unknown): Record<string, unknown>[];
     sync(...args: any[]): any;
     add(models: any, options?: any): any;
     remove(models: any, options?: any): any;
@@ -145,7 +145,7 @@ declare class Collection extends BackboneBase {
     pluck(attr: string): any[];
     fetch(options?: any): any;
     create(model: any, options?: any): any;
-    parse(resp: any, options?: any): any;
+    parse(resp: unknown, _options?: unknown): unknown;
     clone(): Collection;
     modelId(attrs: any, idAttribute?: string): any;
     values(): CollectionIterator;
@@ -155,12 +155,12 @@ declare class Collection extends BackboneBase {
     _prepareModel(attrs: any, options?: any): any;
     _removeModels(models: any[], options: any): Model[];
     _isModel(model: any): model is Model;
-    _addReference(model: Model, options?: any): void;
-    _removeReference(model: Model, options?: any): void;
+    _addReference(model: Model, _options?: unknown): void;
+    _removeReference(model: Model, _options?: unknown): void;
     _onModelEvent(event: string, model: any, collection: any, options: any): void;
     _forwardPristineError(model: any, collection: any, options: any): void;
-    preinitialize(...args: any[]): void;
-    initialize(...args: any[]): void;
+    preinitialize(..._args: unknown[]): void;
+    initialize(..._args: unknown[]): void;
     [key: string]: any;
     static mixin: (obj: any) => void;
 }
@@ -174,15 +174,15 @@ declare class CollectionIterator implements Iterator<any> {
 }
 declare class View extends BackboneBase {
     cid: string;
-    el: any;
+    el: Element;
     $el: any;
-    model?: any;
-    collection?: any;
+    model?: Model;
+    collection?: Collection;
     id?: string;
-    attributes?: any;
+    attributes?: Record<string, string>;
     className?: string;
     tagName: string;
-    events?: any;
+    events?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
     constructor(options?: any);
     $(selector: string): any;
     render(): this;
@@ -197,27 +197,27 @@ declare class View extends BackboneBase {
     _createElement(tagName: string): HTMLElement;
     _ensureElement(): void;
     _setAttributes(attributes: Record<string, any>): void;
-    preinitialize(...args: any[]): void;
-    initialize(...args: any[]): void;
+    preinitialize(..._args: unknown[]): void;
+    initialize(..._args: unknown[]): void;
     [key: string]: any;
 }
 declare class Router extends BackboneBase {
     routes?: any;
     constructor(options?: any);
     route(route: string | RegExp, name: string | Function, callback?: Function): this;
-    execute(callback: Function, args: any[], name: string): any;
+    execute(callback: Function, args: (string | null)[], _name: string): void | false;
     navigate(fragment: string, options?: any): this;
     _bindRoutes(): void;
     _routeToRegExp(route: string): RegExp;
     _extractParameters(route: RegExp, fragment: string): (string | null)[];
-    preinitialize(...args: any[]): void;
-    initialize(...args: any[]): void;
+    preinitialize(..._args: unknown[]): void;
+    initialize(..._args: unknown[]): void;
     [key: string]: any;
 }
 declare class History extends BackboneBase {
     handlers: Array<{
         route: RegExp;
-        callback: Function;
+        callback: (fragment: string) => void;
     }>;
     interval: number;
     location: Location;
@@ -245,7 +245,7 @@ declare class History extends BackboneBase {
     getFragment(fragment?: string): string;
     start(options?: any): any;
     stop(): void;
-    route(route: RegExp, callback: Function): void;
+    route(route: RegExp, callback: (fragment: string) => void): void;
     checkUrl(): any;
     loadUrl(fragment?: string): any;
     notfound(): false;
@@ -266,11 +266,11 @@ interface BackboneStatic extends EventsMixin {
     Router: typeof Router;
     History: typeof History;
     history: History;
-    sync: (method: string, model: any, options?: any) => any;
-    ajax: (options: any) => any;
+    sync: (method: string, model: Model | Collection, options?: Record<string, any>) => any;
+    ajax: (options: Record<string, any>) => any;
     _debug: () => {
-        root: any;
-        _: any;
+        root: Record<string, unknown>;
+        _: typeof _;
     };
     [key: string]: any;
 }

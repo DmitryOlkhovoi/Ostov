@@ -22,9 +22,9 @@ function makeMatches(attrs) {
     return function (obj) {
         if (obj == null)
             return !pairs.length;
-        obj = Object(obj);
+        const o = Object(obj);
         for (let i = 0; i < pairs.length; i++) {
-            if (pairs[i][1] !== obj[pairs[i][0]] || !(pairs[i][0] in obj))
+            if (pairs[i][1] !== o[pairs[i][0]] || !(pairs[i][0] in o))
                 return false;
         }
         return true;
@@ -54,11 +54,13 @@ function deepEqual(a, b, aStack, bStack) {
     if (!areArrays) {
         if (typeof a !== 'object' || typeof b !== 'object')
             return false;
-        const aC = a.constructor, bC = b.constructor;
+        const aObj = a;
+        const bObj = b;
+        const aC = aObj.constructor, bC = bObj.constructor;
         if (aC !== bC &&
             !(typeof aC === 'function' && aC instanceof aC &&
                 typeof bC === 'function' && bC instanceof bC) &&
-            ('constructor' in a && 'constructor' in b))
+            ('constructor' in aObj && 'constructor' in bObj))
             return false;
     }
     let len = aStack.length;
@@ -69,14 +71,16 @@ function deepEqual(a, b, aStack, bStack) {
     aStack.push(a);
     bStack.push(b);
     if (areArrays) {
-        len = a.length;
-        if (len !== b.length) {
+        const aArr = a;
+        const bArr = b;
+        len = aArr.length;
+        if (len !== bArr.length) {
             aStack.pop();
             bStack.pop();
             return false;
         }
         while (len--) {
-            if (!deepEqual(a[len], b[len], aStack, bStack)) {
+            if (!deepEqual(aArr[len], bArr[len], aStack, bStack)) {
                 aStack.pop();
                 bStack.pop();
                 return false;
@@ -84,18 +88,20 @@ function deepEqual(a, b, aStack, bStack) {
         }
     }
     else {
-        const keys = Object.keys(a);
+        const aRec = a;
+        const bRec = b;
+        const keys = Object.keys(aRec);
         let key;
         len = keys.length;
-        if (Object.keys(b).length !== len) {
+        if (Object.keys(bRec).length !== len) {
             aStack.pop();
             bStack.pop();
             return false;
         }
         while (len--) {
             key = keys[len];
-            if (!Object.prototype.hasOwnProperty.call(b, key) ||
-                !deepEqual(a[key], b[key], aStack, bStack)) {
+            if (!Object.prototype.hasOwnProperty.call(bRec, key) ||
+                !deepEqual(aRec[key], bRec[key], aStack, bStack)) {
                 aStack.pop();
                 bStack.pop();
                 return false;
@@ -137,7 +143,7 @@ _.invert = function (obj) {
     const result = {};
     const keys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++)
-        result[obj[keys[i]]] = keys[i];
+        result[String(obj[keys[i]])] = keys[i];
     return result;
 };
 _.extend = function (obj, ...rest) {
@@ -166,7 +172,7 @@ _.defaults = function (obj, ...rest) {
 _.clone = function (obj) {
     if (!_.isObject(obj))
         return obj;
-    return _.isArray(obj) ? obj.slice() : Object.assign({}, obj);
+    return (_.isArray(obj) ? obj.slice() : Object.assign({}, obj));
 };
 _.has = function (obj, key) {
     return obj != null && Object.prototype.hasOwnProperty.call(obj, key);
@@ -256,7 +262,6 @@ _.once = function (fn) {
             return memo;
         ran = true;
         memo = fn.apply(this, arguments);
-        fn = null;
         return memo;
     };
 };
@@ -891,7 +896,7 @@ EventsImpl.trigger = function (name, ...args) {
     return this;
 };
 // Handles triggering the appropriate event callbacks.
-const triggerApi = (objEvents, name, callback, args) => {
+const triggerApi = (objEvents, name, _callback, args) => {
     if (objEvents) {
         const events = objEvents[name];
         let allEvents = objEvents.all;
@@ -1008,7 +1013,7 @@ class Model extends BackboneBase {
         this.initialize.apply(this, arguments);
     }
     // Return a copy of the model's `attributes` object.
-    toJSON(options) {
+    toJSON(_options) {
         return _.clone(this.attributes);
     }
     // Proxy `Backbone.sync` by default -- but override this if you need
@@ -1271,7 +1276,7 @@ class Model extends BackboneBase {
     }
     // **parse** converts a response into the hash of attributes to be `set` on
     // the model. The default implementation is just to pass the response along.
-    parse(resp, options) {
+    parse(resp, _options) {
         return resp;
     }
     // Create a new model with identical attributes to this one.
@@ -1299,8 +1304,8 @@ class Model extends BackboneBase {
         return false;
     }
     // preinitialize/initialize are empty by default. Override with your own logic.
-    preinitialize(...args) { }
-    initialize(...args) { }
+    preinitialize(..._args) { }
+    initialize(..._args) { }
 }
 // A hash of attributes whose current and previous value differ.
 Model.prototype.changed = null;
@@ -1631,7 +1636,7 @@ class Collection extends BackboneBase {
     }
     // **parse** converts a response into a list of models to be added to the
     // collection. The default implementation is just to pass it through.
-    parse(resp, options) {
+    parse(resp, _options) {
         return resp;
     }
     // Create a new collection with an identical list of models as this one.
@@ -1712,7 +1717,7 @@ class Collection extends BackboneBase {
         return model instanceof Model;
     }
     // Internal method to create a model's ties to a collection.
-    _addReference(model, options) {
+    _addReference(model, _options) {
         this._byId[model.cid] = model;
         const id = this.modelId(model.attributes, model.idAttribute);
         if (id != null)
@@ -1720,7 +1725,7 @@ class Collection extends BackboneBase {
         model.on('all', this._onModelEvent, this);
     }
     // Internal method to sever a model's ties to a collection.
-    _removeReference(model, options) {
+    _removeReference(model, _options) {
         delete this._byId[model.cid];
         const id = this.modelId(model.attributes, model.idAttribute);
         if (id != null)
@@ -1763,8 +1768,8 @@ class Collection extends BackboneBase {
         this._onModelEvent('error', model, collection, options);
     }
     // preinitialize/initialize are empty by default. Override with your own logic.
-    preinitialize(...args) { }
-    initialize(...args) { }
+    preinitialize(..._args) { }
+    initialize(..._args) { }
 }
 // The default model for a collection is just a **Backbone.Model**.
 // This should be overridden in most cases.
@@ -1982,8 +1987,8 @@ class View extends BackboneBase {
         _.dom.setAttributes(this.el, attributes);
     }
     // preinitialize/initialize are empty by default. Override with your own logic.
-    preinitialize(...args) { }
-    initialize(...args) { }
+    preinitialize(..._args) { }
+    initialize(..._args) { }
 }
 // The default `tagName` of a View's element is `"div"`.
 View.prototype.tagName = 'div';
@@ -2138,7 +2143,7 @@ class Router extends BackboneBase {
     }
     // Execute a route handler with the provided parameters.  This is an
     // excellent place to do pre-route setup or post-route cleanup.
-    execute(callback, args, name) {
+    execute(callback, args, _name) {
         if (callback)
             callback.apply(this, args);
     }
@@ -2183,8 +2188,8 @@ class Router extends BackboneBase {
         });
     }
     // preinitialize/initialize are empty by default. Override with your own logic.
-    preinitialize(...args) { }
-    initialize(...args) { }
+    preinitialize(..._args) { }
+    initialize(..._args) { }
 }
 // Backbone.History
 // ----------------
