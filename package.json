@@ -2,7 +2,7 @@
   "name": "ostov",
   "description": "Give your JS App some Ostov with Models, Views, Collections, and Events.",
   "type": "module",
-  "url": "http://backbonejs.org",
+  "homepage": "https://ostovjs.org",
   "keywords": [
     "model",
     "view",
@@ -34,7 +34,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src/*.ts",
-    "doc": "docco ostov.js && docco examples/todos/todos.js examples/ostov.localStorage.js",
+    "doc": "npm run build && docco dist/ostov.js && sed -i '' 's|href=\"../docco.css\"|href=\"docco.css\"|' docs/dist/ostov.html && mv docs/dist/ostov.html docs/ostov.html && rm -rf docs/dist && docco examples/todos/todos.js examples/ostov.localStorage.js",
     "mark-release": "replace-in-file MARK_DEVELOPMENT MARK_RELEASE modules/debug-info.js",
     "mark-develop": "replace-in-file MARK_RELEASE MARK_DEVELOPMENT modules/debug-info.js",
     "prepublishOnly": "npm run test && npm run build"
@@ -46,7 +46,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jashkenas/ostov.git"
+    "url": "https://github.com/DmitryOlkhovoi/Ostov.git"
   },
   "files": [
     "dist/",

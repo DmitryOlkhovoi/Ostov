@@ -1,9 +1,9 @@
 //     Ostov.js 1.6.1
 
-//     (c) 2010-2024 Jeremy Ashkenas and DocumentCloud
+//     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
 //     For all details and documentation:
-//     http://backbonejs.org
+//     https://ostovjs.org
 
 import _ from './utils.js';
 

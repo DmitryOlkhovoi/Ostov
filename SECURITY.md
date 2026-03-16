@@ -9,14 +9,14 @@ We currently support the following versions of Ostov with security updates:
 - the 1.x release tagged as [latest][npm-latest] on npm;
 - any release tagged as [preview][npm-preview] on npm, if present.
 
-[website]: https://backbonejs.org
+[website]: https://ostovjs.org
 [npm-latest]: https://www.npmjs.com/package/ostov/v/latest
 [npm-preview]: https://www.npmjs.com/package/ostov/v/preview
 
 ## Reporting a Vulnerability
 
-Please report security issues by sending an email to
-dev@juliangonggrijp.com and jashkenas@gmail.com.
+Please report security issues by opening a private security advisory at
+https://github.com/DmitryOlkhovoi/Ostov/security/advisories.
 
 Do __not__ submit an issue ticket or pull request or otherwise publicly
 disclose the issue.
