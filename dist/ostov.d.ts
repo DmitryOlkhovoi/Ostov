@@ -252,13 +252,13 @@ declare class CollectionIterator implements Iterator<any> {
     next(): IteratorResult<any>;
     [Symbol.iterator](): this;
 }
-declare class View extends BackboneBase {
+declare class View<TEl = Element> extends BackboneBase {
     cid: string;
     el: Element | string;
     events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
     private _el?;
     private _constructing;
-    $el: any;
+    $el: TEl;
     model?: Model;
     collection?: Collection;
     id?: string;

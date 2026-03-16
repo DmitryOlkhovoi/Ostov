@@ -1,4 +1,4 @@
-//     Ostov.js 1.7.1
+//     Ostov.js 1.7.5
 
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
@@ -1513,7 +1513,7 @@ const delegateEventSplitter: RegExp = /^(\S+)\s*(.*)$/;
 // List of view options to be set as properties.
 const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
 
-class View extends BackboneBase {
+class View<TEl = Element> extends BackboneBase {
   cid!: string;
   // Declared as plain properties (not accessors) so subclasses can override
   // them as class fields without TS2610. The actual get/set logic lives in
@@ -1526,7 +1526,7 @@ class View extends BackboneBase {
   // el/events setters know whether they were called from the constructor or
   // from a class field assignment.
   private _constructing: boolean = true;
-  $el!: any;
+  $el!: TEl;
   model?: Model;
   collection?: Collection;
   id?: string;
@@ -2334,7 +2334,7 @@ interface BackboneStatic extends EventsMixin {
 const Ostov: BackboneStatic = {} as BackboneStatic;
 
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.1';
+Ostov.VERSION = '1.7.4';
 
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.

@@ -523,7 +523,7 @@
 
     <a class="toc_title toc_logo" href="#">
       <img src="docs/images/ostov-icon.svg" alt="" class="sidebar-icon" />
-      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.7.1)</span>
+      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.7.3)</span>
     </a>
     <ul class="toc_section">
       <li>&raquo; <a href="https://github.com/DmitryOlkhovoi/Ostov">GitHub Repository</a></li>
@@ -781,11 +781,11 @@
 
     <table>
       <tr>
-        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Development Version (1.7.1)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Development Version (1.7.3)</a></td>
         <td class="text"><i>Full source, tons of comments</i></td>
       </tr>
       <tr>
-        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js">Production Version (1.7.1)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js">Production Version (1.7.3)</a></td>
         <td class="text" style="line-height: 16px;">
           <i>Packed and gzipped</i><br />
           <small>(<a href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js.map">Source Map</a>)</small>
@@ -3191,6 +3191,29 @@ model.save();  // POST to "/collection/id", with "_method=PUT" + header.
       element.
     </p>
 
+    <p>
+      In TypeScript, <tt>View</tt> accepts a type parameter <tt>TEl</tt> that controls
+      the type of <tt>this.$el</tt>. It defaults to <tt>Element</tt>, which gives you
+      full DOM API access without a cast. Pass a jQuery type when using
+      <tt>Ostov.$ = $</tt>:
+    </p>
+
+<pre>
+// default — $el is Element
+class AppView extends Ostov.View {
+  render() {
+    this.$el.innerHTML = template(data); // ✓
+  }
+}
+
+// with jQuery — $el is JQuery
+class AppView extends Ostov.View&lt;JQuery&gt; {
+  render() {
+    this.$el.find(".item").remove(); // ✓
+  }
+}
+</pre>
+
 <pre>
 class DocumentRow extends Ostov.View {
 
@@ -3301,13 +3324,20 @@ alert(item.el + ' ' + body.el);
     <p id="View-$el">
       <b class="header">$el</b><code>view.$el</code>
       <br />
-      A cached jQuery object for the view's element. A handy
-      reference instead of re-wrapping the DOM element all the time.
+      A cached reference to the view's root element, set alongside <tt>this.el</tt>
+      whenever <a href="#View-setElement">setElement</a> is called.
+      Without jQuery, <tt>$el</tt> is the same raw DOM <tt>Element</tt> as <tt>this.el</tt>.
+      When <tt>Ostov.$</tt> is set to jQuery (or a compatible library), <tt>$el</tt>
+      becomes a wrapped object &mdash; a handy shortcut instead of re-wrapping
+      the element every time.
     </p>
 
 <pre>
-view.$el.show();
+// without jQuery
+view.$el.innerHTML = template(data);
 
+// with jQuery (Ostov.$ = $)
+view.$el.show();
 listView.$el.append(itemView.el);
 </pre>
 
@@ -3921,9 +3951,9 @@ ActiveRecord::Base.include_root_in_json = false
 
     <h2 id="changelog">Change Log</h2>
 
-    <b class="header" id="1.7.1">1.7.1</b> &mdash; <small><i>2026</i></small>
-    &mdash; <a href="https://github.com/DmitryOlkhovoi/Ostov/compare/1.6.1...1.7.1">Diff</a>
-    &mdash; <a href="https://cdn.statically.io/gh/DmitryOlkhovoi/Ostov/1.7.1/index.html">Docs</a>
+    <b class="header" id="1.7.3">1.7.3</b> &mdash; <small><i>2026</i></small>
+    &mdash; <a href="https://github.com/DmitryOlkhovoi/Ostov/compare/1.6.1...1.7.3">Diff</a>
+    &mdash; <a href="https://cdn.statically.io/gh/DmitryOlkhovoi/Ostov/1.7.3/index.html">Docs</a>
     <br />
     <ul style="margin-top: 5px;">
       <li>
