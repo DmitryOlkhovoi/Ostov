@@ -1,1 +1,1 @@
-Ostov is a modern reimagining of Ostov.
+Ostov is a modern reimagining of Backbone.
