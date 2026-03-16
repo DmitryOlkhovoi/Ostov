@@ -1425,7 +1425,7 @@ const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 
 
 class View extends BackboneBase {
   cid!: string;
-  el!: Element;
+  el!: Element | string;
   $el!: any;
   model?: Model;
   collection?: Collection;
@@ -1450,7 +1450,7 @@ class View extends BackboneBase {
   // Returns a Ostov.$-wrapped result when Ostov.$ is set,
   // otherwise a plain NodeList.
   $(selector: string): any {
-    const nodes = this.el.querySelectorAll(selector);
+    const nodes = (this.el as Element).querySelectorAll(selector);
     return Ostov.$ ? Ostov.$(Array.from(nodes)) : nodes;
   }
 
@@ -1474,7 +1474,7 @@ class View extends BackboneBase {
   // attached to it. Exposed for subclasses using an alternative DOM
   // manipulation API.
   _removeElement(): void {
-    _.dom.remove(this.el);
+    _.dom.remove(this.el as Element);
   }
 
   // Change the view's element (`this.el` property) and re-delegate the
@@ -1533,7 +1533,7 @@ class View extends BackboneBase {
       listener = selector as Function;
       selector = undefined;
     }
-    _.dom.on(this.el, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener);
+    _.dom.on(this.el as Element, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener);
     return this;
   }
 
@@ -1541,7 +1541,7 @@ class View extends BackboneBase {
   // You usually don't need to use this, but may wish to if you have multiple
   // Ostov views attached to the same DOM element.
   undelegateEvents(): this {
-    if (this.el) _.dom.off(this.el, '.delegateEvents' + this.cid);
+    if (this.el) _.dom.off(this.el as Element, '.delegateEvents' + this.cid);
     return this;
   }
 
@@ -1552,7 +1552,7 @@ class View extends BackboneBase {
       listener = selector as Function;
       selector = undefined;
     }
-    _.dom.off(this.el, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener | undefined);
+    _.dom.off(this.el as Element, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener | undefined);
     return this;
   }
 
@@ -1581,7 +1581,7 @@ class View extends BackboneBase {
   // Set attributes from a hash on this view's element.  Exposed for
   // subclasses using an alternative DOM manipulation API.
   _setAttributes(attributes: Record<string, any>): void {
-    _.dom.setAttributes(this.el, attributes);
+    _.dom.setAttributes(this.el as Element, attributes);
   }
 
   // preinitialize/initialize are empty by default. Override with your own logic.
