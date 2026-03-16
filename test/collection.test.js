@@ -2083,4 +2083,25 @@ describe('Ostov.Collection', () => {
     expect(instance).toBeTruthy();
   });
 
+  it('class field: model class field uses custom model', () => {
+    class Animal extends Ostov.Model {}
+    class Zoo extends Ostov.Collection {
+      model = Animal;
+    }
+    var zoo = new Zoo();
+    zoo.add([{name: 'Lion'}, {name: 'Tiger'}]);
+    expect(zoo.at(0) instanceof Animal).toBeTruthy();
+    expect(zoo.at(1) instanceof Animal).toBeTruthy();
+    expect(zoo.length).toBe(2);
+  });
+
+  it('class field: comparator sorts when models added', () => {
+    class Ranked extends Ostov.Collection {
+      comparator = 'rank';
+    }
+    var col = new Ranked();
+    col.add([{rank: 3}, {rank: 1}, {rank: 2}]);
+    expect(col.pluck('rank')).toEqual([1, 2, 3]);
+  });
+
 });

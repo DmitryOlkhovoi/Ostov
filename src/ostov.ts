@@ -499,19 +499,42 @@ class Model extends BackboneBase {
 
   constructor(attributes?: Record<string, unknown> | unknown, options: ModelSetOptions = {}) {
     super();
+    // Create proxy before setup so all internal operations (set, initialize,
+    // listenTo) use a consistent 'this', and subclass class fields are intercepted.
+    const self = this;
+    const proxy: this = new Proxy(this, {
+      defineProperty(target, prop, descriptor) {
+        // Modern JS/TS with useDefineForClassFields:true uses Object.defineProperty
+        // for class fields, bypassing prototype setters. Intercept `defaults` so
+        // it merges into attributes even when assigned as a class field.
+        if ('value' in descriptor && prop === 'defaults') {
+          const value = descriptor.value as Record<string, unknown> | (() => Record<string, unknown>);
+          self._instanceDefaults = value;
+          const resolved = typeof value === 'function' ? value.call(self) : value;
+          if (resolved && self.attributes) {
+            for (const key in resolved) {
+              if (!(key in self.attributes)) self.attributes[key] = resolved[key];
+            }
+          }
+          return true;
+        }
+        return Reflect.defineProperty(target, prop, descriptor);
+      }
+    }) as unknown as this;
     let attrs: Record<string, unknown> = (attributes || {}) as Record<string, unknown>;
-    this.preinitialize.apply(this, arguments as any);
+    proxy.preinitialize.apply(proxy, arguments as any);
     this.cid = _.uniqueId(this.cidPrefix);
     this.attributes = {};
     if (options.collection) this.collection = options.collection as Collection;
-    if (options.parse) attrs = (this.parse(attrs, options) || {}) as Record<string, unknown>;
-    const defaults = _.result(this, 'defaults');
+    if (options.parse) attrs = (proxy.parse(attrs, options) || {}) as Record<string, unknown>;
+    const defaults = _.result(proxy, 'defaults');
     // Just _.defaults would work fine, but the additional _.extends
     // is in there for historical reasons. See #3843.
     attrs = _.defaults({ ...defaults, ...attrs }, defaults);
-    this.set(attrs, options);
+    proxy.set(attrs, options);
     this.changed = {};
-    this.initialize.apply(this, arguments as any);
+    proxy.initialize.apply(proxy, arguments as any);
+    return proxy;
   }
 
   // Return a copy of the model's `attributes` object.
@@ -888,8 +911,8 @@ const splice = (array: unknown[], insert: unknown[], at: number): void => {
 };
 
 class Collection extends BackboneBase {
-  private _model: typeof Model = Model;
-  get model(): typeof Model { return this._model; }
+  private _model?: typeof Model;
+  get model(): typeof Model { return this._model ?? Model; }
   set model(value: typeof Model) {
     const prev = this._model;
     this._model = value;
@@ -911,12 +934,41 @@ class Collection extends BackboneBase {
 
   constructor(models?: Model[] | Record<string, unknown>[], options: ModelSetOptions & { model?: typeof Model; comparator?: string | ((a: Model, b?: Model) => number) } = {}) {
     super();
-    this.preinitialize.apply(this, arguments as any);
-    if (options.model) this.model = options.model;
-    if (options.comparator !== void 0) this.comparator = options.comparator;
-    this._reset();
-    this.initialize.apply(this, arguments as any);
-    if (models) this.reset(models, { silent: true, ...options });
+    // Create proxy before setup so all internal operations (reset, listenTo)
+    // use a consistent 'this', and subclass class fields are intercepted.
+    const self = this;
+    const proxy: this = new Proxy(this, {
+      defineProperty(target, prop, descriptor) {
+        // Modern JS/TS with useDefineForClassFields:true uses Object.defineProperty
+        // for class fields, bypassing prototype setters. Intercept `model` and
+        // `comparator` so they work as expected when assigned as class fields.
+        if ('value' in descriptor) {
+          if (prop === 'model') {
+            self._model = descriptor.value;
+            // Also create an own data property so prototype method `model` definitions
+            // (which shadow the getter/setter) are properly overridden.
+            Reflect.defineProperty(target, prop, { value: descriptor.value, writable: true, configurable: true, enumerable: false });
+            return true;
+          }
+          if (prop === 'comparator') {
+            self._comparator = descriptor.value;
+            if (descriptor.value && self.models?.length) self.sort({ silent: true });
+            // Also create an own data property so prototype method `comparator` definitions
+            // (which shadow the getter/setter) are properly overridden.
+            Reflect.defineProperty(target, prop, { value: descriptor.value, writable: true, configurable: true, enumerable: false });
+            return true;
+          }
+        }
+        return Reflect.defineProperty(target, prop, descriptor);
+      }
+    }) as unknown as this;
+    proxy.preinitialize.apply(proxy, arguments as any);
+    if (options.model) proxy.model = options.model;
+    if (options.comparator !== void 0) proxy.comparator = options.comparator;
+    proxy._reset();
+    proxy.initialize.apply(proxy, arguments as any);
+    if (models) proxy.reset(models, { silent: true, ...options });
+    return proxy;
   }
 
   // The JSON representation of a Collection is an array of the
@@ -1449,18 +1501,24 @@ const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 
 
 class View extends BackboneBase {
   cid!: string;
-  private _el: Element | string | null = null;
-  private _elEnsured: boolean = false;
+  private _el?: Element | string;
+  // True while the parent constructor body is running; false once super() returns.
+  // Class fields of subclasses are initialized after super() — this flag lets
+  // el/events setters know whether they were called from the constructor or
+  // from a class field assignment.
+  private _constructing: boolean = true;
   get el(): Element {
-    if (!this._elEnsured) {
-      this._elEnsured = true;
-      this._ensureElement();
-    }
     return this._el as Element;
   }
-  set el(value: Element | string | null) {
-    this._el = value;
-    if (typeof value === 'string') this._elEnsured = false;
+  set el(value: Element | string | null | undefined) {
+    this._el = value ?? undefined;
+    // Class field case: el set to a string after constructor finished on a real
+    // instance (cid is set). Prototype assignments like View.prototype.el = '...'
+    // also call this setter (because they inherit it) — the cid guard prevents
+    // treating those as class-field assignments.
+    if (!this._constructing && this.cid && typeof value === 'string') {
+      this.setElement(value);
+    }
   }
   $el!: any;
   model?: Model;
@@ -1469,16 +1527,51 @@ class View extends BackboneBase {
   attributes?: Record<string, string>;
   className?: string;
   tagName!: string;
-  events?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
+  private _viewEvents?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
+  get events(): Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined {
+    return this._viewEvents;
+  }
+  set events(value: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined) {
+    this._viewEvents = value;
+    // Class field case: events set after constructor finished and el is already
+    // a resolved Element → re-delegate so the new events map takes effect.
+    if (!this._constructing && this._el instanceof Element) {
+      this.delegateEvents();
+    }
+  }
 
   // Creating a Ostov.View creates its initial element outside of the DOM,
   // if an existing element is not provided...
   constructor(options?: Record<string, unknown>) {
     super();
     this.cid = _.uniqueId('view');
-    this.preinitialize.apply(this, arguments as any);
-    _.extend(this, _.pick(options || {}, viewOptions));
-    this.initialize.apply(this, arguments as any);
+    // Create proxy before setup so preinitialize/initialize use a consistent
+    // 'this', and subclass class fields (which use Object.defineProperty in
+    // modern JS/TS) are intercepted for `el` and `events`.
+    const self = this;
+    const proxy: this = new Proxy(this, {
+      defineProperty(target, prop, descriptor) {
+        if ('value' in descriptor) {
+          if (prop === 'el' && typeof descriptor.value === 'string') {
+            self._el = descriptor.value;
+            self.setElement(descriptor.value);
+            return true;
+          }
+          if (prop === 'events') {
+            self._viewEvents = descriptor.value;
+            if (self._el instanceof Element) self.delegateEvents();
+            return true;
+          }
+        }
+        return Reflect.defineProperty(target, prop, descriptor);
+      }
+    }) as unknown as this;
+    proxy.preinitialize.apply(proxy, arguments as any);
+    _.extend(proxy, _.pick(options || {}, viewOptions));
+    proxy._ensureElement();
+    proxy.initialize.apply(proxy, arguments as any);
+    this._constructing = false;
+    return proxy;
   }
 
   // Scoped element lookup inside the view's root element.

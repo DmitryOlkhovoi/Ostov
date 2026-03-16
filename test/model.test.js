@@ -1386,4 +1386,22 @@ describe('Ostov.Model', () => {
     model.set({id: 2});
   });
 
+  it('class field: defaults merges into attributes after construction', () => {
+    class MyModel extends Ostov.Model {
+      defaults = { name: 'Alice', score: 0 };
+    }
+    var m = new MyModel({ score: 10 });
+    expect(m.get('name')).toBe('Alice');
+    expect(m.get('score')).toBe(10);
+  });
+
+  it('class field: defaults as function after construction', () => {
+    class MyModel extends Ostov.Model {
+      defaults = () => ({ role: 'user', active: true });
+    }
+    var m = new MyModel();
+    expect(m.get('role')).toBe('user');
+    expect(m.get('active')).toBe(true);
+  });
+
 });

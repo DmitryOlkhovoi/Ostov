@@ -503,4 +503,24 @@ describe('Ostov.View', () => {
     expect($oldEl).not.toBe(myView.$el);
   });
 
+  it('class field: el resolves selector string after construction', () => {
+    class MyView extends Ostov.View {
+      el = '#testElement';
+    }
+    var myView = new MyView();
+    expect(myView.el).toBe($('#testElement').get(0));
+    expect(myView.el.nodeType).toBe(1);
+  });
+
+  it('class field: events auto-delegates after construction', () => {
+    var counter = 0;
+    class MyView extends Ostov.View {
+      el = '#testElement';
+      events = { 'click h1': () => { counter++; } };
+    }
+    var myView = new MyView();
+    myView.$('h1').trigger('click');
+    expect(counter).toBe(1);
+  });
+
 });
