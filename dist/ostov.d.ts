@@ -194,14 +194,12 @@ declare class Model extends BackboneBase {
     static mixin: (obj: any) => void;
 }
 declare class Collection extends BackboneBase {
+    model: typeof Model;
     private _model?;
-    get model(): typeof Model;
-    set model(value: typeof Model);
     models: Model[];
     length: number;
+    comparator: string | ((a: Model, b?: Model) => number) | undefined;
     private _comparator?;
-    get comparator(): string | ((a: Model, b?: Model) => number) | undefined;
-    set comparator(value: string | ((a: Model, b?: Model) => number) | undefined);
     _byId: Record<string, Model>;
     constructor(models?: Model[] | Record<string, unknown>[], options?: ModelSetOptions & {
         model?: typeof Model;
@@ -256,10 +254,10 @@ declare class CollectionIterator implements Iterator<any> {
 }
 declare class View extends BackboneBase {
     cid: string;
+    el: Element | string;
+    events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
     private _el?;
     private _constructing;
-    get el(): Element;
-    set el(value: Element | string | null | undefined);
     $el: any;
     model?: Model;
     collection?: Collection;
@@ -268,8 +266,6 @@ declare class View extends BackboneBase {
     className?: string;
     tagName: string;
     private _viewEvents?;
-    get events(): Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
-    set events(value: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined);
     constructor(options?: Record<string, unknown>);
     $(selector: string): any;
     render(): this;

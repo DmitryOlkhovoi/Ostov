@@ -1,4 +1,4 @@
-//     Ostov.js 1.7.0
+//     Ostov.js 1.7.1
 
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
@@ -911,25 +911,12 @@ const splice = (array: unknown[], insert: unknown[], at: number): void => {
 };
 
 class Collection extends BackboneBase {
+  declare model: typeof Model;
   private _model?: typeof Model;
-  get model(): typeof Model { return this._model ?? Model; }
-  set model(value: typeof Model) {
-    const prev = this._model;
-    this._model = value;
-    if (prev !== value && this.models?.length) {
-      const attrs = this.models.map(m => m.toJSON());
-      this._reset();
-      this.add(attrs, { silent: true });
-    }
-  }
   models!: Model[];
   length!: number;
+  declare comparator: string | ((a: Model, b?: Model) => number) | undefined;
   private _comparator?: string | ((a: Model, b?: Model) => number);
-  get comparator(): string | ((a: Model, b?: Model) => number) | undefined { return this._comparator; }
-  set comparator(value: string | ((a: Model, b?: Model) => number) | undefined) {
-    this._comparator = value;
-    if (value && this.models?.length) this.sort({ silent: true });
-  }
   _byId!: Record<string, Model>;
 
   constructor(models?: Model[] | Record<string, unknown>[], options: ModelSetOptions & { model?: typeof Model; comparator?: string | ((a: Model, b?: Model) => number) } = {}) {
@@ -1482,6 +1469,33 @@ class CollectionIterator implements Iterator<any> {
   }
 }
 
+// Define model/comparator as prototype accessors on Collection.
+// Using Object.defineProperty keeps them as plain properties in the generated
+// .d.ts (via `declare` in the class body), so subclasses can override them
+// as class fields without hitting TS2610.
+Object.defineProperty(Collection.prototype, 'model', {
+  configurable: true,
+  get(this: Collection): typeof Model { return (this as any)._model ?? Model; },
+  set(this: Collection, value: typeof Model) {
+    const prev = (this as any)._model;
+    (this as any)._model = value;
+    if (prev !== value && (this as any).models?.length) {
+      const attrs = (this as any).models.map((m: Model) => m.toJSON());
+      (this as any)._reset();
+      (this as any).add(attrs, { silent: true });
+    }
+  }
+});
+
+Object.defineProperty(Collection.prototype, 'comparator', {
+  configurable: true,
+  get(this: Collection): string | ((a: Model, b?: Model) => number) | undefined { return (this as any)._comparator; },
+  set(this: Collection, value: string | ((a: Model, b?: Model) => number) | undefined) {
+    (this as any)._comparator = value;
+    if (value && (this as any).models?.length) (this as any).sort({ silent: true });
+  }
+});
+
 // Ostov.View
 // -------------
 
@@ -1501,25 +1515,17 @@ const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 
 
 class View extends BackboneBase {
   cid!: string;
+  // Declared as plain properties (not accessors) so subclasses can override
+  // them as class fields without TS2610. The actual get/set logic lives in
+  // Object.defineProperty calls below the class.
+  declare el: Element | string;
+  declare events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
   private _el?: Element | string;
   // True while the parent constructor body is running; false once super() returns.
   // Class fields of subclasses are initialized after super() — this flag lets
   // el/events setters know whether they were called from the constructor or
   // from a class field assignment.
   private _constructing: boolean = true;
-  get el(): Element {
-    return this._el as Element;
-  }
-  set el(value: Element | string | null | undefined) {
-    this._el = value ?? undefined;
-    // Class field case: el set to a string after constructor finished on a real
-    // instance (cid is set). Prototype assignments like View.prototype.el = '...'
-    // also call this setter (because they inherit it) — the cid guard prevents
-    // treating those as class-field assignments.
-    if (!this._constructing && this.cid && typeof value === 'string') {
-      this.setElement(value);
-    }
-  }
   $el!: any;
   model?: Model;
   collection?: Collection;
@@ -1528,17 +1534,6 @@ class View extends BackboneBase {
   className?: string;
   tagName!: string;
   private _viewEvents?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
-  get events(): Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined {
-    return this._viewEvents;
-  }
-  set events(value: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined) {
-    this._viewEvents = value;
-    // Class field case: events set after constructor finished and el is already
-    // a resolved Element → re-delegate so the new events map takes effect.
-    if (!this._constructing && this._el instanceof Element) {
-      this.delegateEvents();
-    }
-  }
 
   // Creating a Ostov.View creates its initial element outside of the DOM,
   // if an existing element is not provided...
@@ -1719,6 +1714,38 @@ class View extends BackboneBase {
   // Allow any additional properties
   [key: string]: any;
 }
+
+// Define el/events as prototype accessors on View.
+// Using Object.defineProperty keeps them as plain properties in the generated
+// .d.ts (via `declare` in the class body), so subclasses can override them
+// as class fields without hitting TS2610.
+Object.defineProperty(View.prototype, 'el', {
+  configurable: true,
+  get(this: View): Element | string { return (this as any)._el as Element; },
+  set(this: View, value: Element | string | null | undefined) {
+    (this as any)._el = value ?? undefined;
+    // Class field case: el set to a string after constructor finished on a real
+    // instance (cid is set). Prototype assignments like View.prototype.el = '...'
+    // also call this setter (because they inherit it) — the cid guard prevents
+    // treating those as class-field assignments.
+    if (!(this as any)._constructing && (this as any).cid && typeof value === 'string') {
+      (this as any).setElement(value);
+    }
+  }
+});
+
+Object.defineProperty(View.prototype, 'events', {
+  configurable: true,
+  get(this: View) { return (this as any)._viewEvents; },
+  set(this: View, value: any) {
+    (this as any)._viewEvents = value;
+    // Class field case: events set after constructor finished and el is already
+    // a resolved Element → re-delegate so the new events map takes effect.
+    if (!(this as any)._constructing && (this as any)._el instanceof Element) {
+      (this as any).delegateEvents();
+    }
+  }
+});
 
 // The default `tagName` of a View's element is `"div"`.
 View.prototype.tagName = 'div';
@@ -2307,7 +2334,7 @@ interface BackboneStatic extends EventsMixin {
 const Ostov: BackboneStatic = {} as BackboneStatic;
 
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.0';
+Ostov.VERSION = '1.7.1';
 
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.
