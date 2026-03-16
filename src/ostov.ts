@@ -1,4 +1,4 @@
-//     Ostov.js 1.6.1
+//     Ostov.js 1.7.0
 
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
@@ -2307,7 +2307,7 @@ interface BackboneStatic extends EventsMixin {
 const Ostov: BackboneStatic = {} as BackboneStatic;
 
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.6.1';
+Ostov.VERSION = '1.7.0';
 
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.

@@ -42,7 +42,7 @@
   "main": "dist/ostov.js",
   "module": "dist/ostov.js",
   "types": "dist/ostov.d.ts",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "license": "MIT",
   "repository": {
     "type": "git",
