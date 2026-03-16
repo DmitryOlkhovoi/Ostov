@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Top-left arm (navy) — two triangular faces for 3D depth -->
+  <polygon points="0,0 24,0 32,32" fill="#1E3A5F"/>
+  <polygon points="0,0 0,24 32,32" fill="#0D1B2A"/>
+
+  <!-- Top-right arm (cyan + blue) -->
+  <polygon points="64,0 40,0 32,32" fill="#06B6D4"/>
+  <polygon points="64,0 64,24 32,32" fill="#2563EB"/>
+
+  <!-- Bottom-right arm (navy) -->
+  <polygon points="64,64 40,64 32,32" fill="#1E3A5F"/>
+  <polygon points="64,64 64,40 32,32" fill="#0D1B2A"/>
+
+  <!-- Bottom-left arm (blue) -->
+  <polygon points="0,64 24,64 32,32" fill="#2563EB"/>
+  <polygon points="0,64 0,40 32,32" fill="#1D4ED8"/>
+</svg>

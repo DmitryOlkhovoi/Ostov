@@ -4,294 +4,519 @@
   <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="chrome=1" />
   <meta name="viewport" content="width=device-width">
-  <link rel="canonical" href="https://github.com/DmitryOlkhovoi/Ostov" />
+  <link rel="canonical" href="https://ostovjs.org" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <title>Ostov.js</title>
   <style>
+    /* =============================================
+       Base
+    ============================================= */
     body {
-      font-size: 14px;
-      line-height: 22px;
-      font-family: Helvetica Neue, Helvetica, Arial;
-      background: #f4f4f4 url(docs/images/background.png);
+      font-size: 15px;
+      line-height: 1.7;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #F8FAFC;
+      color: #334155;
     }
-    .interface {
-      font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif !important;
-    }
+
+    /* =============================================
+       Sidebar
+    ============================================= */
     div#sidebar {
-      background: #fff;
+      background: #0D1B2A;
+      color: #94A3B8;
       position: fixed;
       z-index: 10;
       top: 0; left: 0; bottom: 0;
-      width: 200px;
+      width: 240px;
       overflow-y: auto;
       overflow-x: hidden;
       -webkit-overflow-scrolling: touch;
-      padding: 15px 0 30px 30px;
-      border-right: 1px solid #bbb;
-      box-shadow: 0 0 20px #ccc; -webkit-box-shadow: 0 0 20px #ccc; -moz-box-shadow: 0 0 20px #ccc;
+      padding: 24px 0 40px 24px;
+      border-right: none;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.15);
     }
-      a.toc_title, a.toc_title:visited {
-        display: block;
-        color: black;
-        font-weight: bold;
-        margin-top: 15px;
-      }
-        a.toc_title:hover {
-          text-decoration: underline;
-        }
-        #sidebar .version {
-          font-size: 10px;
-          font-weight: normal;
-        }
-      ul.toc_section {
-        font-size: 11px;
-        line-height: 14px;
-        margin: 5px 0 0 0;
-        padding-left: 0px;
-        list-style-type: none;
-        font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
-      }
-        .toc_section li {
-          cursor: pointer;
-          margin: 0 0 3px 0;
-        }
-          .toc_section li a {
-            text-decoration: none;
-            color: black;
-          }
-            .toc_section li a:hover {
-              text-decoration: underline;
-            }
-      input#function_filter {
-        width: 80%;
-      }
+
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-track { background: transparent; }
+    #sidebar::-webkit-scrollbar-thumb { background: #1E3A5F; border-radius: 2px; }
+
+    a.toc_title, a.toc_title:visited {
+      display: block;
+      color: #F8FAFC;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-top: 24px;
+      text-decoration: none;
+    }
+
+    a.toc_title:hover {
+      color: #06B6D4 !important;
+      text-decoration: none !important;
+    }
+
+    .toc_logo {
+      font-size: 18px !important;
+      letter-spacing: -0.01em !important;
+      text-transform: none !important;
+      color: #F8FAFC !important;
+      margin-bottom: 8px;
+    }
+
+    .logo-dot { color: #2563EB; }
+
+    #sidebar .version {
+      color: #64748B;
+      font-size: 11px;
+      font-weight: normal;
+    }
+
+    ul.toc_section {
+      font-size: 12px;
+      line-height: 14px;
+      margin: 6px 0 0 0;
+      padding-left: 0;
+      list-style-type: none;
+    }
+
+    .toc_section li {
+      cursor: pointer;
+      margin: 0 0 4px 0;
+      line-height: 1.4;
+    }
+
+    .toc_section li a {
+      text-decoration: none;
+      color: #94A3B8;
+    }
+
+    .toc_section li a:hover {
+      color: #2563EB;
+      text-decoration: none;
+    }
+
+    input#function_filter {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px;
+      color: #F8FAFC;
+      padding: 6px 10px;
+      width: 85%;
+      outline: none;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    input#function_filter:focus {
+      border-color: #2563EB;
+    }
+
+    .searchable_section { margin-bottom: 4px; }
+
+    /* =============================================
+       Main container
+    ============================================= */
     div.container {
       position: relative;
-      width: 550px;
-      margin: 40px 0 50px 260px;
+      margin-left: 280px;
+      width: 680px;
+      margin-top: 48px;
+      margin-bottom: 80px;
     }
+
     img#logo {
-      width: 450px;
-      height: 80px;
+      width: 280px;
+      height: auto;
     }
-    div.run {
-      position: absolute;
-      right: 15px;
-      width: 26px; height: 18px;
-      background: url('docs/images/arrows.png') no-repeat -26px 0;
-    }
-      div.run:active {
-        background-position: -51px 0;
-      }
-    p, div.container ul {
-      margin: 25px 0;
-      width: 550px;
-    }
-      p.warning {
-        font-size: 12px;
-        line-height: 18px;
-        font-style: italic;
-      }
-      div.container ul {
-        list-style: circle;
-        padding-left: 15px;
-        font-size: 13px;
-        line-height: 18px;
-      }
-        div.container ul li {
-          margin-bottom: 10px;
-        }
-        div.container ul.small {
-          font-size: 12px;
-        }
-    a, a:visited {
-      color: #444;
-    }
-    a:active, a:hover {
-      color: #000;
-    }
-    a.punch {
-      display: inline-block;
-      background: #4162a8;
-      border-top: 1px solid #38538c;
-      border-right: 1px solid #1f2d4d;
-      border-bottom: 1px solid #151e33;
-      border-left: 1px solid #1f2d4d;
-      -webkit-border-radius: 4px;
-      -moz-border-radius: 4px;
-      -ms-border-radius: 4px;
-      -o-border-radius: 4px;
-      border-radius: 4px;
-      -webkit-box-shadow: inset 0 1px 10px 1px #5c8bee, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-      -moz-box-shadow: inset 0 1px 10px 1px #5c8bee, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-      -ms-box-shadow: inset 0 1px 10px 1px #5c8bee, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-      -o-box-shadow: inset 0 1px 10px 1px #5c8bee, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-      box-shadow: inset 0 1px 10px 1px #5c8bee, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-      color: #fff;
-      font: bold 14px "helvetica neue", helvetica, arial, sans-serif;
-      line-height: 1;
-      margin-bottom: 15px;
-      padding: 8px 0 10px 0;
-      text-align: center;
-      text-shadow: 0px -1px 1px #1e2d4d;
-      text-decoration: none;
-      width: 225px;
-      -webkit-background-clip: padding-box; }
-      a.punch:hover {
-        -webkit-box-shadow: inset 0 0px 20px 1px #87adff, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-        -moz-box-shadow: inset 0 0px 20px 1px #87adff, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-        -ms-box-shadow: inset 0 0px 20px 1px #87adff, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-        -o-box-shadow: inset 0 0px 20px 1px #87adff, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-        box-shadow: inset 0 0px 20px 1px #87adff, 0px 1px 0 #1d2c4d, 0 6px 0px #1f3053, 0 8px 4px 1px #111111;
-        cursor: pointer; }
-      a.punch:active {
-        -webkit-box-shadow: inset 0 1px 10px 1px #5c8bee, 0 1px 0 #1d2c4d, 0 2px 0 #1f3053, 0 4px 3px 0 #111111;
-        -moz-box-shadow: inset 0 1px 10px 1px #5c8bee, 0 1px 0 #1d2c4d, 0 2px 0 #1f3053, 0 4px 3px 0 #111111;
-        -ms-box-shadow: inset 0 1px 10px 1px #5c8bee, 0 1px 0 #1d2c4d, 0 2px 0 #1f3053, 0 4px 3px 0 #111111;
-        -o-box-shadow: inset 0 1px 10px 1px #5c8bee, 0 1px 0 #1d2c4d, 0 2px 0 #1f3053, 0 4px 3px 0 #111111;
-        box-shadow: inset 0 1px 10px 1px #5c8bee, 0 1px 0 #1d2c4d, 0 2px 0 #1f3053, 0 4px 3px 0 #111111;
-        margin-top: 5px; margin-bottom: 10px; }
-    a img {
-      border: 0;
-    }
+
+    /* =============================================
+       Headings
+    ============================================= */
     h1, h2, h3, h4, h5, h6 {
       padding-top: 20px;
     }
-      h2 {
-        font-size: 22px;
-      }
+
+    h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #0D1B2A;
+      padding-top: 48px;
+      border-bottom: 2px solid #E2E8F0;
+      padding-bottom: 12px;
+      position: relative;
+    }
+
     b.header {
-      font-size: 18px;
-      line-height: 35px;
+      font-size: 20px;
+      color: #0D1B2A;
+      display: block;
+      padding-top: 32px;
+      padding-bottom: 4px;
+      line-height: 1.4;
     }
-    span.alias {
-      font-size: 14px;
-      font-style: italic;
-      margin-left: 20px;
+
+    /* =============================================
+       Links
+    ============================================= */
+    a, a:visited {
+      color: #2563EB;
+      text-decoration: none;
     }
-    table {
-      margin: 15px 0 0; padding: 0;
+
+    a:hover, a:active {
+      color: #1D4ED8;
+      text-decoration: underline;
     }
-      tr, td {
-        margin: 0; padding: 0;
-      }
-        td {
-          padding: 0px 15px 5px 0;
-        }
-        table .rule {
-          height: 1px;
-          background: #ccc;
-          margin: 5px 0;
-        }
-    code, pre, tt {
+
+    a img {
+      border: 0;
+    }
+
+    /* =============================================
+       Buttons
+    ============================================= */
+    a.punch {
+      display: inline-block;
+      background: linear-gradient(135deg, #2563EB, #1D4ED8);
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+      color: #fff;
+      font: bold 14px system-ui, -apple-system, sans-serif;
+      line-height: 1;
+      margin-bottom: 15px;
+      padding: 12px 0;
+      text-align: center;
+      text-decoration: none;
+      width: 240px;
+    }
+
+    a.punch:hover {
+      background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.5);
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    a.punch:active {
+      box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+      transform: translateY(1px);
+    }
+
+    /* =============================================
+       Code & Pre
+    ============================================= */
+    code, tt {
       font-family: Monaco, Consolas, "Lucida Console", monospace;
-      font-size: 12px;
-      line-height: 18px;
+      font-size: 13px;
       font-style: normal;
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: #0D1B2A;
     }
-      tt {
-        padding: 0px 3px;
-        background: #fff;
-        border: 1px solid #ddd;
-        zoom: 1;
-      }
-      code {
-        margin-left: 20px;
-      }
-      pre {
-        font-size: 12px;
-        padding: 2px 0 2px 15px;
-        border: 4px solid #bbb; border-top: 0; border-bottom: 0;
-        margin: 0px 0 25px;
-      }
-      img.example_image {
-        margin: 0px auto;
-      }
-        img.example_retina {
-          margin: 20px;
-          box-shadow: 0 8px 15px rgba(0,0,0,0.4);
-        }
-    @media only screen and (-webkit-max-device-pixel-ratio: 1) and (max-width: 600px),
-           only screen and (max--moz-device-pixel-ratio: 1) and (max-width: 600px) {
+
+    pre {
+      font-family: Monaco, Consolas, "Lucida Console", monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      font-style: normal;
+      background: #0D1B2A;
+      color: #E2E8F0;
+      border-radius: 8px;
+      padding: 20px 24px;
+      border: none;
+      margin: 16px 0 28px;
+      overflow-x: auto;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    /* code inside p tags */
+    p > tt, p > code {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      color: #1E40AF;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 13px;
+    }
+
+    /* b.header followed by code — function signature style */
+    b.header + code {
+      display: inline-block;
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: 13px;
+      color: #1E40AF;
+      margin-left: 12px;
+      vertical-align: middle;
+    }
+
+    /* Override highlight.js theme to match brand */
+    .hljs {
+      background: #0D1B2A !important;
+      padding: 20px 24px !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
+      line-height: 1.6 !important;
+    }
+
+    /* =============================================
+       Paragraphs & Lists
+    ============================================= */
+    p {
+      margin: 20px 0;
+      width: auto;
+      max-width: 680px;
+      color: #334155;
+      line-height: 1.75;
+    }
+
+    p.warning {
+      background: #FFF7ED;
+      border-left: 4px solid #F59E0B;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-style: normal;
+      font-size: 13px;
+      color: #92400E;
+    }
+
+    div.container ul {
+      list-style: circle;
+      padding-left: 20px;
+      font-size: 14px;
+      color: #475569;
+      width: auto;
+      margin: 20px 0;
+    }
+
+    div.container ul li {
+      margin-bottom: 10px;
+    }
+
+    div.container ul.small {
+      font-size: 12px;
+    }
+
+    /* =============================================
+       Table (downloads)
+    ============================================= */
+    table {
+      margin: 20px 0; padding: 0;
+    }
+
+    tr, td {
+      margin: 0; padding: 0;
+    }
+
+    td {
+      padding: 0 16px 12px 0;
+    }
+
+    td.text {
+      color: #64748B;
+      font-size: 13px;
+    }
+
+    table .rule {
+      height: 1px;
+      background: #E2E8F0;
+      margin: 5px 0;
+    }
+
+    /* =============================================
+       Alias span
+    ============================================= */
+    span.alias {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: #15803D;
+      font-style: normal;
+      margin-left: 12px;
+    }
+
+    /* =============================================
+       Run button
+    ============================================= */
+    div.run {
+      position: absolute;
+      right: -44px;
+      top: 8px;
+      width: 28px;
+      height: 28px;
+      background: #2563EB;
+      background-image: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    div.run::after {
+      content: '▶';
+      color: white;
+      font-size: 10px;
+    }
+
+    div.run:active {
+      opacity: 0.85;
+    }
+
+    /* =============================================
+       Columns layout
+    ============================================= */
+    div.columns {
+      display: flex;
+      gap: 32px;
+    }
+
+    div.col-50 {
+      flex: 1;
+    }
+
+    div.columns ul {
+      margin: 8px 0;
+    }
+
+    /* =============================================
+       Figures & Images
+    ============================================= */
+    img.figure {
+      width: 100%;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+
+    img.example_retina {
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      margin: 16px 0;
+      width: 100%;
+      height: auto;
+    }
+
+    img.example_image {
+      margin: 0 auto;
+    }
+
+    /* =============================================
+       Responsive
+    ============================================= */
+    @media only screen and (max-width: 768px) {
       div#sidebar {
         display: none;
       }
+
+      div.container {
+        margin-left: 16px;
+        margin-right: 16px;
+        width: auto;
+      }
+
+      p {
+        width: auto;
+      }
+
+      div.container ul {
+        width: auto;
+      }
+
       img#logo {
-        max-width: 450px;
+        max-width: 280px;
         width: 100%;
         height: auto;
       }
-      div.container {
-        width: auto;
-        margin-left: 15px;
-        margin-right: 15px;
-      }
-        p, div.container ul {
-          width: auto;
-        }
     }
-    @media only screen and (-webkit-min-device-pixel-ratio: 1.5) and (max-width: 640px),
-          only screen and (-o-min-device-pixel-ratio: 3/2) and (max-width: 640px),
-          only screen and (min-device-pixel-ratio: 1.5) and (max-width: 640px) {
-      img {
-        max-width: 100%;
-        height: auto;
-      }
-      div#sidebar {
-        -webkit-overflow-scrolling: initial;
-        position: relative;
-        width: 90%;
-        height: 120px;
-        left: 0;
-        top: -7px;
-        padding: 10px 0 10px 30px;
-        border: 0;
-      }
-      img#logo {
-        width: auto;
-        height: auto;
-      }
-      div.container {
-        margin: 0;
-        width: 100%;
-      }
-      p, div.container ul {
-        max-width: 98%;
-        overflow-x: scroll;
-      }
-      table {
-        position: relative;
-      }
-        tr:first-child td {
-          padding-bottom: 25px;
-        }
-        td.text {
-          line-height: 12px;
-          padding: 0;
-          position: absolute;
-          left: 0;
-          top: 48px;
-        }
-        tr:last-child td.text {
-          top: 122px;
-        }
-      pre {
-        overflow: scroll;
-      }
+
+    /* =============================================
+       Hero logo (header)
+    ============================================= */
+    #hero-logo {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 8px 0 32px;
     }
-    img.figure {
-      width: 100%;
+    #hero-icon {
+      width: 56px;
+      height: 56px;
     }
-    div.columns {
-      display: table;
-      table-layout: fixed;
-      width: 100%;
+    #hero-wordmark {
+      font-size: 42px;
+      font-weight: 800;
+      color: #0D1B2A;
+      letter-spacing: -0.02em;
+      line-height: 1;
     }
-      div.columns ul {
-        margin: 10px 0;
-      }
-    div.col-50 {
-      display: table-cell;
-      width: 50%;
+
+    /* Sidebar icon — invert navy to white so it shows on dark background */
+    .sidebar-icon {
+      width: 22px;
+      height: 22px;
+      vertical-align: middle;
+      margin-right: 8px;
+      margin-top: -3px;
+      filter: brightness(0) invert(1) opacity(0.85);
+    }
+
+    /* =============================================
+       Scroll-to-top button
+    ============================================= */
+    #scroll-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #2563EB, #1D4ED8);
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.45);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.25s, transform 0.25s, box-shadow 0.2s;
+      z-index: 100;
+    }
+    #scroll-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #scroll-top:hover {
+      box-shadow: 0 6px 22px rgba(37,99,235,0.6);
+    }
+    #scroll-top svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: #fff;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
   </style>
 </head>
@@ -299,8 +524,9 @@
 
   <div id="sidebar" class="interface">
 
-    <a class="toc_title" href="#">
-      Ostov.js <span class="version">(1.6.1)</span>
+    <a class="toc_title toc_logo" href="#">
+      <img src="docs/images/ostov-icon.svg" alt="" class="sidebar-icon" />
+      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.6.1)</span>
     </a>
     <ul class="toc_section">
       <li>&raquo; <a href="https://github.com/DmitryOlkhovoi/Ostov">GitHub Repository</a></li>
@@ -502,57 +728,6 @@
     </div>
 
     <div class="searchable_section">
-      <a class="toc_title" href="#examples">
-        Examples
-      </a>
-      <ul class="toc_section">
-        <li data-name="Todos">– <a href="#examples-todos">Todos</a></li>
-        <li data-name="DocumentCloud">– <a href="#examples-documentcloud">DocumentCloud</a></li>
-        <li data-name="USA Today">– <a href="#examples-usa-today">USA Today</a></li>
-        <li data-name="Rdio">– <a href="#examples-rdio">Rdio</a></li>
-        <li data-name="Hulu">– <a href="#examples-hulu">Hulu</a></li>
-        <li data-name="Quartz">– <a href="#examples-quartz">Quartz</a></li>
-        <li data-name="Earth">– <a href="#examples-earth">Earth</a></li>
-        <li data-name="Vox">– <a href="#examples-vox">Vox</a></li>
-        <li data-name="Gawker Media">– <a href="#examples-gawker">Gawker Media</a></li>
-        <li data-name="Flow">– <a href="#examples-flow">Flow</a></li>
-        <li data-name="Gilt Groupe">– <a href="#examples-gilt">Gilt Groupe</a></li>
-        <li data-name="Enigma">– <a href="#examples-enigma">Enigma</a></li>
-        <li data-name="NewsBlur">– <a href="#examples-newsblur">NewsBlur</a></li>
-        <li data-name="WordPress.com">– <a href="#examples-wordpress">WordPress.com</a></li>
-        <li data-name="Foursquare">– <a href="#examples-foursquare">Foursquare</a></li>
-        <li data-name="Bitbucket">– <a href="#examples-bitbucket">Bitbucket</a></li>
-        <li data-name="Disqus">– <a href="#examples-disqus">Disqus</a></li>
-        <li data-name="Delicious">– <a href="#examples-delicious">Delicious</a></li>
-        <li data-name="Khan Academy">– <a href="#examples-khan-academy">Khan Academy</a></li>
-        <li data-name="IRCCloud">– <a href="#examples-irccloud">IRCCloud</a></li>
-        <li data-name="Pitchfork">– <a href="#examples-pitchfork">Pitchfork</a></li>
-        <li data-name="Spin">– <a href="#examples-spin">Spin</a></li>
-        <li data-name="ZocDoc">– <a href="#examples-zocdoc">ZocDoc</a></li>
-        <li data-name="Walmart Mobile">– <a href="#examples-walmart">Walmart Mobile</a></li>
-        <li data-name="Groupon Now!">– <a href="#examples-groupon">Groupon Now!</a></li>
-        <li data-name="Basecamp">– <a href="#examples-basecamp">Basecamp</a></li>
-        <li data-name="Slavery Footprint">– <a href="#examples-slavery-footprint">Slavery Footprint</a></li>
-        <li data-name="Stripe">– <a href="#examples-stripe">Stripe</a></li>
-        <li data-name="Airbnb">– <a href="#examples-airbnb">Airbnb</a></li>
-        <li data-name="SoundCloud Mobile">– <a href="#examples-soundcloud">SoundCloud Mobile</a></li>
-        <li data-name="Art.sy">- <a href="#examples-artsy">Art.sy</a></li>
-        <li data-name="Pandora">– <a href="#examples-pandora">Pandora</a></li>
-        <li data-name="Inkling">– <a href="#examples-inkling">Inkling</a></li>
-        <li data-name="Code School">– <a href="#examples-code-school">Code School</a></li>
-        <li data-name="CloudApp">– <a href="#examples-cloudapp">CloudApp</a></li>
-        <li data-name="SeatGeek">– <a href="#examples-seatgeek">SeatGeek</a></li>
-        <li data-name="Easel">– <a href="#examples-easel">Easel</a></li>
-        <li data-name="Jolicloud">- <a href="#examples-jolicloud">Jolicloud</a></li>
-        <li data-name="Salon.io">– <a href="#examples-salon">Salon.io</a></li>
-        <li data-name="TileMill">– <a href="#examples-tilemill">TileMill</a></li>
-        <li data-name="Blossom">– <a href="#examples-blossom">Blossom</a></li>
-        <li data-name="Trello">– <a href="#examples-trello">Trello</a></li>
-        <li data-name="Tzigla">– <a href="#examples-tzigla">Tzigla</a></li>
-      </ul>
-    </div>
-
-    <div class="searchable_section">
       <a class="toc_title" href="#changelog">
         Change Log
       </a>
@@ -562,9 +737,10 @@
 
   <div class="container">
 
-    <p>
-      <img id="logo" src="docs/images/ostov.png" alt="Ostov.js" />
-    </p>
+    <div id="hero-logo">
+      <img src="docs/images/ostov-icon.svg" alt="Ostov icon" id="hero-icon" />
+      <span id="hero-wordmark">Ostov<span style="color:#2563EB">.</span>js</span>
+    </div>
 
     <p>
       Ostov.js gives structure to web applications
@@ -580,7 +756,7 @@
       as well as an online <a href="test/">test suite</a>,
       an <a href="examples/todos/index.html">example application</a>,
       a <a href="https://github.com/DmitryOlkhovoi/Ostov/wiki/Tutorials%2C-blog-posts-and-example-sites">list of tutorials</a>
-      and a <a href="#examples">long list of real-world projects</a> that use Ostov.
+      and a <a href="https://github.com/DmitryOlkhovoi/Ostov/wiki/Projects-and-Companies-using-Ostov">list of real-world projects</a> that use Ostov.
       Ostov is available for use under the <a href="https://github.com/DmitryOlkhovoi/Ostov/blob/master/LICENSE">MIT software license</a>.
     </p>
 
@@ -660,7 +836,7 @@
 
     <p>
       If you're new here, and aren't yet quite sure what Ostov is for, start by
-      browsing the <a href="#examples">list of Ostov-based projects</a>.
+      browsing the <a href="https://github.com/DmitryOlkhovoi/Ostov/wiki/Projects-and-Companies-using-Ostov">list of Ostov-based projects</a>.
     </p>
 
     <p>
@@ -1537,9 +1713,8 @@ book.destroy({success: function(model, response) {
     <p id="Model-Underscore-Methods">
       <b class="header">Utility Methods</b>
       <br />
-      Ostov proxies to <b>Underscore.js</b> to provide 9 object functions
-      on <b>Ostov.Model</b>. They aren't all documented here, but
-      you can take a look at the Underscore documentation for the full details&hellip;
+      Ostov provides 9 built-in object utility methods on <b>Ostov.Model</b>,
+      operating on the model's <tt>attributes</tt>.
     </p>
 
     <ul class="small">
@@ -1965,9 +2140,8 @@ alert(JSON.stringify(collection));
     <p id="Collection-Underscore-Methods">
       <b class="header">Utility Methods</b>
       <br />
-      Ostov proxies to <b>Underscore.js</b> to provide 46 iteration functions
-      on <b>Ostov.Collection</b>. They aren't all documented here, but
-      you can take a look at the Underscore documentation for the full details&hellip;
+      Ostov provides 46 built-in iteration functions on <b>Ostov.Collection</b>,
+      operating over <tt>collection.models</tt>.
     </p>
 
     <p>
@@ -3129,18 +3303,15 @@ class Bookmark extends Ostov.View {
       <a href="http://github.com/janl/mustache.js">Mustache.js</a>,
       <a href="http://github.com/creationix/haml-js">Haml-js</a>, and
       <a href="http://github.com/sstephenson/eco">Eco</a> are all fine alternatives.
-      Because <a href="http://underscorejs.org/">Underscore.js</a> is already on the page,
-      <a href="http://underscorejs.org/#template">_.template</a>
-      is available, and is an excellent choice if you prefer simple
-      interpolated-JavaScript style templates.
+      <a href="http://underscorejs.org/#template">Underscore templates</a>
+      are an excellent choice if you prefer simple interpolated-JavaScript style templates.
     </p>
 
     <p>
       Whatever templating strategy you end up with, it's nice if you <i>never</i>
-      have to put strings of HTML in your JavaScript. At DocumentCloud, we
-      use <a href="http://documentcloud.github.com/jammit/">Jammit</a> in order
-      to package up JavaScript templates stored in <tt>/app/views</tt> as part
-      of our main <tt>core.js</tt> asset package.
+      have to put strings of HTML in your JavaScript. Modern bundlers like
+      <a href="https://vitejs.dev/">Vite</a> or <a href="https://webpack.js.org/">webpack</a>
+      can handle importing template files from <tt>/src/templates</tt> as part of your build.
     </p>
 
     <p id="View-remove">
@@ -3320,7 +3491,7 @@ Ostov.$ = require('jquery');
       <b class="header">Why use Ostov, not [other framework X]?</b>
       <br />
       If your eye hasn't already been caught by the adaptability and elan on display
-      in the above <a href="#examples">list of examples</a>, we can get more specific:
+      in the <a href="https://github.com/DmitryOlkhovoi/Ostov/wiki/Projects-and-Companies-using-Ostov">list of projects built with Ostov</a>, we can get more specific:
       Ostov.js aims to provide the common foundation that data-rich web applications
       with ambitious interfaces require &mdash; while very deliberately avoiding
       painting you into a corner by making any decisions that you're
@@ -3515,9 +3686,9 @@ inbox.messages.fetch({reset: true});
       firing an extra AJAX request to <a href="#Collection-fetch">fetch</a> them,
       a nicer pattern is to have their data already bootstrapped into the page.
       You can then use <a href="#Collection-reset">reset</a> to populate your
-      collections with the initial data. At DocumentCloud, in the
-      <a href="http://en.wikipedia.org/wiki/ERuby">ERB</a> template for the
-      workspace, we do something along these lines:
+      collections with the initial data. For example, in an
+      <a href="http://en.wikipedia.org/wiki/ERuby">ERB</a> template,
+      you might do something like:
     </p>
 
 <pre>
@@ -3600,18 +3771,15 @@ inbox.messages.fetch({reset: true});
       you pass a function as a callback, its value for <tt>this</tt> is lost.
       When dealing with <a href="#Events">events</a> and callbacks in Ostov,
       you'll often find it useful to rely on <a href="#Events-listenTo">listenTo</a>
-      or the optional <tt>context</tt> argument that many of Underscore
-      and Ostov's methods use to specify the <tt>this</tt>
-      that will be used when the callback is later invoked. (See
-      <a href="http://underscorejs.org/#each">_.each</a>,
-      <a href="http://underscorejs.org/#map">_.map</a>, and
-      <a href="#Events-on">object.on</a>, to name a few).
+      or the optional <tt>context</tt> argument that many of Ostov's methods
+      use to specify the <tt>this</tt> that will be used when the callback is
+      later invoked. (See <a href="#Events-on">object.on</a>,
+      <a href="#Collection-Underscore-Methods">collection.each</a>,
+      and <a href="#Collection-Underscore-Methods">collection.map</a>, to name a few).
       <a href="#View-delegateEvents">View events</a> are automatically bound to
       the view's context for you.
-      You may also find it helpful to use
-      <a href="http://underscorejs.org/#bind">_.bind</a> and
-      <a href="http://underscorejs.org/#bindAll">_.bindAll</a>
-      from Underscore.js.
+      You may also find it helpful to use arrow functions or
+      <tt>Function.prototype.bind</tt> for lexical <tt>this</tt> binding.
     </p>
 
 <pre>
@@ -3623,7 +3791,7 @@ class MessageList extends Ostov.View {
     messages.on("add", this.addMessage, this);
     messages.on("remove", this.removeMessage, this);
 
-    messsages.each(this.addMessage, this);
+    messages.each(this.addMessage, this);
   }
 
 }
@@ -3636,8 +3804,7 @@ Inbox.messages.add(newMessage);
     <p id="FAQ-rails">
       <b class="header">Working with Rails</b>
       <br />
-      Ostov.js was originally extracted from
-      <a href="http://www.documentcloud.org">a Rails application</a>; getting
+      Ostov.js works great with Rails backends. Getting
       your client-side (Ostov) Models to sync correctly with your server-side
       (Rails) Models is painless, but there are still a few things to be aware of.
     </p>
@@ -3661,862 +3828,6 @@ ActiveRecord::Base.include_root_in_json = false
       you can override <a href="#Model-toJSON">toJSON</a> in Ostov to add
       the extra wrapping Rails expects.
     </p>
-
-    <h2 id="examples">Examples</h2>
-
-    <p>
-      The list of examples that follows, while long, is not exhaustive — nor in
-      any way current. If you've worked on an app that uses Ostov, please
-      add it to the <a href="https://github.com/DmitryOlkhovoi/Ostov/wiki/Projects-and-Companies-using-Ostov">wiki page of Ostov apps</a>.
-    </p>
-
-    <p id="examples-todos">
-      <a href="http://jgn.me/">Jérôme Gravel-Niquet</a> has contributed a
-      <a href="examples/todos/index.html">Todo List application</a>
-      that is bundled in the repository as Ostov example. If you're wondering
-      where to get started with Ostov in general, take a moment to
-      <a href="docs/examples/todos/todos.html">read through the annotated source</a>. The app uses a
-      <a href="http://github.com/jeromegn/Ostov.localStorage">LocalStorage adapter</a>
-      to transparently save all of your todos within your browser, instead of
-      sending them to a server. Jérôme also has a version hosted at
-      <a href="http://localtodos.com/">localtodos.com</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="examples/todos/index.html">
-        <img width="400" height="427" data-original="docs/images/todos.jpg" alt="Todos" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-documentcloud">DocumentCloud</h2>
-
-    <p>
-      The <a href="http://www.documentcloud.org/public/#search/">DocumentCloud workspace</a>
-      is built on Ostov.js, with <i>Documents</i>, <i>Projects</i>,
-      <i>Notes</i>, and <i>Accounts</i> all as Ostov models and collections.
-      If you're interested in history &mdash; both Underscore.js and Ostov.js
-      were originally extracted from the DocumentCloud codebase, and packaged
-      into standalone JS libraries.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.documentcloud.org/public/#search/">
-        <img width="550" height="453" data-original="docs/images/dc-workspace.jpg" alt="DocumentCloud Workspace" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-usa-today">USA Today</h2>
-
-    <p>
-      <a href="http://usatoday.com">USA Today</a> takes advantage of the modularity of
-      Ostov's data/model lifecycle &mdash; which makes it simple to create, inherit,
-      isolate, and link application objects &mdash; to keep the codebase both manageable and efficient.
-      The new website also makes heavy use of the Ostov Router to control the
-      page for both pushState-capable and legacy browsers.
-      Finally, the team took advantage of Ostov's Event module to create a
-      PubSub API that allows third parties and analytics packages to hook into the
-      heart of the app.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://usatoday.com">
-        <img width="550" height="532" data-original="docs/images/usa-today.jpg" alt="USA Today" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-rdio">Rdio</h2>
-
-    <p>
-      <a href="http://rdio.com/new">New Rdio</a> was developed from the ground
-      up with a component based framework based on Ostov.js. Every component
-      on the screen is dynamically loaded and rendered, with data provided by the
-      <a href="http://developer.rdio.com/">Rdio API</a>. When changes are pushed,
-      every component can update itself without reloading the page or interrupting
-      the user's music. All of this relies on Ostov's views and models,
-      and all URL routing is handled by Ostov's Router. When data changes are
-      signaled in realtime, Ostov's Events notify the interested components
-      in the data changes. Ostov forms the core of the new, dynamic, realtime
-      Rdio web and <i>desktop</i> applications.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://rdio.com/new">
-        <img width="550" height="344" data-original="docs/images/rdio.jpg" alt="Rdio" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-hulu">Hulu</h2>
-
-    <p>
-      <a href="http://hulu.com">Hulu</a> used Ostov.js to build its next
-      generation online video experience. With Ostov as a foundation, the
-      web interface was rewritten from scratch so that all page content can
-      be loaded dynamically with smooth transitions as you navigate.
-      Ostov makes it easy to move through the app quickly without the
-      reloading of scripts and embedded videos, while also offering models and
-      collections for additional data manipulation support.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://hulu.com">
-        <img width="550" height="449" data-original="docs/images/hulu.jpg" alt="Hulu" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-quartz">Quartz</h2>
-
-    <p>
-      <a href="http://qz.com">Quartz</a> sees itself as a digitally native news
-      outlet for the new
-      global economy. Because Quartz believes in the future of open,
-      cross-platform web applications, they selected Ostov and Underscore
-      to fetch, sort, store, and display content from a custom WordPress
-      API. Although <a href="http://qz.com">qz.com</a> uses responsive design
-      for phone, tablet, and
-      desktop browsers, it also takes advantage of Ostov events and views
-      to render device-specific templates in some cases.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://qz.com">
-        <img width="510" height="360" data-original="docs/images/quartz.jpg" alt="Quartz" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-earth">Earth</h2>
-
-    <p>
-      <a href="http://earth.nullschool.net">Earth.nullschool.net</a> displays real-time weather
-      conditions on an interactive animated globe, and Ostov provides the
-      foundation upon which all of the site's components are built. Despite the
-      presence of several other JavaScript libraries, Ostov's non-opinionated
-      design made it effortless to mix-in the <a href="#Events">Events</a> functionality used for
-      distributing state changes throughout the page. When the decision was made
-      to switch to Ostov, large blocks of custom logic simply disappeared.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://earth.nullschool.net">
-        <img width="545" height="583" data-original="docs/images/earth.jpg" alt="Earth" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-vox">Vox</h2>
-
-    <p>
-      Vox Media, the publisher of
-      <a href="http://www.sbnation.com/">SB Nation</a>,
-      <a href="http://www.theverge.com/">The Verge</a>,
-      <a href="http://www.polygon.com/">Polygon</a>,
-      <a href="http://www.eater.com/">Eater</a>,
-      <a href="http://www.racked.com/">Racked</a>,
-      <a href="http://www.curbed.com/">Curbed</a>, and
-      <a href="http://www.vox.com/">Vox.com</a>, uses Ostov throughout
-      <a href="http://techcrunch.com/2012/05/07/a-closer-look-at-chorus-the-next-generation-publishing-platform-that-runs-vox-media/">Chorus</a>,
-      its home-grown publishing platform. Ostov powers the
-      <a href="http://product.voxmedia.com/post/25113965826/introducing-syllabus-vox-medias-s3-powered-liveblog">liveblogging platform</a>
-      and <a href="http://product.voxmedia.com/2013/11/11/5426878/using-ostov-js-for-sanity-and-stability">commenting system</a>
-      used across all Vox Media properties; Coverage, an internal editorial coordination tool;
-      <a href="http://www.sbnation.com/college-basketball/2014/4/7/5592112/kentucky-vs-uconn-2014-ncaa-tournament-championship-live-chat">SB Nation Live</a>,
-      a live event coverage and chat tool; and
-      <a href="http://www.vox.com/cards/ukraine-everything-you-need-to-know/what-is-the-ukraine-crisis">Vox Cards</a>,
-      Vox.com's highlighter-and-index-card inspired app for providing context about the news.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://vox.com">
-        <img width="550" height="402" data-original="docs/images/vox.jpg" alt="Vox" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-gawker">Gawker Media</h2>
-
-    <p>
-      <a href="http://kinja.com">Kinja</a> is Gawker Media's publishing platform designed
-      to create great stories by breaking down the lines between the traditional
-      roles of content creators and consumers. Everyone — editors, readers,
-      marketers — have access to the same tools to engage in passionate discussion
-      and pursue the truth of the story. Sharing, recommending, and following within the
-      Kinja ecosystem allows for improved information discovery across all the sites.
-    </p>
-    <p>
-      Kinja is the platform behind
-      <a href="http://gawker.com/">Gawker</a>,
-      <a href="http://gizmodo.com/">Gizmodo</a>,
-      <a href="http://lifehacker.com/">Lifehacker</a>,
-      <a href="http://io9.com/">io9</a> and other Gawker Media
-      blogs. Ostov.js underlies the front-end application code that powers
-      everything from user authentication to post authoring, commenting, and even serving
-      ads. The JavaScript stack includes
-      <a href="http://underscorejs.org/">Underscore.js</a> and
-      <a href="http://jquery.com/">jQuery</a>, with some plugins,
-      all loaded with
-      <a href="http://requirejs.org/">RequireJS</a>. Closure templates are shared between the
-      <a href="http://www.playframework.com/">Play! Framework</a> based Scala application and Ostov views, and the responsive layout
-      is done with the
-      <a href="http://foundation.zurb.com/">Foundation</a> framework using
-      <a href="http://sass-lang.com/">SASS</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://gawker.com">
-        <img width="558" height="473" data-original="docs/images/gawker.jpg" alt="Gawker" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-flow">Flow</h2>
-
-    <p>
-      <a href="http://www.metalabdesign.com/">MetaLab</a> used Ostov.js to create
-      <a href="http://www.getflow.com/">Flow</a>, a task management app for teams. The
-      workspace relies on Ostov.js to construct task views, activities, accounts,
-      folders, projects, and tags. You can see the internals under <tt>window.Flow</tt>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.getflow.com/">
-        <img width="550" height="416" data-original="docs/images/flow.jpg" alt="Flow" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-gilt">Gilt Groupe</h2>
-
-    <p>
-      <a href="http://gilt.com">Gilt Groupe</a> uses Ostov.js to build multiple
-      applications across their family of sites.
-      <a href="http://m.gilt.com">Gilt's mobile website</a> uses Ostov and
-      <a href="http://zeptojs.com">Zepto.js</a> to create a blazing-fast
-      shopping experience for users on-the-go, while
-      <a href="http://live.gilt.com">Gilt Live</a> combines Ostov with
-      WebSockets to display the items that customers are buying in real-time. Gilt's search
-      functionality also uses Ostov to filter and sort products efficiently
-      by moving those actions to the client-side.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.gilt.com/">
-        <img width="550" height="444" data-original="docs/images/gilt.jpg" alt="Gilt Groupe" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-enigma">Enigma</h2>
-
-    <p>
-      <a href="http://enigma.io">Enigma</a> is a portal amassing the largest
-      collection of public data produced by governments, universities, companies,
-      and organizations. Enigma uses Ostov Models and Collections to represent
-      complex data structures; and Ostov's Router gives Enigma users unique URLs for
-      application states, allowing them to navigate quickly through the site while
-      maintaining the ability to bookmark pages and navigate forward and backward
-      through their session.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.enigma.io/">
-        <img width="550" height="409" data-original="docs/images/enigma.jpg" alt="Enigma" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-newsblur">NewsBlur</h2>
-
-    <p>
-      <a href="http://www.newsblur.com">NewsBlur</a> is an RSS feed reader and
-      social news network with a fast and responsive UI that feels like a
-      native desktop app. Ostov.js was selected for
-      <a href="http://www.ofbrooklyn.com/2012/11/13/backbonification-migrating-javascript-to-ostov/">a major rewrite and transition from spaghetti code</a>
-      because of its powerful yet simple feature set, easy integration, and large
-      community. If you want to poke around under the hood, NewsBlur is also entirely
-      <a href="http://github.com/samuelclay/NewsBlur">open-source</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://newsblur.com">
-        <img width="510" height="340" data-original="docs/images/newsblur.jpg" alt="Newsblur" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-wordpress">WordPress.com</h2>
-
-    <p>
-      <a href="http://wordpress.com/">WordPress.com</a> is the software-as-a-service
-      version of <a href="http://wordpress.org">WordPress</a>. It uses Ostov.js
-      Models, Collections, and Views in its
-      <a href="http://en.blog.wordpress.com/2012/05/25/notifications-refreshed/">Notifications system</a>.  Ostov.js was selected
-      because it was easy to fit into the structure of the application, not the
-      other way around. <a href="http://automattic.com">Automattic</a>
-      (the company behind WordPress.com) is integrating Ostov.js into the
-      Stats tab and other features throughout the homepage.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://wordpress.com/">
-        <img width="550" height="387" data-original="docs/images/wpcom-notifications.jpg" alt="WordPress.com Notifications"
-    title="WordPress.com Notifications" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-foursquare">Foursquare</h2>
-
-    <p>
-      Foursquare is a fun little startup that helps you meet up with friends,
-      discover new places, and save money. Ostov Models are heavily used in
-      the core JavaScript API layer and Views power many popular features like
-      the <a href="https://foursquare.com">homepage map</a> and
-      <a href="https://foursquare.com/seriouseats/list/the-best-doughnuts-in-ny">lists</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://foursquare.com">
-        <img width="550" height="427" data-original="docs/images/foursquare.jpg" alt="Foursquare" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-bitbucket">Bitbucket</h2>
-
-    <p>
-      <a href="http://www.bitbucket.org">Bitbucket</a> is a free source code hosting
-      service for Git and Mercurial. Through its models and collections,
-      Ostov.js has proved valuable in supporting Bitbucket's
-      <a href="https://api.bitbucket.org">REST API</a>, as well as newer
-      components such as in-line code comments and approvals for pull requests.
-      Mustache templates provide server and client-side rendering, while a custom
-      <a href="https://developers.google.com/closure/library/">Google Closure</a>
-      inspired life-cycle for widgets allows Bitbucket to decorate existing DOM
-      trees and insert new ones.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.bitbucket.org">
-        <img width="550" height="356" data-original="docs/images/bitbucket.jpg" alt="Bitbucket" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-disqus">Disqus</h2>
-
-    <p>
-      <a href="http://www.disqus.com">Disqus</a> chose Ostov.js to power the
-      latest version of their commenting widget. Ostov&rsquo;s small
-      footprint and easy extensibility made it the right choice for Disqus&rsquo;
-      distributed web application, which is hosted entirely inside an iframe and
-      served on thousands of large web properties, including IGN, Wired, CNN, MLB, and more.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.disqus.com">
-        <img width="550" height="454" data-original="docs/images/disqus.jpg" alt="Disqus" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-delicious">Delicious</h2>
-
-    <p>
-      <a href="https://delicious.com/">Delicious</a> is a social bookmarking
-      platform making it easy to save, sort, and store bookmarks from across
-      the web. Delicious uses <a href="http://chaplinjs.org">Chaplin.js</a>,
-      Ostov.js and AppCache to build a full-featured MVC web app.
-      The use of Ostov helped the website and
-      <a href="http://delicious.com/tools">mobile apps</a> share a
-      single API service, and the reuse of the model tier made it significantly
-      easier to share code during the recent Delicious redesign.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.delicious.com">
-        <img width="510" height="321" data-original="docs/images/delicious.jpg" alt="Delicious" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-khan-academy">Khan Academy</h2>
-
-    <p>
-      <a href="http://www.khanacademy.org">Khan Academy</a> is on a mission to
-      provide a free world-class education to anyone anywhere. With thousands of
-      videos, hundreds of JavaScript-driven exercises, and big plans for the
-      future, Khan Academy uses Ostov to keep frontend code modular and organized.
-      User profiles and goal setting are implemented with Ostov,
-      <a href="http://jquery.com/">jQuery</a> and
-      <a href="http://handlebarsjs.com/">Handlebars</a>, and most new feature
-      work is being pushed to the client side, greatly increasing the quality of
-      <a href="https://github.com/Khan/khan-api/">the API</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.khanacademy.org">
-        <img width="550" height="454" data-original="docs/images/khan-academy.jpg" alt="Khan Academy" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-irccloud">IRCCloud</h2>
-
-    <p>
-      <a href="http://irccloud.com/">IRCCloud</a>
-      is an always-connected IRC client that you use in your
-      browser &mdash; often leaving it open all day in a tab.
-      The sleek web interface communicates with an
-      Erlang backend via websockets and the
-      <a href="https://github.com/irccloud/irccloud-tools/wiki/API-Overview">IRCCloud API</a>.
-      It makes heavy use of Ostov.js events, models, views and routing to keep
-      your IRC conversations flowing in real time.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://irccloud.com/">
-        <img width="550" height="392" data-original="docs/images/irccloud.png" alt="IRCCloud" class="example_image" />
-      </a>
-    </div>
-
-    <h2 id="examples-pitchfork">Pitchfork</h2>
-
-    <p>
-      <a href="http://pitchfork.com/">Pitchfork</a> uses Ostov.js to power
-      its site-wide audio player, <a href="http://pitchfork.com/tv/">Pitchfork.tv</a>,
-      location routing, a write-thru page fragment cache, and more. Ostov.js
-      (and <a href="http://underscorejs.org/">Underscore.js</a>) helps the team
-      create clean and modular components,
-      move very quickly, and focus on the site, not the spaghetti.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://pitchfork.com/">
-        <img width="550" height="428" data-original="docs/images/pitchfork.jpg" alt="Pitchfork" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-spin">Spin</h2>
-
-    <p>
-      <a href="http://spin.com/">Spin</a> pulls in the
-      <a href="http://www.spin.com/news">latest news stories</a> from
-      their internal API onto their site using Ostov models and collections, and a
-      custom <tt>sync</tt> method. Because the music should never stop playing,
-      even as you click through to different "pages", Spin uses a Ostov router
-      for navigation within the site.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://spin.com/">
-        <img width="550" height="543" data-original="docs/images/spin.jpg" alt="Spin" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-zocdoc">ZocDoc</h2>
-
-    <p>
-      <a href="http://www.zocdoc.com">ZocDoc</a> helps patients
-      find local, in-network doctors and dentists, see their real-time
-      availability, and instantly book appointments.
-      On the public side, the webapp uses Ostov.js to handle client-side state and rendering in
-      <a href="http://www.zocdoc.com/primary-care-doctors/los-angeles-13122pm">search pages</a>
-      and <a href="http://www.zocdoc.com/doctor/nathan-hashimoto-md-58078">doctor profiles</a>.
-      In addition, the new version of the doctor-facing part of the website is a
-      large single-page application that
-      benefits from Ostov's structure and modularity. ZocDoc's Ostov
-      classes are tested with
-      <a href="https://jasmine.github.io/">Jasmine</a>, and delivered
-      to the end user with
-      <a href="http://getcassette.net/">Cassette</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.zocdoc.com">
-        <img width="510" height="464" data-original="docs/images/zocdoc.jpg" alt="ZocDoc" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-walmart">Walmart Mobile</h2>
-
-    <p>
-      <a href="http://www.walmart.com/">Walmart</a> used Ostov.js to create the new version
-      of <a href="http://mobile.walmart.com/">their mobile web application</a> and
-      created two new frameworks in the process.
-      <a href="http://walmartlabs.github.com/thorax/">Thorax</a> provides mixins, inheritable
-      events, as well as model and collection view bindings that integrate directly with
-      <a href="http://handlebarsjs.com/">Handlebars</a> templates.
-      <a href="http://walmartlabs.github.com/lumbar/">Lumbar</a> allows the application to be
-      split into modules which can be loaded on demand, and creates platform specific builds
-      for the portions of the web application that are embedded in Walmart's native Android
-      and iOS applications.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://mobile.walmart.com/r/phoenix">
-        <img width="256" height="534" data-original="docs/images/walmart-mobile.png" alt="Walmart Mobile" class="example_image" />
-      </a>
-    </div>
-
-    <h2 id="examples-groupon">Groupon Now!</h2>
-
-    <p>
-      <a href="http://www.groupon.com/now">Groupon Now!</a> helps you find
-      local deals that you can buy and use right now. When first developing
-      the product, the team decided it would be AJAX heavy with smooth transitions
-      between sections instead of full refreshes, but still needed to be fully
-      linkable and shareable. Despite never having used Ostov before, the
-      learning curve was incredibly quick &mdash; a prototype was hacked out in an
-      afternoon, and the team was able to ship the product in two weeks.
-      Because the source is minimal and understandable, it was easy to
-      add several Ostov extensions for Groupon Now!: changing the router
-      to handle URLs with querystring parameters, and adding a simple
-      in-memory store for caching repeated requests for the same data.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.groupon.com/now">
-        <img width="550" height="466" data-original="docs/images/groupon.jpg" alt="Groupon Now!" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-basecamp">Basecamp</h2>
-
-    <p>
-      <a href="http://37signals.com/">37Signals</a> chose Ostov.js to create
-      the <a href="http://basecamp.com/calendar">calendar feature</a> of its
-      popular project management software <a href="http://basecamp.com/">Basecamp</a>.
-      The Basecamp Calendar uses Ostov.js models and views in conjunction with the
-      <a href="https://github.com/sstephenson/eco">Eco</a> templating system to
-      present a polished, highly interactive group scheduling interface.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://basecamp.com/calendar">
-        <img width="530" height="380" data-original="docs/images/basecamp-calendar.jpg" alt="Basecamp Calendar" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-slavery-footprint">Slavery Footprint</h2>
-
-    <p>
-      <a href="http://slaveryfootprint.org/survey">Slavery Footprint</a>
-      allows consumers to visualize how their consumption habits are
-      connected to modern-day slavery and provides them with an opportunity
-      to have a deeper conversation with the companies that manufacture the
-      goods they purchased.
-      Based in Oakland, California, the Slavery Footprint team works to engage
-      individuals, groups, and businesses to build awareness for and create
-      deployable action against forced labor, human trafficking, and modern-day
-      slavery through online tools, as well as off-line community education and
-      mobilization programs.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://slaveryfootprint.org/survey">
-        <img width="550" height="394" data-original="docs/images/slavery-footprint.jpg" alt="Slavery Footprint" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-stripe">Stripe</h2>
-
-    <p>
-      <a href="https://stripe.com">Stripe</a> provides an API for accepting
-      credit cards on the web. Stripe's
-      <a href="https://manage.stripe.com">management interface</a> was recently
-      rewritten from scratch in CoffeeScript using Ostov.js as the primary
-      framework, <a href="https://github.com/sstephenson/eco">Eco</a> for templates, <a href="http://sass-lang.com/">Sass</a> for stylesheets, and <a href="https://github.com/sstephenson/stitch">Stitch</a> to package
-      everything together as <a href="http://commonjs.org/">CommonJS</a> modules. The new app uses
-      <a href="https://stripe.com/docs/api">Stripe's API</a> directly for the
-      majority of its actions; Ostov.js models made it simple to map
-      client-side models to their corresponding RESTful resources.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="https://stripe.com">
-        <img width="555" height="372" data-original="docs/images/stripe.png" alt="Stripe" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-airbnb">Airbnb</h2>
-
-    <p>
-      <a href="http://airbnb.com">Airbnb</a> uses Ostov in many of its products.
-      It started with <a href="http://m.airbnb.com">Airbnb Mobile Web</a>
-      (built in six weeks by a team of three) and has since grown to
-      <a href="https://www.airbnb.com/wishlists/popular">Wish Lists</a>,
-      <a href="http://www.airbnb.com/match">Match</a>,
-      <a href="http://www.airbnb.com/s/">Search</a>, Communities, Payments, and
-      Internal Tools.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://m.airbnb.com/">
-        <img width="500" height="489" data-original="docs/images/airbnb.png" alt="Airbnb" class="example_image" />
-      </a>
-    </div>
-
-    <h2 id="examples-soundcloud">SoundCloud Mobile</h2>
-
-    <p>
-      <a href="http://soundcloud.com">SoundCloud</a> is the leading sound sharing
-      platform on the internet, and Ostov.js provides the foundation for
-      <a href="http://m.soundcloud.com">SoundCloud Mobile</a>. The project uses
-      the public SoundCloud <a href="http://soundcloud.com/developers">API</a>
-      as a data source (channeled through a nginx proxy),
-      <a href="https://github.com/BorisMoore/jquery-tmpl">jQuery templates</a>
-      for the rendering, <a href="http://docs.jquery.com/Qunit">Qunit
-      </a> and <a href="http://www.phantomjs.org/">PhantomJS</a> for
-      the testing suite. The JS code, templates and CSS are built for the
-      production deployment with various Node.js tools like
-      <a href="https://github.com/dsimard/ready.js">ready.js</a>,
-      <a href="https://github.com/mde/jake">Jake</a>,
-      <a href="https://github.com/tmpvar/jsdom">jsdom</a>.
-      The <b>Ostov.History</b> was modified to support the HTML5 <tt>history.pushState</tt>.
-      <b>Ostov.sync</b> was extended with an additional SessionStorage based cache
-      layer.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://m.soundcloud.com">
-        <img width="266" height="555" data-original="docs/images/soundcloud.png" alt="SoundCloud" class="example_image" />
-      </a>
-    </div>
-
-    <h2 id="examples-artsy">Art.sy</h2>
-
-    <p>
-      <a href="http://artsy.net">Art.sy</a> is a place to discover art you'll
-      love. Art.sy is built on Rails, using
-      <a href="https://github.com/intridea/grape">Grape</a> to serve a robust
-      <a href="http://artsy.net/api">JSON API</a>. The main site is a single page
-      app written in CoffeeScript and uses Ostov to provide structure around
-      this API. An admin panel and partner CMS have also been extracted into
-      their own API-consuming Ostov projects.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://artsy.net">
-        <img width="550" height="550" data-original="docs/images/artsy.jpg" alt="Art.sy" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-pandora">Pandora</h2>
-
-    <p>
-      When <a href="http://www.pandora.com/newpandora">Pandora</a> redesigned
-      their site in HTML5, they chose Ostov.js to help
-      manage the user interface and interactions. For example, there's a model
-      that represents the "currently playing track", and multiple views that
-      automatically update when the current track changes. The station list is a
-      collection, so that when stations are added or changed, the UI stays up to date.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.pandora.com/newpandora">
-        <img width="476" height="359" data-original="docs/images/pandora.jpg" alt="Pandora" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-inkling">Inkling</h2>
-
-    <p>
-      <a href="http://inkling.com/">Inkling</a> is a cross-platform way to
-      publish interactive learning content.
-      <a href="https://www.inkling.com/read/">Inkling for Web</a> uses Ostov.js
-      to make hundreds of complex books — from student textbooks to travel guides and
-      programming manuals — engaging and accessible on the web. Inkling supports
-      WebGL-enabled 3D graphics, interactive assessments, social sharing,
-      and a system for running practice code right
-      in the book, all within a single page Ostov-driven app. Early on, the
-      team decided to keep the site lightweight by using only Ostov.js and
-      raw JavaScript. The result? Complete source code weighing in at a mere
-      350kb with feature-parity across the iPad, iPhone and web clients.
-      Give it a try with
-      <a href="https://www.inkling.com/read/javascript-definitive-guide-david-flanagan-6th/chapter-4/function-definition-expressions">this excerpt from JavaScript: The Definitive Guide</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://inkling.com">
-        <img width="550" height="361" data-original="docs/images/inkling.jpg" alt="Inkling" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-code-school">Code School</h2>
-
-    <p>
-      <a href="http://www.codeschool.com">Code School</a> courses teach people
-      about various programming topics like <a href="http://coffeescript.org">CoffeeScript</a>, CSS, Ruby on Rails,
-      and more. The new Code School course
-      <a href="http://coffeescript.codeschool.com/levels/1/challenges/1">challenge page</a>
-      is built from the ground up on Ostov.js, using
-      everything it has to offer: the router, collections, models, and complex
-      event handling. Before, the page was a mess of <a href="http://jquery.com/">jQuery</a> DOM manipulation
-      and manual Ajax calls. Ostov.js helped introduce a new way to
-      think about developing an organized front-end application in JavaScript.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.codeschool.com">
-        <img width="550" height="482" data-original="docs/images/code-school.jpg" alt="Code School" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-cloudapp">CloudApp</h2>
-
-    <p>
-      <a href="http://getcloudapp.com">CloudApp</a> is simple file and link
-      sharing for the Mac. Ostov.js powers the web tools
-      which consume the <a href="http://developer.getcloudapp.com">documented API</a>
-      to manage Drops. Data is either pulled manually or pushed by
-      <a href="http://pusher.com">Pusher</a> and fed to
-      <a href="http://github.com/janl/mustache.js">Mustache</a> templates for
-      rendering. Check out the <a href="http://cloudapp.github.com/engine">annotated source code</a>
-      to see the magic.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://getcloudapp.com">
-        <img width="550" height="426" data-original="docs/images/cloudapp.jpg" alt="CloudApp" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-seatgeek">SeatGeek</h2>
-
-    <p>
-      <a href="http://seatgeek.com">SeatGeek</a>'s stadium ticket maps were originally
-      developed with <a href="http://prototypejs.org/">Prototype.js</a>. Moving to Ostov.js and <a href="http://jquery.com/">jQuery</a> helped organize
-      a lot of the UI code, and the increased structure has made adding features
-      a lot easier. SeatGeek is also in the process of building a mobile
-      interface that will be Ostov.js from top to bottom.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://seatgeek.com">
-        <img width="550" height="455" data-original="docs/images/seatgeek.jpg" alt="SeatGeek" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-easel">Easel</h2>
-
-    <p>
-      <a href="http://easel.io">Easel</a> is an in-browser, high fidelity web
-      design tool that integrates with your design and development
-      process. The Easel team uses CoffeeScript, Underscore.js and Ostov.js for
-      their <a href="http://easel.io/demo">rich visual editor</a> as well as other
-      management functions throughout the site. The structure of Ostov allowed
-      the team to break the complex problem of building a visual editor into
-      manageable components and still move quickly.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://easel.io">
-        <img width="550" height="395" data-original="docs/images/easel.jpg" alt="Easel" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-jolicloud">Jolicloud</h2>
-
-    <p>
-      <a href="http://www.jolicloud.com/">Jolicloud</a> is an open and independent
-      platform and <a href="http://www.jolicloud.com/jolios">operating system</a>
-      that provides music playback, video streaming, photo browsing and
-      document editing &mdash; transforming low cost computers into beautiful cloud devices.
-      The <a href="https://my.jolicloud.com/">new Jolicloud HTML5 app</a> was built
-      from the ground up using Ostov and talks to the
-      <a href="http://developers.jolicloud.com">Jolicloud Platform</a>, which is
-      based on Node.js. Jolicloud works offline using the HTML5 AppCache, extends
-      Ostov.sync to store data in IndexedDB or localStorage, and communicates
-      with the <a href="http://www.jolicloud.com/jolios">Joli OS</a> via WebSockets.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://jolicloud.com/">
-        <img width="510" height="384" data-original="docs/images/jolicloud.jpg" alt="Jolicloud" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-salon">Salon.io</h2>
-
-    <p>
-      <a href="http://salon.io">Salon.io</a> provides a space where photographers,
-      artists and designers freely arrange their visual art on virtual walls.
-      <a href="http://salon.io">Salon.io</a> runs on <a href="http://rubyonrails.org/">Rails</a>, but does not use
-      much of the traditional stack, as the entire frontend is designed as a
-      single page web app, using Ostov.js, <a href="http://brunch.io/">Brunch</a> and
-      <a href="http://coffeescript.org">CoffeeScript</a>.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://salon.io">
-        <img width="550" height="483" data-original="docs/images/salon.jpg" alt="Salon.io" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-tilemill">TileMill</h2>
-
-    <p>
-      Our fellow
-      <a href="http://www.newschallenge.org/">Knight Foundation News Challenge</a>
-      winners, <a href="http://mapbox.com/">MapBox</a>, created an open-source
-      map design studio with Ostov.js:
-      <a href="https://www.mapbox.com/tilemill/">TileMill</a>.
-      TileMill lets you manage map layers based on shapefiles and rasters, and
-      edit their appearance directly in the browser with the
-      <a href="https://github.com/mapbox/carto">Carto styling language</a>.
-      Note that the gorgeous <a href="http://mapbox.com/">MapBox</a> homepage
-      is also a Ostov.js app.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="https://www.mapbox.com/tilemill/">
-        <img width="544" height="375" data-original="docs/images/tilemill.jpg" alt="TileMill" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-blossom">Blossom</h2>
-
-    <p>
-      <a href="http://blossom.io">Blossom</a> is a lightweight project management
-      tool for lean teams. Ostov.js is heavily used in combination with
-      <a href="http://coffeescript.org">CoffeeScript</a> to provide a smooth
-      interaction experience. The app is packaged with <a href="http://brunch.io">Brunch</a>.
-      The RESTful backend is built with <a href="http://flask.pocoo.org/">Flask</a> on Google App Engine.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://blossom.io">
-        <img width="550" height="367" data-original="docs/images/blossom.jpg" alt="Blossom" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-trello">Trello</h2>
-
-    <p>
-      <a href="http://trello.com">Trello</a> is a collaboration tool that
-      organizes your projects into boards. A Trello board holds many lists of
-      cards, which can contain checklists, files and conversations, and may be
-      voted on and organized with labels. Updates on the board happen in
-      real time. The site was built ground up using Ostov.js for all the
-      models, views, and routes.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://trello.com">
-        <img width="550" height="416" data-original="docs/images/trello.jpg" alt="Trello" class="example_retina" />
-      </a>
-    </div>
-
-    <h2 id="examples-tzigla">Tzigla</h2>
-
-    <p>
-      <a href="http://twitter.com/evilchelu">Cristi Balan</a> and
-      <a href="http://dira.ro">Irina Dumitrascu</a> created
-      <a href="http://tzigla.com">Tzigla</a>, a collaborative drawing
-      application where artists make tiles that connect to each other to
-      create <a href="http://tzigla.com/boards/1">surreal drawings</a>.
-      Ostov models help organize the code, routers provide
-      <a href="http://tzigla.com/boards/1#!/tiles/2-2">bookmarkable deep links</a>,
-      and the views are rendered with
-      <a href="https://github.com/creationix/haml-js">haml.js</a> and
-      <a href="http://zeptojs.com/">Zepto</a>.
-      Tzigla is written in Ruby (<a href="http://rubyonrails.org/">Rails</a>) on the backend, and
-      <a href="http://coffeescript.org">CoffeeScript</a> on the frontend, with
-      <a href="http://documentcloud.github.com/jammit/">Jammit</a>
-      prepackaging the static assets.
-    </p>
-
-    <div style="text-align: center;">
-      <a href="http://www.tzigla.com/">
-        <img width="550" height="376" data-original="docs/images/tzigla.jpg" alt="Tzigla" class="example_retina" />
-      </a>
-    </div>
 
     <h2 id="changelog">Change Log</h2>
 
@@ -5423,6 +4734,14 @@ ActiveRecord::Base.include_root_in_json = false
   <script src="test/vendor/json2.js"></script>
   <script src="dist/ostov.js"></script>
   <script src="docs/search.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre').forEach(function(block) {
+        hljs.highlightElement(block);
+      });
+    });
+  </script>
 
   <script>
     // Set up the "play" buttons for each runnable code example.
@@ -5436,6 +4755,19 @@ ActiveRecord::Base.include_root_in_json = false
       });
       $('[data-original]').lazyload();
     });
+  </script>
+
+  <!-- Scroll-to-top button -->
+  <button id="scroll-top" aria-label="Scroll to top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+  <script>
+    (function() {
+      var btn = document.getElementById('scroll-top');
+      window.addEventListener('scroll', function() {
+        btn.classList.toggle('visible', window.scrollY > 400);
+      }, { passive: true });
+    })();
   </script>
 
 </body>
