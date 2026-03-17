@@ -559,10 +559,6 @@ declare class View<TModel extends Model = Model, TCollection extends Collection 
      */
     cid: string;
     /**
-     * The DOM element for this view.
-     */
-    el: TEl;
-    /**
      * The events hash (or function returning a hash) for this view.
      */
     events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
@@ -657,6 +653,13 @@ declare class View<TModel extends Model = Model, TCollection extends Collection 
     preinitialize(..._args: any[]): void;
     initialize(..._args: any[]): void;
     [key: string]: any;
+}
+/**
+ * Asymmetric el type: reading returns TEl, writing accepts TEl | string (CSS selector).
+ */
+interface View<TModel extends Model, TCollection extends Collection, TEl> {
+    get el(): TEl;
+    set el(value: TEl | string);
 }
 /**
  * Ostov **Routers** map faux-URLs to actions, and fire events when routes
