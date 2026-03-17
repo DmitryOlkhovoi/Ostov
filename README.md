@@ -52,256 +52,230 @@ import Ostov from 'ostovjs';
 <!-- Ostov is now available as a global variable -->
 ```
 
-## Core concepts
+## ✨ Why Ostov?
+
+Backbone had a great core idea:
+- explicit state (models)
+- event-driven updates
+- separation of concerns
+
+Ostov keeps that — but removes legacy baggage:
+- ❌ no jQuery
+- ❌ no Underscore
+- ✅ ES modules
+- ✅ ES classes
+- ✅ TypeScript generics
+
+---
+
+## 🚀 TypeScript + Classes
 
 ### Model
 
-Manages data and business logic. Triggers `"change"` events when attributes are modified.
-
-```js
+```ts
 import { Model } from 'ostovjs';
 
-const Book = Model.extend({
-  defaults: {
-    title: '',
-    author: '',
-    read: false
+interface TodoAttrs {
+  title: string;
+  completed: boolean;
+}
+
+export class Todo extends Model<TodoAttrs> {
+  defaults() {
+    return {
+      title: '',
+      completed: false,
+    };
   }
-});
 
-const book = new Book({ title: 'Dune', author: 'Herbert' });
-
-book.on('change:title', (model, value) => {
-  console.log('Title changed to:', value);
-});
-
-book.set('title', 'Dune Messiah'); // → "Title changed to: Dune Messiah"
-book.get('author');                // → "Herbert"
+  toggle() {
+    this.set('completed', !this.get('completed'));
+  }
+}
 ```
+
+---
 
 ### Collection
 
-A group of models with helpers for sorting, filtering, and syncing with the server.
-
-```js
-import { Model, Collection } from 'ostovjs';
-
-const Task = Model.extend({
-  defaults: { title: '', done: false }
-});
-
-const TaskList = Collection.extend({
-  model: Task,
-  url: '/api/tasks',
-
-  pending() {
-    return this.filter(t => !t.get('done'));
-  }
-});
-
-const tasks = new TaskList([
-  { title: 'Write docs' },
-  { title: 'Ship it', done: true }
-]);
-
-console.log(tasks.length);           // 2
-console.log(tasks.pending().length); // 1
-```
-
-### REST API integration
-
-Point a Collection (or Model) at a URL and Ostov handles the REST mapping automatically:
-
-```js
+```ts
 import { Collection } from 'ostovjs';
+import { Todo } from './Todo';
 
-class Books extends Collection {
-  url = '/api/books';
-}
+export class TodoList extends Collection<Todo> {
+  model = Todo;
 
-const books = new Books();
-books.fetch(); // GET /api/books
-
-// If the API wraps data in metadata, use parse():
-class Books extends Collection {
-  url = '/api/books';
-  parse(data) {
-    return data.books; // unwrap { page, total, books: [...] }
+  completed() {
+    return this.where({ completed: true });
   }
 }
 ```
 
-HTTP methods map to model/collection methods:
+---
 
+### View (class-based)
+
+```ts
+import { View } from 'ostovjs';
+import { Todo } from './Todo';
+
+export class TodoView extends View<Todo> {
+  events() {
+    return {
+      'click [data-action="toggle"]': 'onToggle',
+    };
+  }
+
+  initialize() {
+    this.listenTo(this.model, 'change', this.render);
+  }
+
+  render() {
+    this.el.innerHTML = `
+      <button data-action="toggle">Toggle</button>
+      <span>${this.model.get('title')}</span>
+    `;
+    return this;
+  }
+
+  onToggle() {
+    this.model.toggle();
+  }
+}
 ```
-GET  /books/   → collection.fetch()
-POST /books/   → collection.create()
-GET  /books/1  → model.fetch()
-PUT  /books/1  → model.save()
-DEL  /books/1  → model.destroy()
+
+---
+
+## 🧩 Using Handlebars (templating)
+
+Ostov does not force a templating system — you can plug in anything.
+
+Example with Handlebars:
+
+```ts
+import Handlebars from 'handlebars';
+import { View } from 'ostovjs';
+
+const template = Handlebars.compile(`
+  <div>
+    <h3>{{title}}</h3>
+    <button data-action="toggle">
+      {{#if completed}}Undo{{else}}Complete{{/if}}
+    </button>
+  </div>
+`);
+
+export class TodoView extends View {
+  initialize() {
+    this.listenTo(this.model, 'change', this.render);
+  }
+
+  render() {
+    this.el.innerHTML = template(this.model.toJSON());
+    return this;
+  }
+}
 ```
 
-### View
+👉 You can use any templating engine:
+- Handlebars
+- Mustache
+- JSX (custom)
+- plain strings
 
-Manages rendering and user interaction within a DOM element. Each View owns its own `el` and listens to model events to re-render itself.
+---
 
-```js
+## 🔁 Backbone-style `.extend(...)`
+
+Ostov still supports classic Backbone patterns:
+
+```ts
 import { Model, View } from 'ostovjs';
 
-const Book = Model.extend({
-  defaults: { title: '', author: '' }
+const Todo = Model.extend({
+  defaults: {
+    title: '',
+    completed: false,
+  },
+
+  toggle() {
+    this.set('completed', !this.get('completed'));
+  },
 });
 
-const BookView = View.extend({
-  tagName: 'article',
+const TodoView = View.extend({
+  events: {
+    'click button': 'toggle',
+  },
 
   initialize() {
     this.listenTo(this.model, 'change', this.render);
   },
 
   render() {
-    this.el.innerHTML = `
-      <h2>${this.model.get('title')}</h2>
-      <p>${this.model.get('author')}</p>
-    `;
+    this.el.innerHTML = this.model.get('title');
     return this;
-  }
-});
-
-const book = new Book({ title: 'Dune', author: 'Herbert' });
-const view = new BookView({ model: book });
-
-document.body.appendChild(view.render().el);
-
-book.set('title', 'Dune Messiah'); // view re-renders automatically
-```
-
-DOM events are declared in an `events` hash:
-
-```js
-const BookView = View.extend({
-  events: {
-    'click .btn-read':   'markRead',
-    'dblclick h2':       'editTitle'
   },
 
-  markRead() {
-    this.model.set('read', true);
-  }
-});
-```
-
-### TypeScript Support
-
-Ostov is written in TypeScript and provides excellent support for type safety.
-
-#### Strongly Typed Models
-
-Define attributes using a generic parameter for autocomplete and type checking.
-
-```typescript
-import { Model } from 'ostovjs';
-
-interface UserAttrs {
-  name: string;
-  age: number;
-}
-
-class User extends Model<UserAttrs> {
-  defaults() {
-    return { name: 'Unknown', age: 0 };
-  }
-}
-
-const user = new User({ name: 'Dmitry' });
-const age = user.get('age'); // number
-user.set('name', 'Dima');    // OK
-user.set('wrong', 123);      // TypeScript Error!
-```
-
-#### Typed Collections
-
-Collections can be typed to know their model kind.
-
-```typescript
-import { Collection } from 'ostovjs';
-
-class Users extends Collection<User> {
-  model = User;
-}
-
-const users = new Users();
-users.add({ name: 'Alice', age: 25 });
-const first = users.at(0); // User model
-```
-
-#### Typed Views
-
-Views can specify model and collection types for better internal typing.
-
-```typescript
-import { View } from 'ostovjs';
-
-class UserView extends View<User, Users> {
-  render() {
-    this.el.innerHTML = this.model.get('name');
-    return this;
-  }
-}
-```
-
-### Events
-
-Mix event handling into any object:
-
-```js
-import { Events } from 'ostovjs';
-
-const bus = Object.assign({}, Events);
-
-bus.on('user:login', user => {
-  console.log('Welcome,', user.name);
-});
-
-bus.trigger('user:login', { name: 'Alice' });
-```
-
-Listen to multiple events at once:
-
-```js
-book.on('change:title change:author', () => console.log('metadata changed'));
-
-// Or with an event map:
-book.on({
-  'change:title':  titleView.render,
-  'change:author': authorView.render,
-  'destroy':       bookView.remove
-});
-```
-
-### Router
-
-Keeps your app in sync with the browser URL:
-
-```js
-import { Router } from 'ostovjs';
-
-const AppRouter = Router.extend({
-  routes: {
-    '':             'home',
-    'books':        'bookList',
-    'books/:id':    'bookDetail'
+  toggle() {
+    this.model.toggle();
   },
-
-  home()           { console.log('home'); },
-  bookList()       { console.log('all books'); },
-  bookDetail(id)   { console.log('book', id); }
 });
-
-const router = new AppRouter();
-Ostov.history.start();
 ```
 
-## License
+👉 This is useful if:
+- you're migrating from Backbone
+- you prefer prototype-style inheritance
 
-MIT
+---
+
+## 🆚 Modern vs Legacy usage
+
+| Style | Use |
+|------|-----|
+| Classes + TS | ✅ recommended |
+| `.extend(...)` | ✅ supported |
+| Templates | any (no lock-in) |
+
+---
+
+## 🧠 Core Idea
+
+Ostov gives you primitives:
+
+- Model
+- Collection
+- View
+- Router
+- Events
+
+No magic. Just structure.
+
+---
+
+## 🎯 When to use
+
+- small / medium apps
+- dashboards
+- internal tools
+- apps where React feels like overkill
+
+---
+
+## 🚫 When not to use
+
+- heavy ecosystem requirements
+- large teams needing strict conventions
+
+---
+
+## ⭐ Support
+
+If you like Backbone-style architecture with modern TypeScript —  
+drop a star ⭐
+
+---
+
+## 🧨 Philosophy
+
+> Less framework. More control.
