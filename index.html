@@ -523,7 +523,7 @@
 
     <a class="toc_title toc_logo" href="#">
       <img src="docs/images/ostov-icon.svg" alt="" class="sidebar-icon" />
-      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.7.3)</span>
+      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.7.6)</span>
     </a>
     <ul class="toc_section">
       <li>&raquo; <a href="https://github.com/DmitryOlkhovoi/Ostov">GitHub Repository</a></li>
@@ -539,6 +539,17 @@
       <ul class="toc_section">
         <li data-name="ES Module Usage">- <a href="#es-module">Usage</a></li>
         <li data-name="Named Exports">– <a href="#es-module-named">Named Exports</a></li>
+      </ul>
+    </div>
+
+    <div class="searchable_section">
+      <a class="toc_title" href="#typescript">
+        TypeScript
+      </a>
+      <ul class="toc_section">
+        <li data-name="TypeScript Support">- <a href="#typescript">Support</a></li>
+        <li data-name="Strongly Typed Models">– <a href="#typescript-models">Typed Models</a></li>
+        <li data-name="Typed Collections">– <a href="#typescript-collections">Typed Collections</a></li>
       </ul>
     </div>
 
@@ -887,6 +898,49 @@ console.log(tasks.length); // 2</code></pre>
 
   console.log(tasks.length); // 2
 &lt;/script&gt;</code></pre>
+
+    <h2 id="typescript">TypeScript Support</h2>
+
+    <p>
+      Ostov is written in TypeScript and provides first-class support for type safety via <b>generics</b>.
+      This allows your models and collections to have strict definitions for their attributes and data types.
+    </p>
+
+    <p id="typescript-models">
+      <b>Strongly Typed Models:</b>
+      Pass an interface describing your attributes to <tt>Model&lt;T&gt;</tt>. This enables type checking for
+      <a href="#Model-get">get</a>, <a href="#Model-set">set</a>, and other methods.
+    </p>
+
+    <pre><code class="typescript">interface BookAttrs {
+  title: string;
+  author: string;
+  pages?: number;
+}
+
+class Book extends Model&lt;BookAttrs&gt; {
+  defaults() {
+    return { title: 'Unknown', author: 'Unknown' };
+  }
+}
+
+const book = new Book({ title: 'The Hobbit' });
+const title: string = book.get('title'); // OK
+book.set('pages', 310);                  // OK
+book.set('year', 1937);                  // Error: 'year' is not in BookAttrs</code></pre>
+
+    <p id="typescript-collections">
+      <b>Typed Collections:</b>
+      Specify the model type in <tt>Collection&lt;TModel&gt;</tt> to get typed models back from
+      <a href="#Collection-at">at</a>, <a href="#Collection-get">get</a>, and other collection methods.
+    </p>
+
+    <pre><code class="typescript">class Library extends Collection&lt;Book&gt; {
+  model = Book;
+}
+
+const library = new Library([book]);
+const first: Book = library.at(0); // OK</code></pre>
 
     <h2 id="Getting-started">Getting Started</h2>
 

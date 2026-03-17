@@ -1,4 +1,4 @@
-//     Ostov.js 1.7.5
+//     Ostov.js 1.7.6
 
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
@@ -87,7 +87,7 @@ export interface SyncOptions {
   [key: string]: unknown;
 }
 
-export interface ModelSetOptions {
+export interface ModelSetOptions<TModel extends Model = Model> {
   unset?: boolean;
   silent?: boolean;
   validate?: boolean;
@@ -101,9 +101,9 @@ export interface ModelSetOptions {
   at?: number;
   index?: number;
   context?: unknown;
-  collection?: Collection;
-  changes?: { added: Model[]; removed: Model[]; merged: Model[] };
-  previousModels?: Model[];
+  collection?: Collection<TModel>;
+  changes?: { added: TModel[]; removed: TModel[]; merged: TModel[] };
+  previousModels?: TModel[];
   success?: (this: unknown, ...args: unknown[]) => void;
   error?: (this: unknown, ...args: unknown[]) => void;
   [key: string]: unknown;
@@ -129,16 +129,64 @@ export interface AjaxOptions {
   [key: string]: unknown;
 }
 
+/**
+ * Ostov.Events is a module that can be mixed in to *any object* in order
+ * to provide it with a custom event channel.
+ *
+ * @example
+ * var object = {};
+ * _.extend(object, Ostov.Events);
+ * object.on('expand', function(){ alert('expanded'); });
+ * object.trigger('expand');
+ */
 export interface EventsMixin {
+  /**
+   * Bind a callback function to an object.
+   * @see http://ostovjs.org/#Events-on
+   */
   on(name: string | { [event: string]: Function }, callback?: Function, context?: any): this;
+
+  /**
+   * Remove a previously-bound callback function from an object.
+   * @see http://ostovjs.org/#Events-off
+   */
   off(name?: string | { [event: string]: Function }, callback?: Function, context?: any): this;
+
+  /**
+   * Trigger callbacks for the given event.
+   * @see http://ostovjs.org/#Events-trigger
+   */
   trigger(name: string, ...args: any[]): this;
+
+  /** Alias for on */
   bind(name: string | { [event: string]: Function }, callback?: Function, context?: any): this;
+  /** Alias for off */
   unbind(name?: string | { [event: string]: Function }, callback?: Function, context?: any): this;
+
+  /**
+   * Just like `on`, but causes the bound callback to only fire once.
+   * @see http://ostovjs.org/#Events-once
+   */
   once(name: string | { [event: string]: Function }, callback?: Function, context?: any): this;
+
+  /**
+   * Tell an object to listen to a particular event on another object.
+   * @see http://ostovjs.org/#Events-listenTo
+   */
   listenTo(obj: any, name: string | { [event: string]: Function }, callback?: Function): this;
+
+  /**
+   * Tell an object to stop listening to events.
+   * @see http://ostovjs.org/#Events-stopListening
+   */
   stopListening(obj?: any, name?: string | { [event: string]: Function }, callback?: Function): this;
+
+  /**
+   * Just like `listenTo`, but causes the bound callback to only fire once.
+   * @see http://ostovjs.org/#Events-listenToOnce
+   */
   listenToOnce(obj: any, name: string | { [event: string]: Function }, callback?: Function): this;
+
   _events?: EventsHash;
   _listeners?: { [id: string]: Listening };
   _listeningTo?: { [id: string]: Listening };
@@ -476,28 +524,68 @@ class BackboneBase {
 }
 Object.assign(BackboneBase.prototype, EventsImpl);
 
-// Ostov.Model
-// --------------
-
-// Ostov **Models** are the basic data object in the framework --
-// frequently representing a row in a table in a database on your server.
-// A discrete chunk of data and a bunch of useful, related methods for
-// performing computations and transformations on that data.
-
-class Model extends BackboneBase {
+/**
+ * Ostov **Models** are the basic data object in the framework --
+ * frequently representing a row in a table in a database on your server.
+ * A discrete chunk of data and a bunch of useful, related methods for
+ * performing computations and transformations on that data.
+ *
+ * @example
+ * class Book extends Ostov.Model {
+ *   defaults() {
+ *     return {
+ *       title: "No Title",
+ *       author: "Unknown"
+ *     };
+ *   }
+ * }
+ */
+class Model<T extends Record<string, any> = any> extends BackboneBase {
+  /**
+   * A unique identifier for the model, generated automatically.
+   */
   cid!: string;
-  attributes!: Record<string, unknown>;
-  changed!: Record<string, unknown> | null;
-  validationError!: unknown;
+
+  /**
+   * The hash of attributes for this model.
+   */
+  attributes!: T;
+
+  /**
+   * A hash of attributes that have changed since the last "change" event.
+   */
+  changed!: Partial<T> | null;
+
+  /**
+   * The value returned during the last failed validation.
+   */
+  validationError!: any;
+
+  /**
+   * The name of the property that is used as the unique identifier.
+   */
   idAttribute!: string;
+
+  /**
+   * The prefix used to create the client id (cid).
+   */
   cidPrefix!: string;
-  id!: string | number | undefined;
-  collection?: Collection;
+
+  /**
+   * The unique identifier for this model (usually from the server).
+   */
+  id!: T extends { id: infer ID } ? ID : (string | number | undefined);
+
+  /**
+   * The collection this model belongs to.
+   */
+  collection?: Collection<any>;
+
   _changing!: boolean;
   _pending!: false | ModelSetOptions;
-  _previousAttributes!: Record<string, unknown>;
+  _previousAttributes!: T;
 
-  constructor(attributes?: Record<string, unknown> | unknown, options: ModelSetOptions = {}) {
+  constructor(attributes?: Partial<T>, options: ModelSetOptions<any> = {}) {
     super();
     // Create proxy before setup so all internal operations (set, initialize,
     // listenTo) use a consistent 'this', and subclass class fields are intercepted.
@@ -508,12 +596,11 @@ class Model extends BackboneBase {
         // for class fields, bypassing prototype setters. Intercept `defaults` so
         // it merges into attributes even when assigned as a class field.
         if ('value' in descriptor && prop === 'defaults') {
-          const value = descriptor.value as Record<string, unknown> | (() => Record<string, unknown>);
-          self._instanceDefaults = value;
+          const value = descriptor.value as any;
           const resolved = typeof value === 'function' ? value.call(self) : value;
           if (resolved && self.attributes) {
             for (const key in resolved) {
-              if (!(key in self.attributes)) self.attributes[key] = resolved[key];
+              if (!(key in (self.attributes as any))) (self.attributes as any)[key] = resolved[key];
             }
           }
           return true;
@@ -521,67 +608,89 @@ class Model extends BackboneBase {
         return Reflect.defineProperty(target, prop, descriptor);
       }
     }) as unknown as this;
-    let attrs: Record<string, unknown> = (attributes || {}) as Record<string, unknown>;
+    let attrs: Partial<T> = (attributes || {}) as Partial<T>;
     proxy.preinitialize.apply(proxy, arguments as any);
     this.cid = _.uniqueId(this.cidPrefix);
-    this.attributes = {};
-    if (options.collection) this.collection = options.collection as Collection;
-    if (options.parse) attrs = (proxy.parse(attrs, options) || {}) as Record<string, unknown>;
-    const defaults = _.result(proxy, 'defaults');
+    this.attributes = {} as T;
+    if (options.collection) this.collection = options.collection as any;
+    if (options.parse) attrs = (proxy.parse(attrs as any, options) || {}) as Partial<T>;
+    const defaults = _.result(proxy, 'defaults') as Partial<T>;
     // Just _.defaults would work fine, but the additional _.extends
     // is in there for historical reasons. See #3843.
-    attrs = _.defaults({ ...defaults, ...attrs }, defaults);
-    proxy.set(attrs, options);
+    attrs = _.defaults({ ...defaults, ...attrs }, defaults) as Partial<T>;
+    proxy.set(attrs as any, options);
     this.changed = {};
     proxy.initialize.apply(proxy, arguments as any);
     return proxy;
   }
 
-  // Return a copy of the model's `attributes` object.
-  toJSON(_options?: unknown): Record<string, unknown> {
+  /**
+   * Return a copy of the model's `attributes` object.
+   */
+  toJSON(_options?: unknown): T {
     return _.clone(this.attributes);
   }
 
-  // Proxy `Ostov.sync` by default -- but override this if you need
-  // custom syncing semantics for *this* particular model.
+  /**
+   * Proxy `Ostov.sync` by default -- but override this if you need
+   * custom syncing semantics for *this* particular model.
+   */
   sync(...args: any[]): any {
     return Ostov.sync.apply(this, args as [string, any, any?]);
   }
 
-  // Get the value of an attribute.
-  get(attr: string): unknown {
+  /**
+   * Get the current value of an attribute from the model.
+   * @example note.get("title")
+   * @see http://ostovjs.org/#Model-get
+   */
+  get<K extends keyof T>(attr: K): T[K] {
     return this.attributes[attr];
   }
 
-  // Get the HTML-escaped value of an attribute.
-  escape(attr: string): string {
+  /**
+   * Get the HTML-escaped value of an attribute.
+   * @see http://ostovjs.org/#Model-escape
+   */
+  escape<K extends keyof T>(attr: K): string {
     return _.escape(this.get(attr));
   }
 
-  // Returns `true` if the attribute contains a value that is not null
-  // or undefined.
-  has(attr: string): boolean {
+  /**
+   * Returns `true` if the attribute contains a value that is not null
+   * or undefined.
+   * @see http://ostovjs.org/#Model-has
+   */
+  has<K extends keyof T>(attr: K): boolean {
     return this.get(attr) != null;
   }
 
-  // Special-cased proxy to underscore's `_.matches` method.
-  matches(attrs: any): boolean {
+  /**
+   * Special-cased proxy to underscore's `_.matches` method.
+   * @see http://ostovjs.org/#Model-matches
+   */
+  matches(attrs: Partial<T>): boolean {
     return !!(_.iteratee(attrs, this) as any)(this.attributes);
   }
 
-  // Set a hash of model attributes on the object, firing `"change"`. This is
-  // the core primitive operation of a model, updating the data and notifying
-  // anyone who needs to know about the change in state. The heart of the beast.
-  set(key: string | Record<string, unknown> | null | undefined, val?: unknown, options: ModelSetOptions = {}): this | false {
+  /**
+   * Set a hash of model attributes on the object, firing `"change"`.
+   * This is the core primitive operation of a model, updating the data
+   * and notifying anyone who needs to know about the change in state.
+   * @see http://ostovjs.org/#Model-set
+   */
+  set(key: Partial<T> | null | undefined, options?: ModelSetOptions<any>): this | false;
+  set<K extends keyof T>(key: K, val: T[K], options?: ModelSetOptions<any>): this | false;
+  set(key: any, val?: any, options: ModelSetOptions<any> = {}): this | false {
     if (key == null) return this;
 
     // Handle both `"key", value` and `{key: value}` -style arguments.
-    let attrs: Record<string, unknown>;
+    let attrs: Partial<T>;
     if (typeof key === 'object') {
       attrs = key;
       options = (val as ModelSetOptions) || {};
     } else {
-      (attrs = {} as Record<string, unknown>)[key] = val;
+      (attrs = {} as Partial<T>)[key as keyof T] = val;
     }
 
     // Run validation.
@@ -606,19 +715,19 @@ class Model extends BackboneBase {
     // For each `set` attribute, update or delete the current value.
     for (const attr in attrs) {
       val = attrs[attr];
-      if (!_.isEqual(current[attr], val)) changes.push(attr);
-      if (!_.isEqual(prev[attr], val)) {
+      if (!_.isEqual((current as any)[attr], val)) changes.push(attr);
+      if (!_.isEqual((prev as any)[attr], val)) {
         (changed as any)[attr] = val;
       } else {
         delete (changed as any)[attr];
       }
-      unset ? delete current[attr] : current[attr] = val;
+      unset ? delete (current as any)[attr] : (current as any)[attr] = val;
     }
 
     // Update the `id`.
     if (this.idAttribute in attrs) {
       const prevId = this.id;
-      this.id = this.get(this.idAttribute) as string | number | undefined;
+      this.id = this.get(this.idAttribute as keyof T) as any;
       if (this.id !== prevId) {
         this.trigger('changeId', this, prevId, options);
       }
@@ -628,7 +737,7 @@ class Model extends BackboneBase {
     if (!silent) {
       if (changes.length) this._pending = options;
       for (let i = 0; i < changes.length; i++) {
-        this.trigger(`change:${changes[i]}`, this, current[changes[i]], options);
+        this.trigger(`change:${changes[i]}`, this, (current as any)[changes[i]], options);
       }
     }
 
@@ -647,67 +756,77 @@ class Model extends BackboneBase {
     return this;
   }
 
-  // Remove an attribute from the model, firing `"change"`. `unset` is a noop
-  // if the attribute doesn't exist.
-  unset(attr: string, options?: ModelSetOptions): this | false {
-    return this.set(attr, void 0, { ...options, unset: true });
+  /**
+   * Remove an attribute from the model, firing `"change"`. `unset` is a noop
+   * if the attribute doesn't exist.
+   */
+  unset<K extends keyof T>(attr: K, options?: ModelSetOptions): this | false {
+    return this.set(attr, void 0 as any, { ...options, unset: true });
   }
 
-  // Clear all attributes on the model, firing `"change"`.
+  /**
+   * Clear all attributes on the model, firing `"change"`.
+   */
   clear(options?: ModelSetOptions): this | false {
-    const attrs: Record<string, unknown> = {};
-    for (const key in this.attributes) attrs[key] = void 0;
+    const attrs: Partial<T> = {};
+    for (const key in this.attributes) attrs[key] = void 0 as any;
     return this.set(attrs, { ...options, unset: true });
   }
 
-  // Determine if the model has changed since the last `"change"` event.
-  // If you specify an attribute name, determine if that attribute has changed.
-  hasChanged(attr?: string): boolean {
+  /**
+   * Determine if the model has changed since the last `"change"` event.
+   * If you specify an attribute name, determine if that attribute has changed.
+   */
+  hasChanged(attr?: keyof T): boolean {
     if (attr == null) return !_.isEmpty(this.changed);
-    return _.has(this.changed, attr);
+    return _.has(this.changed, attr as string);
   }
 
-  // Return an object containing all the attributes that have changed, or
-  // false if there are no changed attributes. Useful for determining what
-  // parts of a view need to be updated and/or what attributes need to be
-  // persisted to the server. Unset attributes will be set to undefined.
-  // You can also pass an attributes object to diff against the model,
-  // determining if there *would be* a change.
-  changedAttributes(diff?: Record<string, unknown>): Record<string, unknown> | false {
+  /**
+   * Return an object containing all the attributes that have changed, or
+   * false if there are no changed attributes.
+   */
+  changedAttributes(diff?: Partial<T>): Partial<T> | false {
     if (!diff) return this.hasChanged() ? _.clone(this.changed!) : false;
     const old = this._changing ? this._previousAttributes : this.attributes;
-    const changed: Record<string, unknown> = {};
+    const changed: Partial<T> = {};
     let hasChanged: boolean | undefined;
     for (const attr in diff) {
       const val = diff![attr];
-      if (_.isEqual(old[attr], val)) continue;
+      if (_.isEqual((old as any)[attr], val)) continue;
       changed[attr] = val;
       hasChanged = true;
     }
     return hasChanged ? changed : false;
   }
 
-  // Get the previous value of an attribute, recorded at the time the last
-  // `"change"` event was fired.
-  previous(attr?: string): unknown {
-    if (attr == null || !this._previousAttributes) return null;
+  /**
+   * Get the previous value of an attribute, recorded at the time the last
+   * `"change"` event was fired.
+   */
+  previous<K extends keyof T>(attr: K): T[K] | undefined {
+    if (attr == null || !this._previousAttributes) return undefined;
     return this._previousAttributes[attr];
   }
 
-  // Get all of the attributes of the model at the time of the previous
-  // `"change"` event.
-  previousAttributes(): Record<string, unknown> {
+  /**
+   * Get all of the attributes of the model at the time of the previous
+   * `"change"` event.
+   */
+  previousAttributes(): T {
     return _.clone(this._previousAttributes);
   }
 
-  // Fetch the model from the server, merging the response with the model's
-  // local attributes. Any changed attributes will trigger a "change" event.
+  /**
+   * Fetch the model from the server, merging the response with the model's
+   * local attributes.
+   */
   fetch(options?: SyncOptions): XhrLike {
     options = { parse: true, ...options };
     const success = options.success;
     options.success = (resp: unknown) => {
       const serverAttrs = options!.parse ? this.parse(resp, options) : resp;
-      if (!this.set(serverAttrs as Record<string, unknown>, options)) return false;
+      if (!this.set(serverAttrs as any, options)) return false;
       success?.call(options!.context, this, resp, options);
       this.trigger('sync', this, resp, options);
     };
@@ -715,17 +834,17 @@ class Model extends BackboneBase {
     return this.sync('read', this, options);
   }
 
-  // Set a hash of model attributes, and sync the model to the server.
-  // If the server returns an attributes hash that differs, the model's
-  // state will be `set` again.
-  save(key?: string | Record<string, unknown> | null, val?: unknown, options?: SyncOptions): XhrLike | false {
+  /**
+   * Set a hash of model attributes, and sync the model to the server.
+   */
+  save(key?: keyof T | Partial<T> | null, val?: any, options?: SyncOptions): XhrLike | false {
     // Handle both `"key", value` and `{key: value}` -style arguments.
-    let attrs: Record<string, unknown> | null | undefined;
+    let attrs: Partial<T> | null | undefined;
     if (key == null || typeof key === 'object') {
-      attrs = key;
+      attrs = key as Partial<T>;
       options = val as SyncOptions;
     } else {
-      (attrs = {} as Record<string, unknown>)[key] = val;
+      (attrs = {} as Partial<T>)[key as keyof T] = val;
     }
 
     options = { validate: true, parse: true, ...options };
@@ -749,7 +868,7 @@ class Model extends BackboneBase {
       this.attributes = attributes;
       let serverAttrs: unknown = options!.parse ? this.parse(resp, options) : resp;
       if (wait) serverAttrs = { ...attrs, ...(serverAttrs as object) };
-      if (serverAttrs && !this.set(serverAttrs as Record<string, unknown>, options as ModelSetOptions)) return false;
+      if (serverAttrs && !this.set(serverAttrs as any, options as ModelSetOptions)) return false;
       success?.call(options!.context, this, resp, options);
       this.trigger('sync', this, resp, options);
     };
@@ -768,9 +887,9 @@ class Model extends BackboneBase {
     return xhr;
   }
 
-  // Destroy this model on the server if it was already persisted.
-  // Optimistically removes the model from its collection, if it has one.
-  // If `wait: true` is passed, waits for the server to respond before removal.
+  /**
+   * Destroy this model on the server if it was already persisted.
+   */
   destroy(options?: SyncOptions): XhrLike | false {
     options = { ...(options || {}) };
     const success = options.success;
@@ -798,43 +917,52 @@ class Model extends BackboneBase {
     return xhr;
   }
 
-  // Default URL for the model's representation on the server -- if you're
-  // using Ostov's restful methods, override this to change the endpoint
-  // that will be called.
+  /**
+   * Default URL for the model's representation on the server.
+   */
   url(): string {
     const base: string =
       _.result(this, 'urlRoot') ||
       _.result(this.collection, 'url') ||
       urlError();
     if (this.isNew()) return base;
-    const id = this.get(this.idAttribute);
+    const id = this.get(this.idAttribute as keyof T);
     return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id as string | number);
   }
 
-  // **parse** converts a response into the hash of attributes to be `set` on
-  // the model. The default implementation is just to pass the response along.
-  parse(resp: unknown, _options?: unknown): unknown {
+  /**
+   * **parse** converts a response into the hash of attributes to be `set` on
+   * the model.
+   */
+  parse(resp: any, _options?: any): any {
     return resp;
   }
 
-  // Create a new model with identical attributes to this one.
-  clone(): Model {
+  /**
+   * Create a new model with identical attributes to this one.
+   */
+  clone(): Model<T> {
     return new (this.constructor as any)(this.attributes);
   }
 
-  // A model is new if it has never been saved to the server, and lacks an id.
+  /**
+   * A model is new if it has never been saved to the server, and lacks an id.
+   */
   isNew(): boolean {
-    return !this.has(this.idAttribute);
+    return !this.has(this.idAttribute as keyof T);
   }
 
-  // Check if the model is currently in a valid state.
+  /**
+   * Check if the model is currently in a valid state.
+   */
   isValid(options?: any): boolean {
     return this._validate({}, { ...options, validate: true });
   }
 
-  // Run validation against the next complete set of model attributes,
-  // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
-  _validate(attrs: Record<string, unknown> | null | undefined, options: ModelSetOptions | SyncOptions): boolean {
+  /**
+   * Run validation against the next complete set of model attributes.
+   */
+  _validate(attrs: Partial<T> | null | undefined, options: ModelSetOptions | SyncOptions): boolean {
     if (!options.validate || !(this as any).validate) return true;
     attrs = { ...this.attributes, ...attrs };
     const error = this.validationError = (this as any).validate(attrs, options) || null;
@@ -843,36 +971,28 @@ class Model extends BackboneBase {
     return false;
   }
 
-  // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(..._args: unknown[]): void {}
-  initialize(..._args: unknown[]): void {}
+  /**
+   * preinitialize/initialize are empty by default. Override with your own logic.
+   */
+  preinitialize(..._args: any[]): void {}
+  initialize(..._args: any[]): void {}
 
-  // validate is optional — subclasses may define it
-  validate?(attrs: Record<string, unknown>, options?: ModelSetOptions | SyncOptions): unknown;
+  /**
+   * Optional validation function.
+   */
+  validate?(attrs: T, options?: ModelSetOptions | SyncOptions): any;
 
-  // urlRoot is optional — subclasses may define it
+  /**
+   * Optional URL root for the model.
+   */
   urlRoot?: string | (() => string);
 
-  // defaults is optional — subclasses may define it as a class field or prototype property.
-  // Getter/setter enables lazy re-application when class field sets defaults after super().
-  private _instanceDefaults?: Record<string, unknown> | (() => Record<string, unknown>);
-  get defaults(): Record<string, unknown> | (() => Record<string, unknown>) | undefined {
-    return this._instanceDefaults;
-  }
-  set defaults(value: Record<string, unknown> | (() => Record<string, unknown>) | undefined) {
-    this._instanceDefaults = value;
-    const resolved = typeof value === 'function' ? value.call(this) : value;
-    if (resolved && this.attributes) {
-      for (const key in resolved) {
-        if (!(key in this.attributes)) this.attributes[key] = resolved[key];
-      }
-    }
-  }
+  /**
+   * Optional defaults for the model's attributes.
+   */
 
-  // Allow any additional proxy methods from underscore
   [key: string]: any;
 
-  // static mixin
   static mixin: (obj: any) => void;
 }
 
@@ -885,22 +1005,12 @@ Model.prototype.idAttribute = 'id';
 // The prefix is used to create the client id which is used to identify models locally.
 Model.prototype.cidPrefix = 'c';
 
-// Ostov.Collection
-// -------------------
-
-// If models tend to represent a single row of data, a Ostov Collection is
-// more analogous to a table full of data ... or a small slice or page of that
-// table, or a collection of rows that belong together for a particular reason
-// -- all of the messages in this particular folder, all of the documents
-// belonging to this particular author, and so on. Collections maintain
-// indexes of their models, both in order, and for lookup by `id`.
-
 // Default options for `Collection#set`.
 const setOptions: Record<string, boolean> = { add: true, remove: true, merge: true };
 const addOptions: Record<string, boolean> = { add: true, remove: false };
 
 // Splices `insert` into `array` at index `at`.
-const splice = (array: unknown[], insert: unknown[], at: number): void => {
+const splice = (array: any[], insert: any[], at: number): void => {
   at = Math.min(Math.max(at, 0), array.length);
   const tail = Array(array.length - at);
   const length = insert.length;
@@ -910,16 +1020,42 @@ const splice = (array: unknown[], insert: unknown[], at: number): void => {
   for (i = 0; i < tail.length; i++) array[i + length + at] = tail[i];
 };
 
-class Collection extends BackboneBase {
-  declare model: typeof Model;
-  private _model?: typeof Model;
-  models!: Model[];
-  length!: number;
-  declare comparator: string | ((a: Model, b?: Model) => number) | undefined;
-  private _comparator?: string | ((a: Model, b?: Model) => number);
-  _byId!: Record<string, Model>;
+/**
+ * Ostov **Collections** are the basic data object in the framework --
+ * more analogous to a table full of data ... or a small slice or page of that
+ * table, or a collection of rows that belong together for a particular reason.
+ * Collections maintain indexes of their models, both in order, and for lookup by `id`.
+ *
+ * @example
+ * class Books extends Ostov.Collection<Book> {
+ *   model = Book;
+ * }
+ */
+class Collection<TModel extends Model = Model> extends BackboneBase {
+  /**
+   * The model class for this collection.
+   */
+  declare model: { new (attrs?: any, opts?: any): TModel; prototype: TModel } | typeof Model;
+  private _model?: any;
 
-  constructor(models?: Model[] | Record<string, unknown>[], options: ModelSetOptions & { model?: typeof Model; comparator?: string | ((a: Model, b?: Model) => number) } = {}) {
+  /**
+   * The internal array of models.
+   */
+  models!: TModel[];
+
+  /**
+   * The number of models in the collection.
+   */
+  length!: number;
+
+  /**
+   * The property or function used to sort the collection.
+   */
+  declare comparator: string | ((a: any, b?: any) => number) | undefined;
+  private _comparator?: string | ((a: any, b?: any) => number);
+  _byId!: Record<string, TModel>;
+
+  constructor(models?: TModel[] | any[], options: ModelSetOptions<TModel> & { model?: any; comparator?: any } = {}) {
     super();
     // Create proxy before setup so all internal operations (reset, listenTo)
     // use a consistent 'this', and subclass class fields are intercepted.
@@ -950,37 +1086,43 @@ class Collection extends BackboneBase {
       }
     }) as unknown as this;
     proxy.preinitialize.apply(proxy, arguments as any);
-    if (options.model) proxy.model = options.model;
-    if (options.comparator !== void 0) proxy.comparator = options.comparator;
+    if (options.model) (proxy as any).model = options.model;
+    if (options.comparator !== void 0) (proxy as any).comparator = options.comparator;
     proxy._reset();
     proxy.initialize.apply(proxy, arguments as any);
     if (models) proxy.reset(models, { silent: true, ...options });
     return proxy;
   }
 
-  // The JSON representation of a Collection is an array of the
-  // models' attributes.
-  toJSON(options?: unknown): Record<string, unknown>[] {
-    return this.map((model: Model) => model.toJSON(options));
+  /**
+   * The JSON representation of a Collection is an array of the
+   * models' attributes.
+   */
+  toJSON(options?: any): any[] {
+    return this.map((model: TModel) => model.toJSON(options));
   }
 
-  // Proxy `Ostov.sync` by default.
+  /**
+   * Proxy `Ostov.sync` by default.
+   */
   sync(...args: any[]): any {
     return Ostov.sync.apply(this, args as [string, any, any?]);
   }
 
-  // Add a model, or list of models to the set. `models` may be Ostov
-  // Models or raw JavaScript objects to be converted to Models, or any
-  // combination of the two.
-  add(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options?: ModelSetOptions): Model | Model[] {
-    return this.set(models, { ...{ merge: false }, ...options, ...addOptions });
+  /**
+   * Add a model, or list of models to the set.
+   */
+  add(models: TModel | TModel[] | any | any[], options?: ModelSetOptions<TModel>): TModel | TModel[] {
+    return this.set(models, { ...{ merge: false }, ...options, ...addOptions }) as any;
   }
 
-  // Remove a model, or a list of models from the set.
-  remove(models: Model | Model[] | Record<string, unknown> | Record<string, unknown>[], options: ModelSetOptions = {}): Model | Model[] {
+  /**
+   * Remove a model, or a list of models from the set.
+   */
+  remove(models: TModel | TModel[] | any | any[], options: ModelSetOptions<TModel> = {}): TModel | TModel[] {
     options = { ...options };
     const singular = !Array.isArray(models);
-    const list = (singular ? [models] : (models as unknown[]).slice()) as Model[];
+    const list = (singular ? [models] : (models as unknown[]).slice()) as TModel[];
     const removed = this._removeModels(list, options);
     if (!options.silent && removed.length) {
       options.changes = { added: [], merged: [], removed: removed };
@@ -989,14 +1131,15 @@ class Collection extends BackboneBase {
     return singular ? removed[0] : removed;
   }
 
-  // Update a collection by `set`-ing a new list of models, adding new ones,
-  // removing models that are no longer present, and merging models that
-  // already exist in the collection, as necessary. Similar to **Model#set**,
-  // the core operation for updating the data contained by the collection.
-  set(models: any, options?: ModelSetOptions): any {
+  /**
+   * Update a collection by `set`-ing a new list of models, adding new ones,
+   * removing models that are no longer present, and merging models that
+   * already exist in the collection.
+   */
+  set(models: any, options?: ModelSetOptions<TModel>): TModel | TModel[] | undefined {
     if (models == null) return;
 
-    options = { ...setOptions, ...options };
+    options = { ...setOptions, ...options } as ModelSetOptions<TModel>;
     if (options.parse && !this._isModel(models)) {
       models = this.parse(models, options) || [];
     }
@@ -1009,10 +1152,10 @@ class Collection extends BackboneBase {
     if (at! > this.length) at = this.length;
     if (at! < 0) at = at! + this.length + 1;
 
-    const set: Model[] = [];
-    const toAdd: Model[] = [];
-    const toMerge: Model[] = [];
-    const toRemove: Model[] = [];
+    const set: TModel[] = [];
+    const toAdd: TModel[] = [];
+    const toMerge: TModel[] = [];
+    const toRemove: TModel[] = [];
     const modelMap: Record<string, boolean> = {};
 
     const add = !!options!.add;
@@ -1034,11 +1177,11 @@ class Collection extends BackboneBase {
       let existing = this.get(model);
       if (existing) {
         if (merge && model !== existing) {
-          let attrs = this._isModel(model) ? model.attributes : model;
+          let attrs = this._isModel(model) ? (model as Model).attributes : model;
           if (options.parse) attrs = existing.parse(attrs, options);
-          existing.set(attrs, options);
+          existing.set(attrs, options as any);
           toMerge.push(existing);
-          if (sortable && !sort) sort = existing.hasChanged(sortAttr!);
+          if (sortable && !sort) sort = existing.hasChanged(sortAttr as any);
         }
         if (!modelMap[existing.cid]) {
           modelMap[existing.cid] = true;
@@ -1071,7 +1214,7 @@ class Collection extends BackboneBase {
     let orderChanged = false;
     const replace: boolean = !sortable && add && remove;
     if (set.length && replace) {
-      orderChanged = this.length !== set.length || _.some(this.models, (m: Model, index: number) => {
+      orderChanged = this.length !== set.length || _.some(this.models, (m: TModel, index: number) => {
         return m !== set[index];
       });
       this.models.length = 0;
@@ -1108,84 +1251,103 @@ class Collection extends BackboneBase {
     return singular ? models[0] : models;
   }
 
-  // When you have more items than you want to add or remove individually,
-  // you can reset the entire set with a new list of models, without firing
-  // any granular `add` or `remove` events. Fires `reset` when finished.
-  // Useful for bulk operations and optimizations.
-  reset(models?: any, options?: ModelSetOptions): any {
-    options = { ...(options || {}) };
+  /**
+   * When you have more items than you want to add or remove individually,
+   * you can reset the entire set with a new list of models.
+   */
+  reset(models?: any, options?: ModelSetOptions<TModel>): TModel | TModel[] {
+    options = { ...(options || {}) } as ModelSetOptions<TModel>;
     for (const model of this.models) this._removeReference(model, options);
     options.previousModels = this.models;
     this._reset();
-    models = this.add(models, { silent: true, ...options });
+    models = this.add(models, { silent: true, ...options } as any);
     if (!options.silent) this.trigger('reset', this, options);
-    return models;
+    return models as any;
   }
 
-  // Add a model to the end of the collection.
-  push(model: Model | Record<string, unknown>, options?: ModelSetOptions): any {
+  /**
+   * Add a model to the end of the collection.
+   */
+  push(model: TModel | any, options?: ModelSetOptions<TModel>): TModel | TModel[] {
     return this.add(model, { at: this.length, ...options });
   }
 
-  // Remove a model from the end of the collection.
-  pop(options?: ModelSetOptions): any {
+  /**
+   * Remove a model from the end of the collection.
+   */
+  pop(options?: ModelSetOptions<TModel>): TModel | undefined {
     const model = this.at(this.length - 1);
-    return this.remove(model, options);
+    this.remove(model, options);
+    return model;
   }
 
-  // Add a model to the beginning of the collection.
-  unshift(model: Model | Record<string, unknown>, options?: ModelSetOptions): any {
+  /**
+   * Add a model to the beginning of the collection.
+   */
+  unshift(model: TModel | any, options?: ModelSetOptions<TModel>): TModel | TModel[] {
     return this.add(model, { at: 0, ...options });
   }
 
-  // Remove a model from the beginning of the collection.
-  shift(options?: ModelSetOptions): any {
+  /**
+   * Remove a model from the beginning of the collection.
+   */
+  shift(options?: ModelSetOptions<TModel>): TModel | undefined {
     const model = this.at(0);
-    return this.remove(model, options);
+    this.remove(model, options);
+    return model;
   }
 
-  // Slice out a sub-array of models from the collection.
-  slice(start?: number, end?: number): Model[] {
+  /**
+   * Slice out a sub-array of models from the collection.
+   */
+  slice(start?: number, end?: number): TModel[] {
     return this.models.slice(start, end);
   }
 
-  // Get a model from the set by id, cid, model object with id or cid
-  // properties, or an attributes object that is transformed through modelId.
-  get(obj: any): Model | undefined {
+  /**
+   * Get a model from the set by id, cid, or model object.
+   */
+  get(obj: any): TModel | undefined {
     if (obj == null) return void 0;
     return this._byId[obj] ||
-      this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
-      obj.cid && this._byId[obj.cid];
+      this._byId[this.modelId(this._isModel(obj) ? (obj as Model).attributes : obj, (obj as any).idAttribute)] ||
+      (obj.cid && this._byId[obj.cid]);
   }
 
-  // Returns `true` if the model is in the collection.
+  /**
+   * Returns `true` if the model is in the collection.
+   */
   has(obj: any): boolean {
     return this.get(obj) != null;
   }
 
-  // Get the model at the given index.
-  at(index: number): Model {
+  /**
+   * Get the model at the given index.
+   */
+  at(index: number): TModel {
     if (index < 0) index += this.length;
     return this.models[index];
   }
 
-  // Return models with matching attributes. Useful for simple cases of
-  // `filter`.
-  where(attrs: Record<string, unknown>, first?: boolean): Model | Model[] {
+  /**
+   * Return models with matching attributes.
+   */
+  where(attrs: any, first?: boolean): TModel | TModel[] {
     return (this as any)[first ? 'find' : 'filter'](attrs);
   }
 
-  // Return the first model with matching attributes. Useful for simple cases
-  // of `find`.
-  findWhere(attrs: Record<string, unknown>): Model | undefined {
-    return this.where(attrs, true) as Model | undefined;
+  /**
+   * Return the first model with matching attributes.
+   */
+  findWhere(attrs: any): TModel | undefined {
+    return this.where(attrs, true) as TModel | undefined;
   }
 
-  // Force the collection to re-sort itself. You don't need to call this under
-  // normal circumstances, as the set will maintain sort order as each item
-  // is added.
-  sort(options?: ModelSetOptions): this {
-    let comparator: string | ((a: Model, b?: Model) => number) | undefined = this.comparator;
+  /**
+   * Force the collection to re-sort itself.
+   */
+  sort(options?: ModelSetOptions<TModel>): this {
+    let comparator: any = this.comparator;
     if (!comparator) throw new Error('Cannot sort a set without a comparator');
     options = options || {};
 
@@ -1202,14 +1364,16 @@ class Collection extends BackboneBase {
     return this;
   }
 
-  // Pluck an attribute from each model in the collection.
+  /**
+   * Pluck an attribute from each model in the collection.
+   */
   pluck(attr: string): any[] {
     return this.map(attr + '');
   }
 
-  // Fetch the default set of models for this collection, resetting the
-  // collection when they arrive. If `reset: true` is passed, the response
-  // data will be passed through the `reset` method instead of `set`.
+  /**
+   * Fetch the default set of models for this collection.
+   */
   fetch(options?: SyncOptions): XhrLike {
     options = { parse: true, ...options };
     const success = options.success;
@@ -1223,15 +1387,15 @@ class Collection extends BackboneBase {
     return this.sync('read', this, options);
   }
 
-  // Create a new instance of a model in this collection. Add the model to the
-  // collection immediately, unless `wait: true` is passed, in which case we
-  // wait for the server to agree.
-  create(model: Model | Record<string, unknown>, options?: SyncOptions): Model | false {
+  /**
+   * Create a new instance of a model in this collection.
+   */
+  create(model: TModel | any, options?: SyncOptions): TModel | false {
     options = { ...(options || {}) };
     const wait = options.wait;
-    const prepared = this._prepareModel(model, options as ModelSetOptions);
+    const prepared = this._prepareModel(model, options as any);
     if (!prepared) return false;
-    if (!wait) this.add(prepared, options as ModelSetOptions);
+    if (!wait) this.add(prepared, options as any);
     const success = options.success;
     options.success = (m: any, resp: unknown, callbackOpts: any) => {
       if (wait) {
@@ -1251,38 +1415,50 @@ class Collection extends BackboneBase {
     return prepared;
   }
 
-  // **parse** converts a response into a list of models to be added to the
-  // collection. The default implementation is just to pass it through.
-  parse(resp: unknown, _options?: unknown): unknown {
+  /**
+   * **parse** converts a response into a list of models to be added to the
+   * collection.
+   */
+  parse(resp: any, _options?: any): any {
     return resp;
   }
 
-  // Create a new collection with an identical list of models as this one.
-  clone(): Collection {
+  /**
+   * Create a new collection with an identical list of models as this one.
+   */
+  clone(): this {
     return new (this.constructor as any)(this.models, {
       model: this.model,
       comparator: this.comparator
     });
   }
 
-  // Define how to uniquely identify models in the collection.
+  /**
+   * Define how to uniquely identify models in the collection.
+   */
   modelId(attrs: any, idAttribute?: string): any {
-    return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
+    return attrs[idAttribute || (this.model.prototype as any).idAttribute || 'id'];
   }
 
-  // Get an iterator of all models in this collection.
-  values(): CollectionIterator {
-    return new CollectionIterator(this, ITERATOR_VALUES);
+  /**
+   * Get an iterator of all models in this collection.
+   */
+  values(): CollectionIterator<TModel> {
+    return new CollectionIterator(this as any, ITERATOR_VALUES);
   }
 
-  // Get an iterator of all model IDs in this collection.
-  keys(): CollectionIterator {
-    return new CollectionIterator(this, ITERATOR_KEYS);
+  /**
+   * Get an iterator of all model IDs in this collection.
+   */
+  keys(): CollectionIterator<TModel> {
+    return new CollectionIterator(this as any, ITERATOR_KEYS);
   }
 
-  // Get an iterator of all [ID, model] tuples in this collection.
-  entries(): CollectionIterator {
-    return new CollectionIterator(this, ITERATOR_KEYSVALUES);
+  /**
+   * Get an iterator of all [ID, model] tuples in this collection.
+   */
+  entries(): CollectionIterator<TModel> {
+    return new CollectionIterator(this as any, ITERATOR_KEYSVALUES);
   }
 
   // Private method to reset all internal state. Called when the collection
@@ -1295,21 +1471,21 @@ class Collection extends BackboneBase {
 
   // Prepare a hash of attributes (or other model) to be added to this
   // collection.
-  _prepareModel(attrs: any, options?: any): any {
+  _prepareModel(attrs: any, options?: any): TModel | false {
     if (this._isModel(attrs)) {
-      if (!attrs.collection) attrs.collection = this;
-      return attrs;
+      if (!attrs.collection) attrs.collection = this as any;
+      return attrs as TModel;
     }
     options = { ...(options || {}), collection: this };
-    const model = new this.model(attrs, options);
-    if (!model.validationError) return model;
+    const model = new (this.model as any)(attrs, options);
+    if (!model.validationError) return model as TModel;
     this.trigger('invalid', this, model.validationError, { ...options, validationError: model.validationError });
     return false;
   }
 
   // Internal method called by both remove and set.
-  _removeModels(models: any[], options: any): Model[] {
-    const removed: Model[] = [];
+  _removeModels(models: any[], options: any): TModel[] {
+    const removed: TModel[] = [];
     for (let i = 0; i < models.length; i++) {
       const model = this.get(models[i]);
       if (!model) continue;
@@ -1343,7 +1519,7 @@ class Collection extends BackboneBase {
   }
 
   // Internal method to create a model's ties to a collection.
-  _addReference(model: Model, _options?: unknown): void {
+  _addReference(model: TModel, _options?: unknown): void {
     this._byId[model.cid] = model;
     const id = this.modelId(model.attributes, model.idAttribute);
     if (id != null) this._byId[id] = model;
@@ -1351,11 +1527,11 @@ class Collection extends BackboneBase {
   }
 
   // Internal method to sever a model's ties to a collection.
-  _removeReference(model: Model, _options?: unknown): void {
+  _removeReference(model: TModel, _options?: unknown): void {
     delete this._byId[model.cid];
     const id = this.modelId(model.attributes, model.idAttribute);
     if (id != null) delete this._byId[id];
-    if (this === model.collection) delete model.collection;
+    if ((this as any) === model.collection) delete model.collection;
     model.off('all', this._onModelEvent, this);
   }
 
@@ -1390,8 +1566,8 @@ class Collection extends BackboneBase {
   }
 
   // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(..._args: unknown[]): void {}
-  initialize(..._args: unknown[]): void {}
+  preinitialize(..._args: any[]): void {}
+  initialize(..._args: any[]): void {}
 
   // Allow any additional proxy methods from underscore
   [key: string]: any;
@@ -1421,12 +1597,16 @@ const ITERATOR_VALUES: number = 1;
 const ITERATOR_KEYS: number = 2;
 const ITERATOR_KEYSVALUES: number = 3;
 
-class CollectionIterator implements Iterator<any> {
-  _collection: Collection | undefined;
+/**
+ * A CollectionIterator implements JavaScript's Iterator protocol, allowing the
+ * use of `for of` loops.
+ */
+class CollectionIterator<TModel extends Model = Model> implements Iterator<any> {
+  _collection: Collection<TModel> | undefined;
   _kind: number;
   _index: number;
 
-  constructor(collection: Collection, kind: number) {
+  constructor(collection: Collection<TModel>, kind: number) {
     this._collection = collection;
     this._kind = kind;
     this._index = 0;
@@ -1513,31 +1693,74 @@ const delegateEventSplitter: RegExp = /^(\S+)\s*(.*)$/;
 // List of view options to be set as properties.
 const viewOptions: string[] = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
 
-class View<TEl = Element> extends BackboneBase {
+/**
+ * Ostov Views are a logical chunk of UI in the
+ * DOM. This might be a single item, an entire list, a sidebar or panel, or
+ * even the surrounding frame which wraps your whole app.
+ *
+ * @example
+ * class DocumentView extends Ostov.View<DocumentModel> {
+ *   render() {
+ *     this.el.innerHTML = this.model.get('title');
+ *     return this;
+ *   }
+ * }
+ */
+class View<TModel extends Model = Model, TCollection extends Collection = Collection, TEl = HTMLElement> extends BackboneBase {
+  /**
+   * A unique identifier for the view, generated automatically.
+   */
   cid!: string;
-  // Declared as plain properties (not accessors) so subclasses can override
-  // them as class fields without TS2610. The actual get/set logic lives in
-  // Object.defineProperty calls below the class.
-  declare el: Element | string;
-  declare events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
-  private _el?: Element | string;
-  // True while the parent constructor body is running; false once super() returns.
-  // Class fields of subclasses are initialized after super() — this flag lets
-  // el/events setters know whether they were called from the constructor or
-  // from a class field assignment.
-  private _constructing: boolean = true;
-  $el!: TEl;
-  model?: Model;
-  collection?: Collection;
-  id?: string;
-  attributes?: Record<string, string>;
-  className?: string;
-  tagName!: string;
-  private _viewEvents?: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>);
 
-  // Creating a Ostov.View creates its initial element outside of the DOM,
-  // if an existing element is not provided...
-  constructor(options?: Record<string, unknown>) {
+  /**
+   * The DOM element for this view.
+   */
+  declare el: TEl;
+
+  /**
+   * The events hash (or function returning a hash) for this view.
+   */
+  declare events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
+  private _el?: any;
+  private _constructing: boolean = true;
+
+  /**
+   * A jQuery-like (or Ostov.$-wrapped) reference to the view's element.
+   */
+  $el!: any;
+
+  /**
+   * The model associated with this view.
+   */
+  model?: TModel;
+
+  /**
+   * The collection associated with this view.
+   */
+  collection?: TCollection;
+
+  /**
+   * The ID attribute for the view's element.
+   */
+  id?: string;
+
+  /**
+   * The hash of attributes for the view's element.
+   */
+  attributes?: Record<string, string>;
+
+  /**
+   * The class name for the view's element.
+   */
+  className?: string;
+
+  /**
+   * The tag name for the view's element (defaults to "div").
+   */
+  tagName!: string;
+  private _viewEvents?: any;
+
+  constructor(options?: any) {
     super();
     this.cid = _.uniqueId('view');
     // Create proxy before setup so preinitialize/initialize use a consistent
@@ -1569,23 +1792,25 @@ class View<TEl = Element> extends BackboneBase {
     return proxy;
   }
 
-  // Scoped element lookup inside the view's root element.
-  // Returns a Ostov.$-wrapped result when Ostov.$ is set,
-  // otherwise a plain NodeList.
+  /**
+   * Scoped element lookup inside the view's root element.
+   */
   $(selector: string): any {
-    const nodes = (this.el as Element).querySelectorAll(selector);
+    const nodes = (this.el as unknown as Element).querySelectorAll(selector);
     return Ostov.$ ? Ostov.$(Array.from(nodes)) : nodes;
   }
 
-  // **render** is the core function that your view should override, in order
-  // to populate its element (`this.el`), with the appropriate HTML. The
-  // convention is for **render** to always return `this`.
+  /**
+   * **render** is the core function that your view should override.
+   */
   render(): this {
     return this;
   }
 
-  // Remove this view by taking the element out of the DOM, and removing any
-  // applicable Ostov.Events listeners.
+  /**
+   * Remove this view by taking the element out of the DOM, and removing any
+   * applicable Ostov.Events listeners.
+   */
   remove(): this {
     this.undelegateEvents();
     this._removeElement();
@@ -1593,15 +1818,16 @@ class View<TEl = Element> extends BackboneBase {
     return this;
   }
 
-  // Remove this view's element from the document and all event listeners
-  // attached to it. Exposed for subclasses using an alternative DOM
-  // manipulation API.
+  /**
+   * Remove this view's element from the document.
+   */
   _removeElement(): void {
-    _.dom.remove(this.el as Element);
+    _.dom.remove(this.el as unknown as Element);
   }
 
-  // Change the view's element (`this.el` property) and re-delegate the
-  // view's events on the new element.
+  /**
+   * Change the view's element and re-delegate the view's events.
+   */
   setElement(element: any): this {
     this.undelegateEvents();
     this._setElement(element);
@@ -1609,32 +1835,20 @@ class View<TEl = Element> extends BackboneBase {
     return this;
   }
 
-  // Creates the `this.el` and `this.$el` references for this view using the
-  // given `el`. `el` can be a CSS selector string or a DOM element.
-  // When Ostov.$ is set, `this.$el` is a wrapped element; otherwise it is
-  // the same raw DOM element as `this.el`.
-  // Subclasses can override this to utilize an alternative DOM manipulation API.
+  /**
+   * Creates the `this.el` and `this.$el` references for this view.
+   */
   _setElement(el: any): void {
     const resolved = _.dom.query(el);
     // For string selectors that don't match anything, keep el as null/falsy.
     // For non-string values (DOM elements, jQuery-like wrappers), fall back.
-    this.el = resolved !== null ? resolved : typeof el !== 'string' ? el : null;
+    (this as any).el = resolved !== null ? resolved : typeof el !== 'string' ? el : null;
     this.$el = Ostov.$ ? Ostov.$(this.el) : this.el;
   }
 
-  // Set callbacks, where `this.events` is a hash of
-  //
-  // *{"event selector": "callback"}*
-  //
-  //     {
-  //       'mousedown .title':  'edit',
-  //       'click .button':     'save',
-  //       'click .open':       function(e) { ... }
-  //     }
-  //
-  // pairs. Callbacks will be bound to the view, with `this` set properly.
-  // Uses event delegation for efficiency.
-  // Omitting the selector binds the event to `this.el`.
+  /**
+   * Set callbacks, where `this.events` is a hash of *{"event selector": "callback"}* pairs.
+   */
   delegateEvents(events?: any): this {
     events || (events = _.result(this, 'events'));
     if (!events) return this;
@@ -1649,46 +1863,48 @@ class View<TEl = Element> extends BackboneBase {
     return this;
   }
 
-  // Add a single event listener to the view's element (or a child element
-  // using `selector`). Uses native addEventListener with namespace tracking.
+  /**
+   * Add a single event listener to the view's element.
+   */
   delegate(eventName: string, selector?: string | Function, listener?: Function): this {
     if (typeof selector !== 'string') {
       listener = selector as Function;
       selector = undefined;
     }
-    _.dom.on(this.el as Element, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener);
+    _.dom.on(this.el as unknown as Element, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener);
     return this;
   }
 
-  // Clears all callbacks previously bound to the view by `delegateEvents`.
-  // You usually don't need to use this, but may wish to if you have multiple
-  // Ostov views attached to the same DOM element.
+  /**
+   * Clears all callbacks previously bound to the view by `delegateEvents`.
+   */
   undelegateEvents(): this {
-    if (this._el && typeof this._el !== 'string') _.dom.off(this._el, '.delegateEvents' + this.cid);
+    if (this._el && (this._el instanceof Element)) _.dom.off(this._el, '.delegateEvents' + this.cid);
     return this;
   }
 
-  // A finer-grained `undelegateEvents` for removing a single delegated event.
-  // `selector` and `listener` are both optional.
+  /**
+   * A finer-grained `undelegateEvents` for removing a single delegated event.
+   */
   undelegate(eventName: string, selector?: string | Function, listener?: Function): this {
     if (typeof selector !== 'string') {
       listener = selector as Function;
       selector = undefined;
     }
-    _.dom.off(this.el as Element, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener | undefined);
+    _.dom.off(this.el as unknown as Element, '.delegateEvents' + this.cid, eventName, selector || null, listener as EventListener | undefined);
     return this;
   }
 
-  // Produces a DOM element to be assigned to your view. Exposed for
-  // subclasses using an alternative DOM manipulation API.
+  /**
+   * Produces a DOM element to be assigned to your view.
+   */
   _createElement(tagName: string): HTMLElement {
     return document.createElement(tagName);
   }
 
-  // Ensure that the View has a DOM element to render into.
-  // If `this.el` is a string, pass it through `$()`, take the first
-  // matching element, and re-assign it to `el`. Otherwise, create
-  // an element from the `id`, `className` and `tagName` properties.
+  /**
+   * Ensure that the View has a DOM element to render into.
+   */
   _ensureElement(): void {
     if (!this.el) {
       const attrs: Record<string, any> = { ..._.result(this, 'attributes') };
@@ -1701,17 +1917,19 @@ class View<TEl = Element> extends BackboneBase {
     }
   }
 
-  // Set attributes from a hash on this view's element.  Exposed for
-  // subclasses using an alternative DOM manipulation API.
+  /**
+   * Set attributes from a hash on this view's element.
+   */
   _setAttributes(attributes: Record<string, any>): void {
-    _.dom.setAttributes(this.el as Element, attributes);
+    _.dom.setAttributes(this.el as unknown as Element, attributes);
   }
 
-  // preinitialize/initialize are empty by default. Override with your own logic.
-  preinitialize(..._args: unknown[]): void {}
-  initialize(..._args: unknown[]): void {}
+  /**
+   * preinitialize/initialize are empty by default. Override with your own logic.
+   */
+  preinitialize(..._args: any[]): void {}
+  initialize(..._args: any[]): void {}
 
-  // Allow any additional properties
   [key: string]: any;
 }
 
@@ -1871,7 +2089,25 @@ const namedParam: RegExp = /(\(\?)?:\w+/g;
 const splatParam: RegExp = /\*\w+/g;
 const escapeRegExp: RegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
 
+/**
+ * Ostov **Routers** map faux-URLs to actions, and fire events when routes
+ * are matched.
+ *
+ * @example
+ * class MyRouter extends Ostov.Router {
+ *   routes = {
+ *     "help":                 "help",
+ *     "search/:query":        "search",
+ *     "search/:query/p:page": "search"
+ *   };
+ *   help() { ... }
+ *   search(query, page) { ... }
+ * }
+ */
 class Router extends BackboneBase {
+  /**
+   * The routes hash (or function returning a hash) for this router.
+   */
   routes?: any;
 
   constructor(options: any = {}) {
@@ -1882,12 +2118,10 @@ class Router extends BackboneBase {
     this.initialize.apply(this, arguments as any);
   }
 
-  // Manually bind a single named route to a callback. For example:
-  //
-  //     this.route('search/:query/p:num', 'search', function(query, num) {
-  //       ...
-  //     });
-  //
+  /**
+   * Manually bind a single named route to a callback.
+   * @see http://ostovjs.org/#Router-route
+   */
   route(route: string | RegExp, name: string | Function, callback?: Function): this {
     if (!(route instanceof RegExp)) route = this._routeToRegExp(route);
     if (typeof name === 'function') {
@@ -1981,6 +2215,11 @@ const rootStripper: RegExp = /^\/+|\/+$/g;
 // Cached regex for stripping urls of hash.
 const pathStripper: RegExp = /#.*$/;
 
+/**
+ * Ostov.History handles cross-browser history management, based on either
+ * pushState and real URLs, or onhashchange and URL fragments.
+ * @see http://ostovjs.org/#History
+ */
 class History extends BackboneBase {
   handlers!: Array<{ route: RegExp; callback: (fragment: string) => void }>;
   interval!: number;
@@ -2303,7 +2542,7 @@ const urlError = (): never => {
 };
 
 // Wrap an optional error callback with a fallback error event.
-const wrapError = (model: Model | Collection, options: SyncOptions): void => {
+const wrapError = (model: Model<any> | Collection<any>, options: SyncOptions): void => {
   const error = options.error;
   options.error = function(resp: unknown) {
     if (error) error.call(options.context, model, resp, options);
@@ -2325,7 +2564,7 @@ interface BackboneStatic extends EventsMixin {
   Router: typeof Router;
   History: typeof History;
   history: History;
-  sync: (method: string, model: Model | Collection, options?: SyncOptions) => XhrLike;
+  sync: (method: string, model: Model<any> | Collection<any>, options?: SyncOptions) => XhrLike;
   ajax: (options: AjaxOptions) => XhrLike;
   _debug: () => { root: Record<string, unknown>; _: typeof _ };
   [key: string]: any;
@@ -2334,7 +2573,7 @@ interface BackboneStatic extends EventsMixin {
 const Ostov: BackboneStatic = {} as BackboneStatic;
 
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.4';
+Ostov.VERSION = '1.7.6';
 
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.
@@ -2366,7 +2605,7 @@ Ostov.Events = EventsImpl;
 _.extend(Ostov, EventsImpl);
 
 // Ostov.sync
-Ostov.sync = (method: string, model: Model | Collection, options?: SyncOptions): XhrLike => {
+Ostov.sync = (method: string, model: Model<any> | Collection<any>, options?: SyncOptions): XhrLike => {
   const type: string = methodMap[method];
 
   // Default options, unless specified.

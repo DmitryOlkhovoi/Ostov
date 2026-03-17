@@ -188,6 +188,65 @@ const BookView = View.extend({
 });
 ```
 
+### TypeScript Support
+
+Ostov is written in TypeScript and provides excellent support for type safety.
+
+#### Strongly Typed Models
+
+Define attributes using a generic parameter for autocomplete and type checking.
+
+```typescript
+import { Model } from 'ostovjs';
+
+interface UserAttrs {
+  name: string;
+  age: number;
+}
+
+class User extends Model<UserAttrs> {
+  defaults() {
+    return { name: 'Unknown', age: 0 };
+  }
+}
+
+const user = new User({ name: 'Dmitry' });
+const age = user.get('age'); // number
+user.set('name', 'Dima');    // OK
+user.set('wrong', 123);      // TypeScript Error!
+```
+
+#### Typed Collections
+
+Collections can be typed to know their model kind.
+
+```typescript
+import { Collection } from 'ostovjs';
+
+class Users extends Collection<User> {
+  model = User;
+}
+
+const users = new Users();
+users.add({ name: 'Alice', age: 25 });
+const first = users.at(0); // User model
+```
+
+#### Typed Views
+
+Views can specify model and collection types for better internal typing.
+
+```typescript
+import { View } from 'ostovjs';
+
+class UserView extends View<User, Users> {
+  render() {
+    this.el.innerHTML = this.model.get('name');
+    return this;
+  }
+}
+```
+
 ### Events
 
 Mix event handling into any object:

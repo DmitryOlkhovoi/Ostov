@@ -668,7 +668,7 @@ _.dom = {
     }
 };
 
-//     Ostov.js 1.7.5
+//     Ostov.js 1.7.6
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
 //     For all details and documentation:
@@ -987,12 +987,22 @@ const Events = EventsImpl;
 class BackboneBase {
 }
 Object.assign(BackboneBase.prototype, EventsImpl);
-// Ostov.Model
-// --------------
-// Ostov **Models** are the basic data object in the framework --
-// frequently representing a row in a table in a database on your server.
-// A discrete chunk of data and a bunch of useful, related methods for
-// performing computations and transformations on that data.
+/**
+ * Ostov **Models** are the basic data object in the framework --
+ * frequently representing a row in a table in a database on your server.
+ * A discrete chunk of data and a bunch of useful, related methods for
+ * performing computations and transformations on that data.
+ *
+ * @example
+ * class Book extends Ostov.Model {
+ *   defaults() {
+ *     return {
+ *       title: "No Title",
+ *       author: "Unknown"
+ *     };
+ *   }
+ * }
+ */
 class Model extends BackboneBase {
     constructor(attributes, options = {}) {
         super();
@@ -1006,7 +1016,6 @@ class Model extends BackboneBase {
                 // it merges into attributes even when assigned as a class field.
                 if ('value' in descriptor && prop === 'defaults') {
                     const value = descriptor.value;
-                    self._instanceDefaults = value;
                     const resolved = typeof value === 'function' ? value.call(self) : value;
                     if (resolved && self.attributes) {
                         for (const key in resolved) {
@@ -1036,35 +1045,49 @@ class Model extends BackboneBase {
         proxy.initialize.apply(proxy, arguments);
         return proxy;
     }
-    // Return a copy of the model's `attributes` object.
+    /**
+     * Return a copy of the model's `attributes` object.
+     */
     toJSON(_options) {
         return _.clone(this.attributes);
     }
-    // Proxy `Ostov.sync` by default -- but override this if you need
-    // custom syncing semantics for *this* particular model.
+    /**
+     * Proxy `Ostov.sync` by default -- but override this if you need
+     * custom syncing semantics for *this* particular model.
+     */
     sync(...args) {
         return Ostov.sync.apply(this, args);
     }
-    // Get the value of an attribute.
+    /**
+     * Get the current value of an attribute from the model.
+     * @example note.get("title")
+     * @see http://ostovjs.org/#Model-get
+     */
     get(attr) {
         return this.attributes[attr];
     }
-    // Get the HTML-escaped value of an attribute.
+    /**
+     * Get the HTML-escaped value of an attribute.
+     * @see http://ostovjs.org/#Model-escape
+     */
     escape(attr) {
         return _.escape(this.get(attr));
     }
-    // Returns `true` if the attribute contains a value that is not null
-    // or undefined.
+    /**
+     * Returns `true` if the attribute contains a value that is not null
+     * or undefined.
+     * @see http://ostovjs.org/#Model-has
+     */
     has(attr) {
         return this.get(attr) != null;
     }
-    // Special-cased proxy to underscore's `_.matches` method.
+    /**
+     * Special-cased proxy to underscore's `_.matches` method.
+     * @see http://ostovjs.org/#Model-matches
+     */
     matches(attrs) {
         return !!_.iteratee(attrs, this)(this.attributes);
     }
-    // Set a hash of model attributes on the object, firing `"change"`. This is
-    // the core primitive operation of a model, updating the data and notifying
-    // anyone who needs to know about the change in state. The heart of the beast.
     set(key, val, options = {}) {
         if (key == null)
             return this;
@@ -1137,31 +1160,35 @@ class Model extends BackboneBase {
         this._changing = false;
         return this;
     }
-    // Remove an attribute from the model, firing `"change"`. `unset` is a noop
-    // if the attribute doesn't exist.
+    /**
+     * Remove an attribute from the model, firing `"change"`. `unset` is a noop
+     * if the attribute doesn't exist.
+     */
     unset(attr, options) {
         return this.set(attr, void 0, { ...options, unset: true });
     }
-    // Clear all attributes on the model, firing `"change"`.
+    /**
+     * Clear all attributes on the model, firing `"change"`.
+     */
     clear(options) {
         const attrs = {};
         for (const key in this.attributes)
             attrs[key] = void 0;
         return this.set(attrs, { ...options, unset: true });
     }
-    // Determine if the model has changed since the last `"change"` event.
-    // If you specify an attribute name, determine if that attribute has changed.
+    /**
+     * Determine if the model has changed since the last `"change"` event.
+     * If you specify an attribute name, determine if that attribute has changed.
+     */
     hasChanged(attr) {
         if (attr == null)
             return !_.isEmpty(this.changed);
         return _.has(this.changed, attr);
     }
-    // Return an object containing all the attributes that have changed, or
-    // false if there are no changed attributes. Useful for determining what
-    // parts of a view need to be updated and/or what attributes need to be
-    // persisted to the server. Unset attributes will be set to undefined.
-    // You can also pass an attributes object to diff against the model,
-    // determining if there *would be* a change.
+    /**
+     * Return an object containing all the attributes that have changed, or
+     * false if there are no changed attributes.
+     */
     changedAttributes(diff) {
         if (!diff)
             return this.hasChanged() ? _.clone(this.changed) : false;
@@ -1177,20 +1204,26 @@ class Model extends BackboneBase {
         }
         return hasChanged ? changed : false;
     }
-    // Get the previous value of an attribute, recorded at the time the last
-    // `"change"` event was fired.
+    /**
+     * Get the previous value of an attribute, recorded at the time the last
+     * `"change"` event was fired.
+     */
     previous(attr) {
         if (attr == null || !this._previousAttributes)
-            return null;
+            return undefined;
         return this._previousAttributes[attr];
     }
-    // Get all of the attributes of the model at the time of the previous
-    // `"change"` event.
+    /**
+     * Get all of the attributes of the model at the time of the previous
+     * `"change"` event.
+     */
     previousAttributes() {
         return _.clone(this._previousAttributes);
     }
-    // Fetch the model from the server, merging the response with the model's
-    // local attributes. Any changed attributes will trigger a "change" event.
+    /**
+     * Fetch the model from the server, merging the response with the model's
+     * local attributes.
+     */
     fetch(options) {
         options = { parse: true, ...options };
         const success = options.success;
@@ -1204,9 +1237,9 @@ class Model extends BackboneBase {
         wrapError(this, options);
         return this.sync('read', this, options);
     }
-    // Set a hash of model attributes, and sync the model to the server.
-    // If the server returns an attributes hash that differs, the model's
-    // state will be `set` again.
+    /**
+     * Set a hash of model attributes, and sync the model to the server.
+     */
     save(key, val, options) {
         // Handle both `"key", value` and `{key: value}` -style arguments.
         let attrs;
@@ -1256,9 +1289,9 @@ class Model extends BackboneBase {
         this.attributes = attributes;
         return xhr;
     }
-    // Destroy this model on the server if it was already persisted.
-    // Optimistically removes the model from its collection, if it has one.
-    // If `wait: true` is passed, waits for the server to respond before removal.
+    /**
+     * Destroy this model on the server if it was already persisted.
+     */
     destroy(options) {
         options = { ...(options || {}) };
         const success = options.success;
@@ -1286,9 +1319,9 @@ class Model extends BackboneBase {
             destroy();
         return xhr;
     }
-    // Default URL for the model's representation on the server -- if you're
-    // using Ostov's restful methods, override this to change the endpoint
-    // that will be called.
+    /**
+     * Default URL for the model's representation on the server.
+     */
     url() {
         const base = _.result(this, 'urlRoot') ||
             _.result(this.collection, 'url') ||
@@ -1298,25 +1331,34 @@ class Model extends BackboneBase {
         const id = this.get(this.idAttribute);
         return base.replace(/[^\/]$/, '$&/') + encodeURIComponent(id);
     }
-    // **parse** converts a response into the hash of attributes to be `set` on
-    // the model. The default implementation is just to pass the response along.
+    /**
+     * **parse** converts a response into the hash of attributes to be `set` on
+     * the model.
+     */
     parse(resp, _options) {
         return resp;
     }
-    // Create a new model with identical attributes to this one.
+    /**
+     * Create a new model with identical attributes to this one.
+     */
     clone() {
         return new this.constructor(this.attributes);
     }
-    // A model is new if it has never been saved to the server, and lacks an id.
+    /**
+     * A model is new if it has never been saved to the server, and lacks an id.
+     */
     isNew() {
         return !this.has(this.idAttribute);
     }
-    // Check if the model is currently in a valid state.
+    /**
+     * Check if the model is currently in a valid state.
+     */
     isValid(options) {
         return this._validate({}, { ...options, validate: true });
     }
-    // Run validation against the next complete set of model attributes,
-    // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
+    /**
+     * Run validation against the next complete set of model attributes.
+     */
     _validate(attrs, options) {
         if (!options.validate || !this.validate)
             return true;
@@ -1327,22 +1369,11 @@ class Model extends BackboneBase {
         this.trigger('invalid', this, error, { ...options, validationError: error });
         return false;
     }
-    // preinitialize/initialize are empty by default. Override with your own logic.
+    /**
+     * preinitialize/initialize are empty by default. Override with your own logic.
+     */
     preinitialize(..._args) { }
     initialize(..._args) { }
-    get defaults() {
-        return this._instanceDefaults;
-    }
-    set defaults(value) {
-        this._instanceDefaults = value;
-        const resolved = typeof value === 'function' ? value.call(this) : value;
-        if (resolved && this.attributes) {
-            for (const key in resolved) {
-                if (!(key in this.attributes))
-                    this.attributes[key] = resolved[key];
-            }
-        }
-    }
 }
 // A hash of attributes whose current and previous value differ.
 Model.prototype.changed = null;
@@ -1352,14 +1383,6 @@ Model.prototype.validationError = null;
 Model.prototype.idAttribute = 'id';
 // The prefix is used to create the client id which is used to identify models locally.
 Model.prototype.cidPrefix = 'c';
-// Ostov.Collection
-// -------------------
-// If models tend to represent a single row of data, a Ostov Collection is
-// more analogous to a table full of data ... or a small slice or page of that
-// table, or a collection of rows that belong together for a particular reason
-// -- all of the messages in this particular folder, all of the documents
-// belonging to this particular author, and so on. Collections maintain
-// indexes of their models, both in order, and for lookup by `id`.
 // Default options for `Collection#set`.
 const setOptions = { add: true, remove: true, merge: true };
 const addOptions = { add: true, remove: false };
@@ -1376,6 +1399,17 @@ const splice = (array, insert, at) => {
     for (i = 0; i < tail.length; i++)
         array[i + length + at] = tail[i];
 };
+/**
+ * Ostov **Collections** are the basic data object in the framework --
+ * more analogous to a table full of data ... or a small slice or page of that
+ * table, or a collection of rows that belong together for a particular reason.
+ * Collections maintain indexes of their models, both in order, and for lookup by `id`.
+ *
+ * @example
+ * class Books extends Ostov.Collection<Book> {
+ *   model = Book;
+ * }
+ */
 class Collection extends BackboneBase {
     constructor(models, options = {}) {
         super();
@@ -1419,22 +1453,28 @@ class Collection extends BackboneBase {
             proxy.reset(models, { silent: true, ...options });
         return proxy;
     }
-    // The JSON representation of a Collection is an array of the
-    // models' attributes.
+    /**
+     * The JSON representation of a Collection is an array of the
+     * models' attributes.
+     */
     toJSON(options) {
         return this.map((model) => model.toJSON(options));
     }
-    // Proxy `Ostov.sync` by default.
+    /**
+     * Proxy `Ostov.sync` by default.
+     */
     sync(...args) {
         return Ostov.sync.apply(this, args);
     }
-    // Add a model, or list of models to the set. `models` may be Ostov
-    // Models or raw JavaScript objects to be converted to Models, or any
-    // combination of the two.
+    /**
+     * Add a model, or list of models to the set.
+     */
     add(models, options) {
         return this.set(models, { ...{ merge: false }, ...options, ...addOptions });
     }
-    // Remove a model, or a list of models from the set.
+    /**
+     * Remove a model, or a list of models from the set.
+     */
     remove(models, options = {}) {
         options = { ...options };
         const singular = !Array.isArray(models);
@@ -1446,10 +1486,11 @@ class Collection extends BackboneBase {
         }
         return singular ? removed[0] : removed;
     }
-    // Update a collection by `set`-ing a new list of models, adding new ones,
-    // removing models that are no longer present, and merging models that
-    // already exist in the collection, as necessary. Similar to **Model#set**,
-    // the core operation for updating the data contained by the collection.
+    /**
+     * Update a collection by `set`-ing a new list of models, adding new ones,
+     * removing models that are no longer present, and merging models that
+     * already exist in the collection.
+     */
     set(models, options) {
         if (models == null)
             return;
@@ -1564,10 +1605,10 @@ class Collection extends BackboneBase {
         // Return the added (or merged) model (or models).
         return singular ? models[0] : models;
     }
-    // When you have more items than you want to add or remove individually,
-    // you can reset the entire set with a new list of models, without firing
-    // any granular `add` or `remove` events. Fires `reset` when finished.
-    // Useful for bulk operations and optimizations.
+    /**
+     * When you have more items than you want to add or remove individually,
+     * you can reset the entire set with a new list of models.
+     */
     reset(models, options) {
         options = { ...(options || {}) };
         for (const model of this.models)
@@ -1579,60 +1620,79 @@ class Collection extends BackboneBase {
             this.trigger('reset', this, options);
         return models;
     }
-    // Add a model to the end of the collection.
+    /**
+     * Add a model to the end of the collection.
+     */
     push(model, options) {
         return this.add(model, { at: this.length, ...options });
     }
-    // Remove a model from the end of the collection.
+    /**
+     * Remove a model from the end of the collection.
+     */
     pop(options) {
         const model = this.at(this.length - 1);
-        return this.remove(model, options);
+        this.remove(model, options);
+        return model;
     }
-    // Add a model to the beginning of the collection.
+    /**
+     * Add a model to the beginning of the collection.
+     */
     unshift(model, options) {
         return this.add(model, { at: 0, ...options });
     }
-    // Remove a model from the beginning of the collection.
+    /**
+     * Remove a model from the beginning of the collection.
+     */
     shift(options) {
         const model = this.at(0);
-        return this.remove(model, options);
+        this.remove(model, options);
+        return model;
     }
-    // Slice out a sub-array of models from the collection.
+    /**
+     * Slice out a sub-array of models from the collection.
+     */
     slice(start, end) {
         return this.models.slice(start, end);
     }
-    // Get a model from the set by id, cid, model object with id or cid
-    // properties, or an attributes object that is transformed through modelId.
+    /**
+     * Get a model from the set by id, cid, or model object.
+     */
     get(obj) {
         if (obj == null)
             return void 0;
         return this._byId[obj] ||
             this._byId[this.modelId(this._isModel(obj) ? obj.attributes : obj, obj.idAttribute)] ||
-            obj.cid && this._byId[obj.cid];
+            (obj.cid && this._byId[obj.cid]);
     }
-    // Returns `true` if the model is in the collection.
+    /**
+     * Returns `true` if the model is in the collection.
+     */
     has(obj) {
         return this.get(obj) != null;
     }
-    // Get the model at the given index.
+    /**
+     * Get the model at the given index.
+     */
     at(index) {
         if (index < 0)
             index += this.length;
         return this.models[index];
     }
-    // Return models with matching attributes. Useful for simple cases of
-    // `filter`.
+    /**
+     * Return models with matching attributes.
+     */
     where(attrs, first) {
         return this[first ? 'find' : 'filter'](attrs);
     }
-    // Return the first model with matching attributes. Useful for simple cases
-    // of `find`.
+    /**
+     * Return the first model with matching attributes.
+     */
     findWhere(attrs) {
         return this.where(attrs, true);
     }
-    // Force the collection to re-sort itself. You don't need to call this under
-    // normal circumstances, as the set will maintain sort order as each item
-    // is added.
+    /**
+     * Force the collection to re-sort itself.
+     */
     sort(options) {
         let comparator = this.comparator;
         if (!comparator)
@@ -1652,13 +1712,15 @@ class Collection extends BackboneBase {
             this.trigger('sort', this, options);
         return this;
     }
-    // Pluck an attribute from each model in the collection.
+    /**
+     * Pluck an attribute from each model in the collection.
+     */
     pluck(attr) {
         return this.map(attr + '');
     }
-    // Fetch the default set of models for this collection, resetting the
-    // collection when they arrive. If `reset: true` is passed, the response
-    // data will be passed through the `reset` method instead of `set`.
+    /**
+     * Fetch the default set of models for this collection.
+     */
     fetch(options) {
         options = { parse: true, ...options };
         const success = options.success;
@@ -1671,9 +1733,9 @@ class Collection extends BackboneBase {
         wrapError(this, options);
         return this.sync('read', this, options);
     }
-    // Create a new instance of a model in this collection. Add the model to the
-    // collection immediately, unless `wait: true` is passed, in which case we
-    // wait for the server to agree.
+    /**
+     * Create a new instance of a model in this collection.
+     */
     create(model, options) {
         options = { ...(options || {}) };
         const wait = options.wait;
@@ -1701,31 +1763,43 @@ class Collection extends BackboneBase {
         prepared.save(null, options);
         return prepared;
     }
-    // **parse** converts a response into a list of models to be added to the
-    // collection. The default implementation is just to pass it through.
+    /**
+     * **parse** converts a response into a list of models to be added to the
+     * collection.
+     */
     parse(resp, _options) {
         return resp;
     }
-    // Create a new collection with an identical list of models as this one.
+    /**
+     * Create a new collection with an identical list of models as this one.
+     */
     clone() {
         return new this.constructor(this.models, {
             model: this.model,
             comparator: this.comparator
         });
     }
-    // Define how to uniquely identify models in the collection.
+    /**
+     * Define how to uniquely identify models in the collection.
+     */
     modelId(attrs, idAttribute) {
         return attrs[idAttribute || this.model.prototype.idAttribute || 'id'];
     }
-    // Get an iterator of all models in this collection.
+    /**
+     * Get an iterator of all models in this collection.
+     */
     values() {
         return new CollectionIterator(this, ITERATOR_VALUES);
     }
-    // Get an iterator of all model IDs in this collection.
+    /**
+     * Get an iterator of all model IDs in this collection.
+     */
     keys() {
         return new CollectionIterator(this, ITERATOR_KEYS);
     }
-    // Get an iterator of all [ID, model] tuples in this collection.
+    /**
+     * Get an iterator of all [ID, model] tuples in this collection.
+     */
     entries() {
         return new CollectionIterator(this, ITERATOR_KEYSVALUES);
     }
@@ -1855,6 +1929,10 @@ if (typeof Symbol === 'function' && Symbol.iterator) {
 const ITERATOR_VALUES = 1;
 const ITERATOR_KEYS = 2;
 const ITERATOR_KEYSVALUES = 3;
+/**
+ * A CollectionIterator implements JavaScript's Iterator protocol, allowing the
+ * use of `for of` loops.
+ */
 class CollectionIterator {
     constructor(collection, kind) {
         this._collection = collection;
@@ -1933,15 +2011,22 @@ Object.defineProperty(Collection.prototype, 'comparator', {
 const delegateEventSplitter = /^(\S+)\s*(.*)$/;
 // List of view options to be set as properties.
 const viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+/**
+ * Ostov Views are a logical chunk of UI in the
+ * DOM. This might be a single item, an entire list, a sidebar or panel, or
+ * even the surrounding frame which wraps your whole app.
+ *
+ * @example
+ * class DocumentView extends Ostov.View<DocumentModel> {
+ *   render() {
+ *     this.el.innerHTML = this.model.get('title');
+ *     return this;
+ *   }
+ * }
+ */
 class View extends BackboneBase {
-    // Creating a Ostov.View creates its initial element outside of the DOM,
-    // if an existing element is not provided...
     constructor(options) {
         super();
-        // True while the parent constructor body is running; false once super() returns.
-        // Class fields of subclasses are initialized after super() — this flag lets
-        // el/events setters know whether they were called from the constructor or
-        // from a class field assignment.
         this._constructing = true;
         this.cid = _.uniqueId('view');
         // Create proxy before setup so preinitialize/initialize use a consistent
@@ -1973,46 +2058,47 @@ class View extends BackboneBase {
         this._constructing = false;
         return proxy;
     }
-    // Scoped element lookup inside the view's root element.
-    // Returns a Ostov.$-wrapped result when Ostov.$ is set,
-    // otherwise a plain NodeList.
+    /**
+     * Scoped element lookup inside the view's root element.
+     */
     $(selector) {
         const nodes = this.el.querySelectorAll(selector);
         return Ostov.$ ? Ostov.$(Array.from(nodes)) : nodes;
     }
-    // **render** is the core function that your view should override, in order
-    // to populate its element (`this.el`), with the appropriate HTML. The
-    // convention is for **render** to always return `this`.
+    /**
+     * **render** is the core function that your view should override.
+     */
     render() {
         return this;
     }
-    // Remove this view by taking the element out of the DOM, and removing any
-    // applicable Ostov.Events listeners.
+    /**
+     * Remove this view by taking the element out of the DOM, and removing any
+     * applicable Ostov.Events listeners.
+     */
     remove() {
         this.undelegateEvents();
         this._removeElement();
         this.stopListening();
         return this;
     }
-    // Remove this view's element from the document and all event listeners
-    // attached to it. Exposed for subclasses using an alternative DOM
-    // manipulation API.
+    /**
+     * Remove this view's element from the document.
+     */
     _removeElement() {
         _.dom.remove(this.el);
     }
-    // Change the view's element (`this.el` property) and re-delegate the
-    // view's events on the new element.
+    /**
+     * Change the view's element and re-delegate the view's events.
+     */
     setElement(element) {
         this.undelegateEvents();
         this._setElement(element);
         this.delegateEvents();
         return this;
     }
-    // Creates the `this.el` and `this.$el` references for this view using the
-    // given `el`. `el` can be a CSS selector string or a DOM element.
-    // When Ostov.$ is set, `this.$el` is a wrapped element; otherwise it is
-    // the same raw DOM element as `this.el`.
-    // Subclasses can override this to utilize an alternative DOM manipulation API.
+    /**
+     * Creates the `this.el` and `this.$el` references for this view.
+     */
     _setElement(el) {
         const resolved = _.dom.query(el);
         // For string selectors that don't match anything, keep el as null/falsy.
@@ -2020,19 +2106,9 @@ class View extends BackboneBase {
         this.el = resolved !== null ? resolved : typeof el !== 'string' ? el : null;
         this.$el = Ostov.$ ? Ostov.$(this.el) : this.el;
     }
-    // Set callbacks, where `this.events` is a hash of
-    //
-    // *{"event selector": "callback"}*
-    //
-    //     {
-    //       'mousedown .title':  'edit',
-    //       'click .button':     'save',
-    //       'click .open':       function(e) { ... }
-    //     }
-    //
-    // pairs. Callbacks will be bound to the view, with `this` set properly.
-    // Uses event delegation for efficiency.
-    // Omitting the selector binds the event to `this.el`.
+    /**
+     * Set callbacks, where `this.events` is a hash of *{"event selector": "callback"}* pairs.
+     */
     delegateEvents(events) {
         events || (events = _.result(this, 'events'));
         if (!events)
@@ -2049,8 +2125,9 @@ class View extends BackboneBase {
         }
         return this;
     }
-    // Add a single event listener to the view's element (or a child element
-    // using `selector`). Uses native addEventListener with namespace tracking.
+    /**
+     * Add a single event listener to the view's element.
+     */
     delegate(eventName, selector, listener) {
         if (typeof selector !== 'string') {
             listener = selector;
@@ -2059,16 +2136,17 @@ class View extends BackboneBase {
         _.dom.on(this.el, '.delegateEvents' + this.cid, eventName, selector || null, listener);
         return this;
     }
-    // Clears all callbacks previously bound to the view by `delegateEvents`.
-    // You usually don't need to use this, but may wish to if you have multiple
-    // Ostov views attached to the same DOM element.
+    /**
+     * Clears all callbacks previously bound to the view by `delegateEvents`.
+     */
     undelegateEvents() {
-        if (this._el && typeof this._el !== 'string')
+        if (this._el && (this._el instanceof Element))
             _.dom.off(this._el, '.delegateEvents' + this.cid);
         return this;
     }
-    // A finer-grained `undelegateEvents` for removing a single delegated event.
-    // `selector` and `listener` are both optional.
+    /**
+     * A finer-grained `undelegateEvents` for removing a single delegated event.
+     */
     undelegate(eventName, selector, listener) {
         if (typeof selector !== 'string') {
             listener = selector;
@@ -2077,15 +2155,15 @@ class View extends BackboneBase {
         _.dom.off(this.el, '.delegateEvents' + this.cid, eventName, selector || null, listener);
         return this;
     }
-    // Produces a DOM element to be assigned to your view. Exposed for
-    // subclasses using an alternative DOM manipulation API.
+    /**
+     * Produces a DOM element to be assigned to your view.
+     */
     _createElement(tagName) {
         return document.createElement(tagName);
     }
-    // Ensure that the View has a DOM element to render into.
-    // If `this.el` is a string, pass it through `$()`, take the first
-    // matching element, and re-assign it to `el`. Otherwise, create
-    // an element from the `id`, `className` and `tagName` properties.
+    /**
+     * Ensure that the View has a DOM element to render into.
+     */
     _ensureElement() {
         if (!this.el) {
             const attrs = { ..._.result(this, 'attributes') };
@@ -2100,12 +2178,15 @@ class View extends BackboneBase {
             this.setElement(_.result(this, 'el'));
         }
     }
-    // Set attributes from a hash on this view's element.  Exposed for
-    // subclasses using an alternative DOM manipulation API.
+    /**
+     * Set attributes from a hash on this view's element.
+     */
     _setAttributes(attributes) {
         _.dom.setAttributes(this.el, attributes);
     }
-    // preinitialize/initialize are empty by default. Override with your own logic.
+    /**
+     * preinitialize/initialize are empty by default. Override with your own logic.
+     */
     preinitialize(..._args) { }
     initialize(..._args) { }
 }
@@ -2255,6 +2336,21 @@ const optionalParam = /\((.*?)\)/g;
 const namedParam = /(\(\?)?:\w+/g;
 const splatParam = /\*\w+/g;
 const escapeRegExp = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+/**
+ * Ostov **Routers** map faux-URLs to actions, and fire events when routes
+ * are matched.
+ *
+ * @example
+ * class MyRouter extends Ostov.Router {
+ *   routes = {
+ *     "help":                 "help",
+ *     "search/:query":        "search",
+ *     "search/:query/p:page": "search"
+ *   };
+ *   help() { ... }
+ *   search(query, page) { ... }
+ * }
+ */
 class Router extends BackboneBase {
     constructor(options = {}) {
         super();
@@ -2264,12 +2360,10 @@ class Router extends BackboneBase {
         this._bindRoutes();
         this.initialize.apply(this, arguments);
     }
-    // Manually bind a single named route to a callback. For example:
-    //
-    //     this.route('search/:query/p:num', 'search', function(query, num) {
-    //       ...
-    //     });
-    //
+    /**
+     * Manually bind a single named route to a callback.
+     * @see http://ostovjs.org/#Router-route
+     */
     route(route, name, callback) {
         if (!(route instanceof RegExp))
             route = this._routeToRegExp(route);
@@ -2353,6 +2447,11 @@ const routeStripper = /^[#\/]|\s+$/g;
 const rootStripper = /^\/+|\/+$/g;
 // Cached regex for stripping urls of hash.
 const pathStripper = /#.*$/;
+/**
+ * Ostov.History handles cross-browser history management, based on either
+ * pushState and real URLs, or onhashchange and URL fragments.
+ * @see http://ostovjs.org/#History
+ */
 class History extends BackboneBase {
     constructor() {
         super();
@@ -2636,7 +2735,7 @@ const wrapError = (model, options) => {
 };
 const Ostov = {};
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.4';
+Ostov.VERSION = '1.7.6';
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.
 Ostov.$ = null;
