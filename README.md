@@ -9,6 +9,9 @@ A modern reimagining of [Backbone.js](https://backbonejs.org/) — same proven M
 - Full TypeScript types included
 - Familiar Backbone API — drop-in for most use cases
 
+## Docs
+[Ostovjs.org](https://ostovjs.org/)
+
 ## Install
 
 ```bash
