@@ -1,4 +1,4 @@
-//     Ostov.js 1.7.7
+//     Ostov.js 1.7.8
 
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
@@ -1712,7 +1712,10 @@ class View<TModel extends Model = Model, TCollection extends Collection = Collec
    */
   cid!: string;
 
-  // `el` typing is provided by the companion interface below (asymmetric get/set).
+  /**
+   * The DOM element for this view. Accepts a CSS selector string or an element.
+   */
+  declare el: TEl | string;
 
   /**
    * The events hash (or function returning a hash) for this view.
@@ -1722,9 +1725,9 @@ class View<TModel extends Model = Model, TCollection extends Collection = Collec
   private _constructing: boolean = true;
 
   /**
-   * A jQuery-like (or Ostov.$-wrapped) reference to the view's element.
+   * Typed reference to the view's DOM element. Always the resolved element (never a string).
    */
-  $el!: any;
+  $el!: TEl;
 
   /**
    * The model associated with this view.
@@ -1928,14 +1931,6 @@ class View<TModel extends Model = Model, TCollection extends Collection = Collec
   initialize(..._args: any[]): void {}
 
   [key: string]: any;
-}
-
-/**
- * Asymmetric el type: reading returns TEl, writing accepts TEl | string (CSS selector).
- */
-interface View<TModel extends Model, TCollection extends Collection, TEl> {
-  get el(): TEl;
-  set el(value: TEl | string);
 }
 
 // Define el/events as prototype accessors on View.
@@ -2578,7 +2573,7 @@ interface BackboneStatic extends EventsMixin {
 const Ostov: BackboneStatic = {} as BackboneStatic;
 
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.7';
+Ostov.VERSION = '1.7.8';
 
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.

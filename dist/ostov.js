@@ -668,7 +668,7 @@ _.dom = {
     }
 };
 
-//     Ostov.js 1.7.7
+//     Ostov.js 1.7.8
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
 //     For all details and documentation:
@@ -2735,7 +2735,7 @@ const wrapError = (model, options) => {
 };
 const Ostov = {};
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.7';
+Ostov.VERSION = '1.7.8';
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.
 Ostov.$ = null;
