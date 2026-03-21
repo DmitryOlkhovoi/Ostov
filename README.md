@@ -279,3 +279,7 @@ drop a star ⭐
 ## 🧨 Philosophy
 
 > Less framework. More control.
+
+## Built with Ostov
+
+[TLDR extension for google chrome](https://github.com/DmitryOlkhovoi/tlrd-extension) — Get a TLDR summary of any page using OpenAI. Ask follow-up questions in a dedicated tab.
