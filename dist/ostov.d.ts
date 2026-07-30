@@ -566,8 +566,19 @@ declare class View<TModel extends Model = Model, TCollection extends Collection 
      * The events hash (or function returning a hash) for this view.
      */
     events: Record<string, string | ((e: Event) => void)> | (() => Record<string, string | ((e: Event) => void)>) | undefined;
+    /**
+     * The bindings hash (or function returning a hash) for this view: a map of
+     * *{"selector:target": source}* pairs that keeps the DOM in sync with the
+     * view's model. `source` is a model attribute name or a computed function.
+     */
+    bindings: Record<string, string | ((model: TModel) => unknown)> | (() => Record<string, string | ((model: TModel) => unknown)>) | undefined;
     private _el?;
     private _constructing;
+    private _bindings?;
+    private _parsedBindings?;
+    private _bindingsModel?;
+    private _bindingsChangeHandler?;
+    private _proxy?;
     /**
      * Typed reference to the view's DOM element. Always the resolved element (never a string).
      */
@@ -616,7 +627,8 @@ declare class View<TModel extends Model = Model, TCollection extends Collection 
      */
     _removeElement(): void;
     /**
-     * Change the view's element and re-delegate the view's events.
+     * Change the view's element and re-delegate the view's events
+     * and re-apply the view's bindings.
      */
     setElement(element: any): this;
     /**
@@ -639,6 +651,36 @@ declare class View<TModel extends Model = Model, TCollection extends Collection 
      * A finer-grained `undelegateEvents` for removing a single delegated event.
      */
     undelegate(eventName: string, selector?: string | Function, listener?: Function): this;
+    /**
+     * Keep the DOM in sync with the model, where `this.bindings` is a hash of
+     * *{"selector:target": source}* pairs. `target` is a DOM property
+     * (`innerHTML`, `textContent`, `value`, `checked`, ...) or an attribute
+     * (`class`, `data-*`, `aria-*`); `source` is a model attribute name or a
+     * function *(model) => value* for computed bindings. An empty selector
+     * (`":textContent"`) targets the view's root element. Current model values
+     * are painted immediately, then repainted on every model `change`.
+     * Idempotent: safe to call at the end of `render()` after rebuilding
+     * `innerHTML`.
+     */
+    applyBindings(bindings?: any): this;
+    /**
+     * Stop repainting bindings on model changes. Does not clear `this.bindings`,
+     * so `setElement` can re-apply them against a new element.
+     */
+    removeBindings(): this;
+    /**
+     * Paint bound values into the DOM. With `changed`, string bindings repaint
+     * only when their attribute changed; function bindings always repaint.
+     * Elements are re-queried on every paint, so bindings survive `innerHTML`
+     * rewrites.
+     */
+    _paintBindings(changed?: Record<string, unknown>): void;
+    /**
+     * Write a single bound value: as a DOM property when the target exists on
+     * the element, as an attribute otherwise (with boolean-attribute semantics:
+     * `true` sets an empty attribute, `false`/`null` removes it).
+     */
+    _applyBindingValue(node: Element, target: string, value: any): void;
     /**
      * Produces a DOM element to be assigned to your view.
      */

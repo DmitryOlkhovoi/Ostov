@@ -146,6 +146,67 @@ export class TodoView extends View<Todo> {
 
 ---
 
+## ⚡ Declarative bindings (fine-grained reactivity)
+
+Instead of re-rendering the whole view on every change, a view can declare a
+`bindings` hash that keeps individual DOM nodes in sync with its model —
+signals-style reactivity built on the `change` events the model already fires:
+
+```ts
+import { Model, View } from 'ostovjs';
+
+class CounterView extends View {
+  el = '#app';
+  model = new Model({ count: 0, busy: false });
+
+  bindings = {
+    '#counter:innerHTML': 'count',                 // model attribute → DOM property
+    '#btn:disabled': 'busy',                       // boolean property
+    ':data-count': 'count',                        // empty selector → the view's root el
+    '#status:textContent': (m) => m.get('count') > 10 ? 'high' : 'low', // computed
+  };
+
+  events = { 'click #btn': 'increment' };
+
+  increment() {
+    this.model.set('count', this.model.get('count') + 1); // DOM updates itself
+  }
+}
+```
+
+### Syntax rules
+
+- Each key is `"selector:target"`. The split happens on the **last** colon, so
+  selectors with pseudo-classes work: `'li:first-child:textContent'`.
+- An empty selector (`':textContent'`) targets the view's root element.
+- Every element matching the selector is updated, not just the first one.
+- `target` is written as a DOM **property** when the element has one
+  (`innerHTML`, `textContent`, `value`, `checked`, `disabled`, ...) and as an
+  **attribute** otherwise (`class`, `data-*`, `aria-*`). For attributes,
+  `true` sets an empty attribute and `false`/`null` removes it — standard
+  boolean-attribute semantics. `null`/`undefined` property values render as
+  `''`, never as the string `"undefined"`. (`style` is not supported as a
+  target — bind `class` instead.)
+- The value is a model attribute name, or a function `(model) => value` for
+  computed bindings (functions repaint on any model change).
+- `bindings` itself may be a function returning the hash, like `events`.
+
+Current model values are painted immediately when the view binds; after that,
+string bindings repaint only when their attribute changes. `{silent: true}`
+sets don't repaint, matching model event semantics.
+
+### Lifecycle
+
+- `applyBindings(bindings?)` / `removeBindings()` mirror
+  `delegateEvents`/`undelegateEvents`: `setElement` re-applies bindings to the
+  new element, `remove()` cleans them up, and assigning `view.model` later
+  (re)binds automatically.
+- Bound elements are re-queried on every repaint, so if your `render()`
+  rebuilds `innerHTML`, just call `this.applyBindings()` at the end of
+  `render()` and the bindings attach to the fresh nodes.
+
+---
+
 ## 🧩 Using Handlebars (templating)
 
 Ostov does not force a templating system — you can plug in anything.

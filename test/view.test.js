@@ -523,4 +523,221 @@ describe('Ostov.View', () => {
     expect(counter).toBe(1);
   });
 
+  describe('bindings', () => {
+
+    it('paints initial model values and repaints on change', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 0});
+        bindings = { '#counter:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      var counter = document.querySelector('#counter');
+      expect(counter.innerHTML).toBe('0');
+      myView.model.set('count', 5);
+      expect(counter.innerHTML).toBe('5');
+    });
+
+    it('sets boolean DOM properties', () => {
+      $('#testElement').append('<button id="btn"></button>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({flag: true});
+        bindings = { '#btn:disabled': 'flag' };
+      }
+      var myView = new MyView();
+      var btn = document.querySelector('#btn');
+      expect(btn.disabled).toBe(true);
+      myView.model.set('flag', false);
+      expect(btn.disabled).toBe(false);
+    });
+
+    it('falls back to attributes and removes them on null', () => {
+      $('#testElement').append('<div id="box"></div>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({state: 'on', cls: 'red'});
+        bindings = { '#box:data-state': 'state', '#box:class': 'cls' };
+      }
+      var myView = new MyView();
+      var box = document.querySelector('#box');
+      expect(box.getAttribute('data-state')).toBe('on');
+      expect(box.getAttribute('class')).toBe('red');
+      myView.model.set('state', null);
+      expect(box.hasAttribute('data-state')).toBe(false);
+      expect(box.getAttribute('class')).toBe('red');
+    });
+
+    it('supports selectors containing colons', () => {
+      $('#testElement').append('<ul><li></li><li></li></ul>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({title: 'first'});
+        bindings = { 'li:first-child:textContent': 'title' };
+      }
+      var myView = new MyView();
+      var items = document.querySelectorAll('#testElement li');
+      expect(items[0].textContent).toBe('first');
+      expect(items[1].textContent).toBe('');
+    });
+
+    it('empty selector targets the view root element', () => {
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({title: 'root'});
+        bindings = { ':textContent': 'title' };
+      }
+      var myView = new MyView();
+      expect(myView.el.textContent).toBe('root');
+    });
+
+    it('updates every element matching the selector', () => {
+      $('#testElement').append(
+        '<span class="count"></span><span class="count"></span><span class="count"></span>'
+      );
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 1});
+        bindings = { '.count:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      myView.model.set('count', 3);
+      var spans = document.querySelectorAll('#testElement .count');
+      expect(spans.length).toBe(3);
+      spans.forEach(span => expect(span.innerHTML).toBe('3'));
+    });
+
+    it('supports computed function bindings', () => {
+      $('#testElement').append('<span id="status"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 0});
+        bindings = { '#status:textContent': m => m.get('count') > 10 ? 'high' : 'low' };
+      }
+      var myView = new MyView();
+      var status = document.querySelector('#status');
+      expect(status.textContent).toBe('low');
+      myView.model.set('count', 11);
+      expect(status.textContent).toBe('high');
+    });
+
+    it('accepts a function returning the bindings hash', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 3});
+        bindings = () => ({ '#counter:innerHTML': 'count' });
+      }
+      var myView = new MyView();
+      expect(document.querySelector('#counter').innerHTML).toBe('3');
+      myView.model.set('count', 4);
+      expect(document.querySelector('#counter').innerHTML).toBe('4');
+    });
+
+    it('accepts bindings via constructor options', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      var myView = new Ostov.View({
+        el: '#testElement',
+        model: new Ostov.Model({count: 4}),
+        bindings: { '#counter:innerHTML': 'count' }
+      });
+      expect(document.querySelector('#counter').innerHTML).toBe('4');
+      myView.model.set('count', 5);
+      expect(document.querySelector('#counter').innerHTML).toBe('5');
+    });
+
+    it('renders null/undefined property values as empty string', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 5});
+        bindings = { '#counter:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      myView.model.unset('count');
+      expect(document.querySelector('#counter').innerHTML).toBe('');
+    });
+
+    it('setElement re-applies bindings to the new element', () => {
+      $('#testElement').append('<span></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 0});
+        bindings = { 'span:textContent': 'count' };
+      }
+      var myView = new MyView();
+      var oldSpan = document.querySelector('#testElement span');
+      expect(oldSpan.textContent).toBe('0');
+
+      var newEl = document.createElement('div');
+      newEl.appendChild(document.createElement('span'));
+      myView.setElement(newEl);
+      expect(newEl.querySelector('span').textContent).toBe('0');
+
+      myView.model.set('count', 7);
+      expect(newEl.querySelector('span').textContent).toBe('7');
+      expect(oldSpan.textContent).toBe('0');
+    });
+
+    it('remove() stops repainting and leaves no model listeners', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 0});
+        bindings = { '#counter:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      var counter = document.querySelector('#counter');
+      myView.remove();
+      myView.model.set('count', 99);
+      expect(counter.innerHTML).toBe('0');
+      expect(myView.model._events && myView.model._events.change).toBe(undefined);
+    });
+
+    it('binds when a model is assigned after construction', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        bindings = { '#counter:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      expect(document.querySelector('#counter').innerHTML).toBe('');
+
+      myView.model = new Ostov.Model({count: 1});
+      expect(document.querySelector('#counter').innerHTML).toBe('1');
+      myView.model.set('count', 2);
+      expect(document.querySelector('#counter').innerHTML).toBe('2');
+    });
+
+    it('stops listening to the old model when the model is swapped', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      var first = new Ostov.Model({count: 1});
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = first;
+        bindings = { '#counter:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      myView.model = new Ostov.Model({count: 2});
+      expect(document.querySelector('#counter').innerHTML).toBe('2');
+
+      first.set('count', 99);
+      expect(document.querySelector('#counter').innerHTML).toBe('2');
+    });
+
+    it('does not repaint on a silent set', () => {
+      $('#testElement').append('<span id="counter"></span>');
+      class MyView extends Ostov.View {
+        el = '#testElement';
+        model = new Ostov.Model({count: 0});
+        bindings = { '#counter:innerHTML': 'count' };
+      }
+      var myView = new MyView();
+      myView.model.set('count', 9, {silent: true});
+      expect(document.querySelector('#counter').innerHTML).toBe('0');
+    });
+
+  });
+
 });

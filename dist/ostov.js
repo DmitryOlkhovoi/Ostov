@@ -668,7 +668,7 @@ _.dom = {
     }
 };
 
-//     Ostov.js 1.7.8
+//     Ostov.js 1.8.0
 //     (c) 2010-2024 Olkhovoy Dmitry
 //     Ostov may be freely distributed under the MIT license.
 //     For all details and documentation:
@@ -2009,8 +2009,12 @@ Object.defineProperty(Collection.prototype, 'comparator', {
 // react to specific changes in the state of your models.
 // Cached regex to split keys for `delegate`.
 const delegateEventSplitter = /^(\S+)\s*(.*)$/;
+// Cached regex to split keys for `applyBindings`: `"selector:target"`.
+// The split happens on the *last* colon (target names never contain one),
+// so selectors with pseudo-classes like `li:first-child` keep working.
+const bindingSplitter = /^(.*):([\w-]+)$/;
 // List of view options to be set as properties.
-const viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events'];
+const viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events', 'bindings'];
 /**
  * Ostov Views are a logical chunk of UI in the
  * DOM. This might be a single item, an entire list, a sidebar or panel, or
@@ -2047,10 +2051,29 @@ class View extends BackboneBase {
                             self.delegateEvents();
                         return true;
                     }
+                    if (prop === 'bindings') {
+                        self._bindings = descriptor.value;
+                        if (self._el instanceof Element)
+                            self.applyBindings();
+                        return true;
+                    }
+                    if (prop === 'model') {
+                        // Unlike `el`/`bindings`, the value must actually land on the
+                        // instance. Re-apply bindings so a model assigned after them
+                        // (class field order, or a runtime swap) still activates them.
+                        Reflect.defineProperty(target, prop, descriptor);
+                        if (self._bindings && self._el instanceof Element)
+                            self.applyBindings();
+                        return true;
+                    }
                 }
                 return Reflect.defineProperty(target, prop, descriptor);
             }
         });
+        // The proxy trap above invokes methods on the raw instance (`self`), but
+        // listenTo/stopListening match listeners by context identity — bindings
+        // must always register through the proxy so cleanup finds them.
+        self._proxy = proxy;
         proxy.preinitialize.apply(proxy, arguments);
         _.extend(proxy, _.pick(options || {}, viewOptions));
         proxy._ensureElement();
@@ -2077,6 +2100,7 @@ class View extends BackboneBase {
      */
     remove() {
         this.undelegateEvents();
+        this.removeBindings();
         this._removeElement();
         this.stopListening();
         return this;
@@ -2088,12 +2112,14 @@ class View extends BackboneBase {
         _.dom.remove(this.el);
     }
     /**
-     * Change the view's element and re-delegate the view's events.
+     * Change the view's element and re-delegate the view's events
+     * and re-apply the view's bindings.
      */
     setElement(element) {
         this.undelegateEvents();
         this._setElement(element);
         this.delegateEvents();
+        this.applyBindings();
         return this;
     }
     /**
@@ -2154,6 +2180,99 @@ class View extends BackboneBase {
         }
         _.dom.off(this.el, '.delegateEvents' + this.cid, eventName, selector || null, listener);
         return this;
+    }
+    /**
+     * Keep the DOM in sync with the model, where `this.bindings` is a hash of
+     * *{"selector:target": source}* pairs. `target` is a DOM property
+     * (`innerHTML`, `textContent`, `value`, `checked`, ...) or an attribute
+     * (`class`, `data-*`, `aria-*`); `source` is a model attribute name or a
+     * function *(model) => value* for computed bindings. An empty selector
+     * (`":textContent"`) targets the view's root element. Current model values
+     * are painted immediately, then repainted on every model `change`.
+     * Idempotent: safe to call at the end of `render()` after rebuilding
+     * `innerHTML`.
+     */
+    applyBindings(bindings) {
+        // Always operate through the proxy: the constructor trap calls this method
+        // on the raw instance, and listener cleanup matches by context identity.
+        const view = this._proxy || this;
+        if (bindings)
+            view._bindings = bindings;
+        view.removeBindings();
+        const hash = _.result(view, 'bindings');
+        if (!hash || !(view._el instanceof Element))
+            return this;
+        const parsed = [];
+        for (const key in hash) {
+            const match = key.match(bindingSplitter);
+            if (!match)
+                continue;
+            parsed.push({ selector: match[1], target: match[2], source: hash[key] });
+        }
+        view._parsedBindings = parsed;
+        if (view.model) {
+            view._bindingsModel = view.model;
+            view._bindingsChangeHandler = () => view._paintBindings(view.model.changed);
+            view.listenTo(view.model, 'change', view._bindingsChangeHandler);
+        }
+        view._paintBindings();
+        return this;
+    }
+    /**
+     * Stop repainting bindings on model changes. Does not clear `this.bindings`,
+     * so `setElement` can re-apply them against a new element.
+     */
+    removeBindings() {
+        const view = this._proxy || this;
+        if (view._bindingsModel && view._bindingsChangeHandler) {
+            view.stopListening(view._bindingsModel, 'change', view._bindingsChangeHandler);
+        }
+        view._bindingsModel = undefined;
+        view._bindingsChangeHandler = undefined;
+        view._parsedBindings = undefined;
+        return this;
+    }
+    /**
+     * Paint bound values into the DOM. With `changed`, string bindings repaint
+     * only when their attribute changed; function bindings always repaint.
+     * Elements are re-queried on every paint, so bindings survive `innerHTML`
+     * rewrites.
+     */
+    _paintBindings(changed) {
+        const model = this.model;
+        if (!model || !this._parsedBindings || !(this._el instanceof Element))
+            return;
+        const root = this._el;
+        for (const binding of this._parsedBindings) {
+            let value;
+            if (typeof binding.source === 'function') {
+                value = binding.source.call(this, model);
+            }
+            else {
+                if (changed && !(binding.source in changed))
+                    continue;
+                value = model.get(binding.source);
+            }
+            const nodes = binding.selector ? Array.from(root.querySelectorAll(binding.selector)) : [root];
+            for (const node of nodes)
+                this._applyBindingValue(node, binding.target, value);
+        }
+    }
+    /**
+     * Write a single bound value: as a DOM property when the target exists on
+     * the element, as an attribute otherwise (with boolean-attribute semantics:
+     * `true` sets an empty attribute, `false`/`null` removes it).
+     */
+    _applyBindingValue(node, target, value) {
+        if (target in node) {
+            node[target] = value ?? '';
+        }
+        else if (value == null || value === false) {
+            node.removeAttribute(target);
+        }
+        else {
+            node.setAttribute(target, value === true ? '' : String(value));
+        }
     }
     /**
      * Produces a DOM element to be assigned to your view.
@@ -2217,6 +2336,18 @@ Object.defineProperty(View.prototype, 'events', {
         // a resolved Element → re-delegate so the new events map takes effect.
         if (!this._constructing && this._el instanceof Element) {
             this.delegateEvents();
+        }
+    }
+});
+Object.defineProperty(View.prototype, 'bindings', {
+    configurable: true,
+    get() { return this._bindings; },
+    set(value) {
+        this._bindings = value;
+        // Class field case: bindings set after constructor finished and el is
+        // already a resolved Element → re-apply so the new hash takes effect.
+        if (!this._constructing && this._el instanceof Element) {
+            this.applyBindings();
         }
     }
 });
@@ -2735,7 +2866,7 @@ const wrapError = (model, options) => {
 };
 const Ostov = {};
 // Current version of the library. Keep in sync with `package.json`.
-Ostov.VERSION = '1.7.8';
+Ostov.VERSION = '1.8.0';
 // Ostov.$ can be set to jQuery (or a compatible library) by the user if
 // they want jQuery-powered DOM helpers. Ostov itself no longer requires it.
 Ostov.$ = null;

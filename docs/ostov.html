@@ -710,7 +710,7 @@ _.<span class="hljs-property">dom</span> = {
               <div class="sswrap ">
                 <a class="ss" href="#section-2">&#x00a7;</a>
               </div>
-              <pre><code><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">js</span> <span class="hljs-number">1.7</span><span class="hljs-number">.5</span>
+              <pre><code><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">js</span> <span class="hljs-number">1.8</span><span class="hljs-number">.0</span>
 (c) <span class="hljs-number">2010</span>-<span class="hljs-number">2024</span> <span class="hljs-title class_">Olkhovoy</span> <span class="hljs-title class_">Dmitry</span>
 <span class="hljs-title class_">Ostov</span> may be freely distributed under the <span class="hljs-variable constant_">MIT</span> license.
 <span class="hljs-title class_">For</span> all details and <span class="hljs-attr">documentation</span>:
@@ -3294,11 +3294,28 @@ Cached regex to split keys for <code>delegate</code>.</p>
               <div class="sswrap ">
                 <a class="ss" href="#section-98">&#x00a7;</a>
               </div>
+              <p>Cached regex to split keys for <code>applyBindings</code>: <code>&quot;selector:target&quot;</code>.
+The split happens on the <em>last</em> colon (target names never contain one),
+so selectors with pseudo-classes like <code>li:first-child</code> keep working.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> bindingSplitter = <span class="hljs-regexp">/^(.*):([\w-]+)$/</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-99">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-99">&#x00a7;</a>
+              </div>
               <p>List of view options to be set as properties.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> viewOptions = [<span class="hljs-string">&#x27;model&#x27;</span>, <span class="hljs-string">&#x27;collection&#x27;</span>, <span class="hljs-string">&#x27;el&#x27;</span>, <span class="hljs-string">&#x27;id&#x27;</span>, <span class="hljs-string">&#x27;attributes&#x27;</span>, <span class="hljs-string">&#x27;className&#x27;</span>, <span class="hljs-string">&#x27;tagName&#x27;</span>, <span class="hljs-string">&#x27;events&#x27;</span>];
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">const</span> viewOptions = [<span class="hljs-string">&#x27;model&#x27;</span>, <span class="hljs-string">&#x27;collection&#x27;</span>, <span class="hljs-string">&#x27;el&#x27;</span>, <span class="hljs-string">&#x27;id&#x27;</span>, <span class="hljs-string">&#x27;attributes&#x27;</span>, <span class="hljs-string">&#x27;className&#x27;</span>, <span class="hljs-string">&#x27;tagName&#x27;</span>, <span class="hljs-string">&#x27;events&#x27;</span>, <span class="hljs-string">&#x27;bindings&#x27;</span>];
 <span class="hljs-comment">/**
  * Ostov Views are a logical chunk of UI in the
  * DOM. This might be a single item, an entire list, a sidebar or panel, or
@@ -3321,11 +3338,11 @@ Cached regex to split keys for <code>delegate</code>.</p>
         </li>
         
         
-        <li id="section-99">
+        <li id="section-100">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-99">&#x00a7;</a>
+                <a class="ss" href="#section-100">&#x00a7;</a>
               </div>
               <p>Create proxy before setup so preinitialize/initialize use a consistent
 ‘this’, and subclass class fields (which use Object.defineProperty in
@@ -3348,10 +3365,55 @@ modern JS/TS) are intercepted for <code>el</code> and <code>events</code>.</p>
                             self.<span class="hljs-title function_">delegateEvents</span>();
                         <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
                     }
+                    <span class="hljs-keyword">if</span> (prop === <span class="hljs-string">&#x27;bindings&#x27;</span>) {
+                        self.<span class="hljs-property">_bindings</span> = descriptor.<span class="hljs-property">value</span>;
+                        <span class="hljs-keyword">if</span> (self.<span class="hljs-property">_el</span> <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Element</span>)
+                            self.<span class="hljs-title function_">applyBindings</span>();
+                        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                    }
+                    <span class="hljs-keyword">if</span> (prop === <span class="hljs-string">&#x27;model&#x27;</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-101">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-101">&#x00a7;</a>
+              </div>
+              <p>Unlike <code>el</code>/<code>bindings</code>, the value must actually land on the
+instance. Re-apply bindings so a model assigned after them
+(class field order, or a runtime swap) still activates them.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-title class_">Reflect</span>.<span class="hljs-title function_">defineProperty</span>(target, prop, descriptor);
+                        <span class="hljs-keyword">if</span> (self.<span class="hljs-property">_bindings</span> &amp;&amp; self.<span class="hljs-property">_el</span> <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Element</span>)
+                            self.<span class="hljs-title function_">applyBindings</span>();
+                        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+                    }
                 }
                 <span class="hljs-keyword">return</span> <span class="hljs-title class_">Reflect</span>.<span class="hljs-title function_">defineProperty</span>(target, prop, descriptor);
             }
-        });
+        });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-102">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-102">&#x00a7;</a>
+              </div>
+              <p>The proxy trap above invokes methods on the raw instance (<code>self</code>), but
+listenTo/stopListening match listeners by context identity — bindings
+must always register through the proxy so cleanup finds them.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        self.<span class="hljs-property">_proxy</span> = proxy;
         proxy.<span class="hljs-property">preinitialize</span>.<span class="hljs-title function_">apply</span>(proxy, <span class="hljs-variable language_">arguments</span>);
         _.<span class="hljs-title function_">extend</span>(proxy, _.<span class="hljs-title function_">pick</span>(options || {}, viewOptions));
         proxy.<span class="hljs-title function_">_ensureElement</span>();
@@ -3378,6 +3440,7 @@ modern JS/TS) are intercepted for <code>el</code> and <code>events</code>.</p>
      */</span>
     <span class="hljs-title function_">remove</span>(<span class="hljs-params"></span>) {
         <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">undelegateEvents</span>();
+        <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">removeBindings</span>();
         <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">_removeElement</span>();
         <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">stopListening</span>();
         <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
@@ -3389,12 +3452,14 @@ modern JS/TS) are intercepted for <code>el</code> and <code>events</code>.</p>
         _.<span class="hljs-property">dom</span>.<span class="hljs-title function_">remove</span>(<span class="hljs-variable language_">this</span>.<span class="hljs-property">el</span>);
     }
     <span class="hljs-comment">/**
-     * Change the view&#x27;s element and re-delegate the view&#x27;s events.
+     * Change the view&#x27;s element and re-delegate the view&#x27;s events
+     * and re-apply the view&#x27;s bindings.
      */</span>
     <span class="hljs-title function_">setElement</span>(<span class="hljs-params">element</span>) {
         <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">undelegateEvents</span>();
         <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">_setElement</span>(element);
         <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">delegateEvents</span>();
+        <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">applyBindings</span>();
         <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
     }
     <span class="hljs-comment">/**
@@ -3406,11 +3471,11 @@ modern JS/TS) are intercepted for <code>el</code> and <code>events</code>.</p>
         </li>
         
         
-        <li id="section-100">
+        <li id="section-103">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-100">&#x00a7;</a>
+                <a class="ss" href="#section-103">&#x00a7;</a>
               </div>
               <p>For string selectors that don’t match anything, keep el as null/falsy.
 For non-string values (DOM elements, jQuery-like wrappers), fall back.</p>
@@ -3470,6 +3535,112 @@ For non-string values (DOM elements, jQuery-like wrappers), fall back.</p>
         <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
     }
     <span class="hljs-comment">/**
+     * Keep the DOM in sync with the model, where `this.bindings` is a hash of
+     * *{&quot;selector:target&quot;: source}* pairs. `target` is a DOM property
+     * (`innerHTML`, `textContent`, `value`, `checked`, ...) or an attribute
+     * (`class`, `data-*`, `aria-*`); `source` is a model attribute name or a
+     * function *(model) =&gt; value* for computed bindings. An empty selector
+     * (`&quot;:textContent&quot;`) targets the view&#x27;s root element. Current model values
+     * are painted immediately, then repainted on every model `change`.
+     * Idempotent: safe to call at the end of `render()` after rebuilding
+     * `innerHTML`.
+     */</span>
+    <span class="hljs-title function_">applyBindings</span>(<span class="hljs-params">bindings</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-104">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-104">&#x00a7;</a>
+              </div>
+              <p>Always operate through the proxy: the constructor trap calls this method
+on the raw instance, and listener cleanup matches by context identity.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">const</span> view = <span class="hljs-variable language_">this</span>.<span class="hljs-property">_proxy</span> || <span class="hljs-variable language_">this</span>;
+        <span class="hljs-keyword">if</span> (bindings)
+            view.<span class="hljs-property">_bindings</span> = bindings;
+        view.<span class="hljs-title function_">removeBindings</span>();
+        <span class="hljs-keyword">const</span> hash = _.<span class="hljs-title function_">result</span>(view, <span class="hljs-string">&#x27;bindings&#x27;</span>);
+        <span class="hljs-keyword">if</span> (!hash || !(view.<span class="hljs-property">_el</span> <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Element</span>))
+            <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
+        <span class="hljs-keyword">const</span> parsed = [];
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> key <span class="hljs-keyword">in</span> hash) {
+            <span class="hljs-keyword">const</span> match = key.<span class="hljs-title function_">match</span>(bindingSplitter);
+            <span class="hljs-keyword">if</span> (!match)
+                <span class="hljs-keyword">continue</span>;
+            parsed.<span class="hljs-title function_">push</span>({ <span class="hljs-attr">selector</span>: match[<span class="hljs-number">1</span>], <span class="hljs-attr">target</span>: match[<span class="hljs-number">2</span>], <span class="hljs-attr">source</span>: hash[key] });
+        }
+        view.<span class="hljs-property">_parsedBindings</span> = parsed;
+        <span class="hljs-keyword">if</span> (view.<span class="hljs-property">model</span>) {
+            view.<span class="hljs-property">_bindingsModel</span> = view.<span class="hljs-property">model</span>;
+            view.<span class="hljs-property">_bindingsChangeHandler</span> = <span class="hljs-function">() =&gt;</span> view.<span class="hljs-title function_">_paintBindings</span>(view.<span class="hljs-property">model</span>.<span class="hljs-property">changed</span>);
+            view.<span class="hljs-title function_">listenTo</span>(view.<span class="hljs-property">model</span>, <span class="hljs-string">&#x27;change&#x27;</span>, view.<span class="hljs-property">_bindingsChangeHandler</span>);
+        }
+        view.<span class="hljs-title function_">_paintBindings</span>();
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
+    }
+    <span class="hljs-comment">/**
+     * Stop repainting bindings on model changes. Does not clear `this.bindings`,
+     * so `setElement` can re-apply them against a new element.
+     */</span>
+    <span class="hljs-title function_">removeBindings</span>(<span class="hljs-params"></span>) {
+        <span class="hljs-keyword">const</span> view = <span class="hljs-variable language_">this</span>.<span class="hljs-property">_proxy</span> || <span class="hljs-variable language_">this</span>;
+        <span class="hljs-keyword">if</span> (view.<span class="hljs-property">_bindingsModel</span> &amp;&amp; view.<span class="hljs-property">_bindingsChangeHandler</span>) {
+            view.<span class="hljs-title function_">stopListening</span>(view.<span class="hljs-property">_bindingsModel</span>, <span class="hljs-string">&#x27;change&#x27;</span>, view.<span class="hljs-property">_bindingsChangeHandler</span>);
+        }
+        view.<span class="hljs-property">_bindingsModel</span> = <span class="hljs-literal">undefined</span>;
+        view.<span class="hljs-property">_bindingsChangeHandler</span> = <span class="hljs-literal">undefined</span>;
+        view.<span class="hljs-property">_parsedBindings</span> = <span class="hljs-literal">undefined</span>;
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>;
+    }
+    <span class="hljs-comment">/**
+     * Paint bound values into the DOM. With `changed`, string bindings repaint
+     * only when their attribute changed; function bindings always repaint.
+     * Elements are re-queried on every paint, so bindings survive `innerHTML`
+     * rewrites.
+     */</span>
+    <span class="hljs-title function_">_paintBindings</span>(<span class="hljs-params">changed</span>) {
+        <span class="hljs-keyword">const</span> model = <span class="hljs-variable language_">this</span>.<span class="hljs-property">model</span>;
+        <span class="hljs-keyword">if</span> (!model || !<span class="hljs-variable language_">this</span>.<span class="hljs-property">_parsedBindings</span> || !(<span class="hljs-variable language_">this</span>.<span class="hljs-property">_el</span> <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Element</span>))
+            <span class="hljs-keyword">return</span>;
+        <span class="hljs-keyword">const</span> root = <span class="hljs-variable language_">this</span>.<span class="hljs-property">_el</span>;
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> binding <span class="hljs-keyword">of</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">_parsedBindings</span>) {
+            <span class="hljs-keyword">let</span> value;
+            <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> binding.<span class="hljs-property">source</span> === <span class="hljs-string">&#x27;function&#x27;</span>) {
+                value = binding.<span class="hljs-property">source</span>.<span class="hljs-title function_">call</span>(<span class="hljs-variable language_">this</span>, model);
+            }
+            <span class="hljs-keyword">else</span> {
+                <span class="hljs-keyword">if</span> (changed &amp;&amp; !(binding.<span class="hljs-property">source</span> <span class="hljs-keyword">in</span> changed))
+                    <span class="hljs-keyword">continue</span>;
+                value = model.<span class="hljs-title function_">get</span>(binding.<span class="hljs-property">source</span>);
+            }
+            <span class="hljs-keyword">const</span> nodes = binding.<span class="hljs-property">selector</span> ? <span class="hljs-title class_">Array</span>.<span class="hljs-title function_">from</span>(root.<span class="hljs-title function_">querySelectorAll</span>(binding.<span class="hljs-property">selector</span>)) : [root];
+            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">const</span> node <span class="hljs-keyword">of</span> nodes)
+                <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">_applyBindingValue</span>(node, binding.<span class="hljs-property">target</span>, value);
+        }
+    }
+    <span class="hljs-comment">/**
+     * Write a single bound value: as a DOM property when the target exists on
+     * the element, as an attribute otherwise (with boolean-attribute semantics:
+     * `true` sets an empty attribute, `false`/`null` removes it).
+     */</span>
+    <span class="hljs-title function_">_applyBindingValue</span>(<span class="hljs-params">node, target, value</span>) {
+        <span class="hljs-keyword">if</span> (target <span class="hljs-keyword">in</span> node) {
+            node[target] = value ?? <span class="hljs-string">&#x27;&#x27;</span>;
+        }
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (value == <span class="hljs-literal">null</span> || value === <span class="hljs-literal">false</span>) {
+            node.<span class="hljs-title function_">removeAttribute</span>(target);
+        }
+        <span class="hljs-keyword">else</span> {
+            node.<span class="hljs-title function_">setAttribute</span>(target, value === <span class="hljs-literal">true</span> ? <span class="hljs-string">&#x27;&#x27;</span> : <span class="hljs-title class_">String</span>(value));
+        }
+    }
+    <span class="hljs-comment">/**
      * Produces a DOM element to be assigned to your view.
      */</span>
     <span class="hljs-title function_">_createElement</span>(<span class="hljs-params">tagName</span>) {
@@ -3508,11 +3679,11 @@ For non-string values (DOM elements, jQuery-like wrappers), fall back.</p>
         </li>
         
         
-        <li id="section-101">
+        <li id="section-105">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-101">&#x00a7;</a>
+                <a class="ss" href="#section-105">&#x00a7;</a>
               </div>
               <p>Define el/events as prototype accessors on View.
 Using Object.defineProperty keeps them as plain properties in the generated
@@ -3530,11 +3701,11 @@ as class fields without hitting TS2610.</p>
         </li>
         
         
-        <li id="section-102">
+        <li id="section-106">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-102">&#x00a7;</a>
+                <a class="ss" href="#section-106">&#x00a7;</a>
               </div>
               <p>Class field case: el set to a string after constructor finished on a real
 instance (cid is set). Prototype assignments like View.prototype.el = ‘…’
@@ -3557,11 +3728,11 @@ treating those as class-field assignments.</p>
         </li>
         
         
-        <li id="section-103">
+        <li id="section-107">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-103">&#x00a7;</a>
+                <a class="ss" href="#section-107">&#x00a7;</a>
               </div>
               <p>Class field case: events set after constructor finished and el is already
 a resolved Element → re-delegate so the new events map takes effect.</p>
@@ -3572,16 +3743,41 @@ a resolved Element → re-delegate so the new events map takes effect.</p>
             <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">delegateEvents</span>();
         }
     }
+});
+<span class="hljs-title class_">Object</span>.<span class="hljs-title function_">defineProperty</span>(<span class="hljs-title class_">View</span>.<span class="hljs-property"><span class="hljs-keyword">prototype</span></span>, <span class="hljs-string">&#x27;bindings&#x27;</span>, {
+    <span class="hljs-attr">configurable</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-title function_">get</span>(<span class="hljs-params"></span>) { <span class="hljs-keyword">return</span> <span class="hljs-variable language_">this</span>.<span class="hljs-property">_bindings</span>; },
+    <span class="hljs-title function_">set</span>(<span class="hljs-params">value</span>) {
+        <span class="hljs-variable language_">this</span>.<span class="hljs-property">_bindings</span> = value;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-108">
+            <div class="annotation">
+              
+              <div class="sswrap ">
+                <a class="ss" href="#section-108">&#x00a7;</a>
+              </div>
+              <p>Class field case: bindings set after constructor finished and el is
+already a resolved Element → re-apply so the new hash takes effect.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> (!<span class="hljs-variable language_">this</span>.<span class="hljs-property">_constructing</span> &amp;&amp; <span class="hljs-variable language_">this</span>.<span class="hljs-property">_el</span> <span class="hljs-keyword">instanceof</span> <span class="hljs-title class_">Element</span>) {
+            <span class="hljs-variable language_">this</span>.<span class="hljs-title function_">applyBindings</span>();
+        }
+    }
 });</pre></div></div>
             
         </li>
         
         
-        <li id="section-104">
+        <li id="section-109">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-104">&#x00a7;</a>
+                <a class="ss" href="#section-109">&#x00a7;</a>
               </div>
               <p>The default <code>tagName</code> of a View’s element is <code>&quot;div&quot;</code>.</p>
 
@@ -3592,11 +3788,11 @@ a resolved Element → re-delegate so the new events map takes effect.</p>
         </li>
         
         
-        <li id="section-105">
+        <li id="section-110">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-105">&#x00a7;</a>
+                <a class="ss" href="#section-110">&#x00a7;</a>
               </div>
               <p>Proxy Ostov class methods to Underscore functions, wrapping the model’s
 <code>attributes</code> object or collection’s <code>models</code> array behind the scenes.</p>
@@ -3629,11 +3825,11 @@ collection.each(this.addView);</p>
         </li>
         
         
-        <li id="section-106">
+        <li id="section-111">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-106">&#x00a7;</a>
+                <a class="ss" href="#section-111">&#x00a7;</a>
               </div>
               <p>Support <code>collection.sortBy(&#39;attr&#39;)</code> and <code>collection.findWhere({id: 1})</code>.</p>
 
@@ -3656,11 +3852,11 @@ collection.each(this.addView);</p>
         </li>
         
         
-        <li id="section-107">
+        <li id="section-112">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-107">&#x00a7;</a>
+                <a class="ss" href="#section-112">&#x00a7;</a>
               </div>
               <p>Underscore methods that we want to implement on the Collection.
 90% of the core usefulness of Ostov Collections is actually implemented
@@ -3682,11 +3878,11 @@ right here:</p>
         </li>
         
         
-        <li id="section-108">
+        <li id="section-113">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-108">&#x00a7;</a>
+                <a class="ss" href="#section-113">&#x00a7;</a>
               </div>
               <p>Underscore methods that we want to implement on the Model, mapped to the
 number of arguments they take.</p>
@@ -3701,11 +3897,11 @@ number of arguments they take.</p>
         </li>
         
         
-        <li id="section-109">
+        <li id="section-114">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-109">&#x00a7;</a>
+                <a class="ss" href="#section-114">&#x00a7;</a>
               </div>
               <p>Mix in each Underscore method as a proxy to <code>Collection#models</code>.</p>
 
@@ -3734,11 +3930,11 @@ number of arguments they take.</p>
         </li>
         
         
-        <li id="section-110">
+        <li id="section-115">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-110">&#x00a7;</a>
+                <a class="ss" href="#section-115">&#x00a7;</a>
               </div>
               <h2 id="ostovsync">Ostov.sync</h2>
 
@@ -3747,11 +3943,11 @@ number of arguments they take.</p>
         </li>
         
         
-        <li id="section-111">
+        <li id="section-116">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-111">&#x00a7;</a>
+                <a class="ss" href="#section-116">&#x00a7;</a>
               </div>
               <p>Override this function to change the manner in which Ostov persists
 models to the server. You will be passed the type of request, and the
@@ -3783,11 +3979,11 @@ Map from CRUD to HTTP for our default <code>Ostov.sync</code> implementation.</p
         </li>
         
         
-        <li id="section-112">
+        <li id="section-117">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-112">&#x00a7;</a>
+                <a class="ss" href="#section-117">&#x00a7;</a>
               </div>
               <h2 id="ostovrouter">Ostov.Router</h2>
 
@@ -3796,11 +3992,11 @@ Map from CRUD to HTTP for our default <code>Ostov.sync</code> implementation.</p
         </li>
         
         
-        <li id="section-113">
+        <li id="section-118">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-113">&#x00a7;</a>
+                <a class="ss" href="#section-118">&#x00a7;</a>
               </div>
               <p>Routers map faux-URLs to actions, and fire events when routes are
 matched. Creating a new one sets its <code>routes</code> hash, if not set statically.
@@ -3865,11 +4061,11 @@ parts of route strings.</p>
         </li>
         
         
-        <li id="section-114">
+        <li id="section-119">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-114">&#x00a7;</a>
+                <a class="ss" href="#section-119">&#x00a7;</a>
               </div>
               <p>Execute a route handler with the provided parameters.  This is an
 excellent place to do pre-route setup or post-route cleanup.</p>
@@ -3884,11 +4080,11 @@ excellent place to do pre-route setup or post-route cleanup.</p>
         </li>
         
         
-        <li id="section-115">
+        <li id="section-120">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-115">&#x00a7;</a>
+                <a class="ss" href="#section-120">&#x00a7;</a>
               </div>
               <p>Simple proxy to <code>Ostov.history</code> to save a fragment into the history.</p>
 
@@ -3902,11 +4098,11 @@ excellent place to do pre-route setup or post-route cleanup.</p>
         </li>
         
         
-        <li id="section-116">
+        <li id="section-121">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-116">&#x00a7;</a>
+                <a class="ss" href="#section-121">&#x00a7;</a>
               </div>
               <p>Bind all defined routes to <code>Ostov.history</code>. We have to reverse the
 order of the routes here to support behavior where the most general
@@ -3927,11 +4123,11 @@ routes can be defined at the bottom of the route map.</p>
         </li>
         
         
-        <li id="section-117">
+        <li id="section-122">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-117">&#x00a7;</a>
+                <a class="ss" href="#section-122">&#x00a7;</a>
               </div>
               <p>Convert a route string into a regular expression, suitable for matching
 against the current location hash.</p>
@@ -3951,11 +4147,11 @@ against the current location hash.</p>
         </li>
         
         
-        <li id="section-118">
+        <li id="section-123">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-118">&#x00a7;</a>
+                <a class="ss" href="#section-123">&#x00a7;</a>
               </div>
               <p>Given a route, and a URL fragment that it matches, return the array of
 extracted decoded parameters. Empty or unmatched parameters will be
@@ -3970,11 +4166,11 @@ treated as <code>null</code> to normalize cross-browser behavior.</p>
         </li>
         
         
-        <li id="section-119">
+        <li id="section-124">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-119">&#x00a7;</a>
+                <a class="ss" href="#section-124">&#x00a7;</a>
               </div>
               <p>Don’t decode the search params.</p>
 
@@ -3989,11 +4185,11 @@ treated as <code>null</code> to normalize cross-browser behavior.</p>
         </li>
         
         
-        <li id="section-120">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-120">&#x00a7;</a>
+                <a class="ss" href="#section-125">&#x00a7;</a>
               </div>
               <p>preinitialize/initialize are empty by default. Override with your own logic.</p>
 
@@ -4006,11 +4202,11 @@ treated as <code>null</code> to normalize cross-browser behavior.</p>
         </li>
         
         
-        <li id="section-121">
+        <li id="section-126">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-121">&#x00a7;</a>
+                <a class="ss" href="#section-126">&#x00a7;</a>
               </div>
               <h2 id="ostovhistory">Ostov.History</h2>
 
@@ -4019,11 +4215,11 @@ treated as <code>null</code> to normalize cross-browser behavior.</p>
         </li>
         
         
-        <li id="section-122">
+        <li id="section-127">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-122">&#x00a7;</a>
+                <a class="ss" href="#section-127">&#x00a7;</a>
               </div>
               <p>Handles cross-browser history management, based on either
 <a href="http://diveintohtml5.info/history.html">pushState</a> and real URLs, or
@@ -4039,11 +4235,11 @@ Cached regex for stripping a leading hash/slash and trailing space.</p>
         </li>
         
         
-        <li id="section-123">
+        <li id="section-128">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-123">&#x00a7;</a>
+                <a class="ss" href="#section-128">&#x00a7;</a>
               </div>
               <p>Cached regex for stripping leading and trailing slashes.</p>
 
@@ -4054,11 +4250,11 @@ Cached regex for stripping a leading hash/slash and trailing space.</p>
         </li>
         
         
-        <li id="section-124">
+        <li id="section-129">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-124">&#x00a7;</a>
+                <a class="ss" href="#section-129">&#x00a7;</a>
               </div>
               <p>Cached regex for stripping urls of hash.</p>
 
@@ -4079,11 +4275,11 @@ Cached regex for stripping a leading hash/slash and trailing space.</p>
         </li>
         
         
-        <li id="section-125">
+        <li id="section-130">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-125">&#x00a7;</a>
+                <a class="ss" href="#section-130">&#x00a7;</a>
               </div>
               <p>Ensure that <code>History</code> can be used outside of the browser.</p>
 
@@ -4098,11 +4294,11 @@ Cached regex for stripping a leading hash/slash and trailing space.</p>
         </li>
         
         
-        <li id="section-126">
+        <li id="section-131">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-126">&#x00a7;</a>
+                <a class="ss" href="#section-131">&#x00a7;</a>
               </div>
               <p>Are we at the app root?</p>
 
@@ -4116,11 +4312,11 @@ Cached regex for stripping a leading hash/slash and trailing space.</p>
         </li>
         
         
-        <li id="section-127">
+        <li id="section-132">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-127">&#x00a7;</a>
+                <a class="ss" href="#section-132">&#x00a7;</a>
               </div>
               <p>Does the pathname match the root?</p>
 
@@ -4135,11 +4331,11 @@ Cached regex for stripping a leading hash/slash and trailing space.</p>
         </li>
         
         
-        <li id="section-128">
+        <li id="section-133">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-128">&#x00a7;</a>
+                <a class="ss" href="#section-133">&#x00a7;</a>
               </div>
               <p>Unicode characters in <code>location.pathname</code> are percent encoded so they’re
 decoded for comparison. <code>%25</code> should not be decoded since it may be part
@@ -4154,11 +4350,11 @@ of an encoded parameter.</p>
         </li>
         
         
-        <li id="section-129">
+        <li id="section-134">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-129">&#x00a7;</a>
+                <a class="ss" href="#section-134">&#x00a7;</a>
               </div>
               <p>In IE6, the hash fragment and search params are incorrect if the
 fragment contains <code>?</code>.</p>
@@ -4173,11 +4369,11 @@ fragment contains <code>?</code>.</p>
         </li>
         
         
-        <li id="section-130">
+        <li id="section-135">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-130">&#x00a7;</a>
+                <a class="ss" href="#section-135">&#x00a7;</a>
               </div>
               <p>Gets the true hash value. Cannot use location.hash directly due to bug
 in Firefox where location.hash will always be decoded.</p>
@@ -4192,11 +4388,11 @@ in Firefox where location.hash will always be decoded.</p>
         </li>
         
         
-        <li id="section-131">
+        <li id="section-136">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-131">&#x00a7;</a>
+                <a class="ss" href="#section-136">&#x00a7;</a>
               </div>
               <p>Get the pathname and search params, without the root.</p>
 
@@ -4210,11 +4406,11 @@ in Firefox where location.hash will always be decoded.</p>
         </li>
         
         
-        <li id="section-132">
+        <li id="section-137">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-132">&#x00a7;</a>
+                <a class="ss" href="#section-137">&#x00a7;</a>
               </div>
               <p>Get the cross-browser normalized URL fragment from the path or hash.</p>
 
@@ -4235,11 +4431,11 @@ in Firefox where location.hash will always be decoded.</p>
         </li>
         
         
-        <li id="section-133">
+        <li id="section-138">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-133">&#x00a7;</a>
+                <a class="ss" href="#section-138">&#x00a7;</a>
               </div>
               <p>Start the hash change handling, returning <code>true</code> if the current URL matches
 an existing route, and <code>false</code> otherwise.</p>
@@ -4254,11 +4450,11 @@ an existing route, and <code>false</code> otherwise.</p>
         </li>
         
         
-        <li id="section-134">
+        <li id="section-139">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-134">&#x00a7;</a>
+                <a class="ss" href="#section-139">&#x00a7;</a>
               </div>
               <p>Figure out the initial configuration. Do we need an iframe?
 Is pushState desired … is it available?</p>
@@ -4279,11 +4475,11 @@ Is pushState desired … is it available?</p>
         </li>
         
         
-        <li id="section-135">
+        <li id="section-140">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-135">&#x00a7;</a>
+                <a class="ss" href="#section-140">&#x00a7;</a>
               </div>
               <p>Normalize root to always include a leading and trailing slash.</p>
 
@@ -4294,11 +4490,11 @@ Is pushState desired … is it available?</p>
         </li>
         
         
-        <li id="section-136">
+        <li id="section-141">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-136">&#x00a7;</a>
+                <a class="ss" href="#section-141">&#x00a7;</a>
               </div>
               <p>Transition from hashChange to pushState or vice versa if both are
 requested.</p>
@@ -4310,11 +4506,11 @@ requested.</p>
         </li>
         
         
-        <li id="section-137">
+        <li id="section-142">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-137">&#x00a7;</a>
+                <a class="ss" href="#section-142">&#x00a7;</a>
               </div>
               <p>If we’ve started off with a route from a <code>pushState</code>-enabled
 browser, but we’re currently in a browser that doesn’t support it…</p>
@@ -4328,11 +4524,11 @@ browser, but we’re currently in a browser that doesn’t support it…</p>
         </li>
         
         
-        <li id="section-138">
+        <li id="section-143">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-138">&#x00a7;</a>
+                <a class="ss" href="#section-143">&#x00a7;</a>
               </div>
               <p>Return immediately as browser will do redirect to new url</p>
 
@@ -4343,11 +4539,11 @@ browser, but we’re currently in a browser that doesn’t support it…</p>
         </li>
         
         
-        <li id="section-139">
+        <li id="section-144">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-139">&#x00a7;</a>
+                <a class="ss" href="#section-144">&#x00a7;</a>
               </div>
               <p>Or if we’ve started out with a hash-based route, but we’re currently
 in a browser where it could be <code>pushState</code>-based instead…</p>
@@ -4363,11 +4559,11 @@ in a browser where it could be <code>pushState</code>-based instead…</p>
         </li>
         
         
-        <li id="section-140">
+        <li id="section-145">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-140">&#x00a7;</a>
+                <a class="ss" href="#section-145">&#x00a7;</a>
               </div>
               <p>Proxy an iframe to handle location events if the browser doesn’t
 support the <code>hashchange</code> event, HTML5 history, or the user wants
@@ -4385,11 +4581,11 @@ support the <code>hashchange</code> event, HTML5 history, or the user wants
         </li>
         
         
-        <li id="section-141">
+        <li id="section-146">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-141">&#x00a7;</a>
+                <a class="ss" href="#section-146">&#x00a7;</a>
               </div>
               <p>Using <code>appendChild</code> will throw on IE &lt; 9 if the document is not ready.</p>
 
@@ -4404,11 +4600,11 @@ support the <code>hashchange</code> event, HTML5 history, or the user wants
         </li>
         
         
-        <li id="section-142">
+        <li id="section-147">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-142">&#x00a7;</a>
+                <a class="ss" href="#section-147">&#x00a7;</a>
               </div>
               <p>Add a cross-platform <code>addEventListener</code> shim for older browsers.</p>
 
@@ -4421,11 +4617,11 @@ support the <code>hashchange</code> event, HTML5 history, or the user wants
         </li>
         
         
-        <li id="section-143">
+        <li id="section-148">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-143">&#x00a7;</a>
+                <a class="ss" href="#section-148">&#x00a7;</a>
               </div>
               <p>Depending on whether we’re using pushState or hashes, and whether
 ‘onhashchange’ is supported, determine how we check the URL state.</p>
@@ -4448,11 +4644,11 @@ support the <code>hashchange</code> event, HTML5 history, or the user wants
         </li>
         
         
-        <li id="section-144">
+        <li id="section-149">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-144">&#x00a7;</a>
+                <a class="ss" href="#section-149">&#x00a7;</a>
               </div>
               <p>Disable Ostov.history, perhaps temporarily. Not useful in a real app,
 but possibly useful for unit testing Routers.</p>
@@ -4464,11 +4660,11 @@ but possibly useful for unit testing Routers.</p>
         </li>
         
         
-        <li id="section-145">
+        <li id="section-150">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-145">&#x00a7;</a>
+                <a class="ss" href="#section-150">&#x00a7;</a>
               </div>
               <p>Add a cross-platform <code>removeEventListener</code> shim for older browsers.</p>
 
@@ -4481,11 +4677,11 @@ but possibly useful for unit testing Routers.</p>
         </li>
         
         
-        <li id="section-146">
+        <li id="section-151">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-146">&#x00a7;</a>
+                <a class="ss" href="#section-151">&#x00a7;</a>
               </div>
               <p>Remove window listeners.</p>
 
@@ -4501,11 +4697,11 @@ but possibly useful for unit testing Routers.</p>
         </li>
         
         
-        <li id="section-147">
+        <li id="section-152">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-147">&#x00a7;</a>
+                <a class="ss" href="#section-152">&#x00a7;</a>
               </div>
               <p>Clean up the iframe if necessary.</p>
 
@@ -4519,11 +4715,11 @@ but possibly useful for unit testing Routers.</p>
         </li>
         
         
-        <li id="section-148">
+        <li id="section-153">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-148">&#x00a7;</a>
+                <a class="ss" href="#section-153">&#x00a7;</a>
               </div>
               <p>Some environments will throw when clearing an undefined interval.</p>
 
@@ -4537,11 +4733,11 @@ but possibly useful for unit testing Routers.</p>
         </li>
         
         
-        <li id="section-149">
+        <li id="section-154">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-149">&#x00a7;</a>
+                <a class="ss" href="#section-154">&#x00a7;</a>
               </div>
               <p>Add a route to be tested when the fragment changes. Routes added later
 may override previous routes.</p>
@@ -4555,11 +4751,11 @@ may override previous routes.</p>
         </li>
         
         
-        <li id="section-150">
+        <li id="section-155">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-150">&#x00a7;</a>
+                <a class="ss" href="#section-155">&#x00a7;</a>
               </div>
               <p>Checks the current URL to see if it has changed, and if it has,
 calls <code>loadUrl</code>, normalizing across the hidden iframe.</p>
@@ -4572,11 +4768,11 @@ calls <code>loadUrl</code>, normalizing across the hidden iframe.</p>
         </li>
         
         
-        <li id="section-151">
+        <li id="section-156">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-151">&#x00a7;</a>
+                <a class="ss" href="#section-156">&#x00a7;</a>
               </div>
               <p>If the user pressed the back button, the iframe’s hash will have
 changed and we should use that for comparison.</p>
@@ -4599,11 +4795,11 @@ changed and we should use that for comparison.</p>
         </li>
         
         
-        <li id="section-152">
+        <li id="section-157">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-152">&#x00a7;</a>
+                <a class="ss" href="#section-157">&#x00a7;</a>
               </div>
               <p>Attempt to load the current URL fragment. If a route succeeds with a
 match, returns <code>true</code>. If no defined routes matches the fragment,
@@ -4616,11 +4812,11 @@ returns <code>false</code>.</p>
         </li>
         
         
-        <li id="section-153">
+        <li id="section-158">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-153">&#x00a7;</a>
+                <a class="ss" href="#section-158">&#x00a7;</a>
               </div>
               <p>If the root doesn’t match, no routes can match either.</p>
 
@@ -4640,11 +4836,11 @@ returns <code>false</code>.</p>
         </li>
         
         
-        <li id="section-154">
+        <li id="section-159">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-154">&#x00a7;</a>
+                <a class="ss" href="#section-159">&#x00a7;</a>
               </div>
               <p>When no route could be matched, this method is called internally to
 trigger the <code>&#39;notfound&#39;</code> event. It returns <code>false</code> so that it can be used
@@ -4660,11 +4856,11 @@ in tail position.</p>
         </li>
         
         
-        <li id="section-155">
+        <li id="section-160">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-155">&#x00a7;</a>
+                <a class="ss" href="#section-160">&#x00a7;</a>
               </div>
               <p>Save a fragment into the hash history, or replace the URL state if the
 ‘replace’ option is passed. You are responsible for properly URL-encoding
@@ -4684,11 +4880,11 @@ you wish to modify the current URL without adding an entry to the history.</p>
         </li>
         
         
-        <li id="section-156">
+        <li id="section-161">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-156">&#x00a7;</a>
+                <a class="ss" href="#section-161">&#x00a7;</a>
               </div>
               <p>Normalize the fragment.</p>
 
@@ -4699,11 +4895,11 @@ you wish to modify the current URL without adding an entry to the history.</p>
         </li>
         
         
-        <li id="section-157">
+        <li id="section-162">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-157">&#x00a7;</a>
+                <a class="ss" href="#section-162">&#x00a7;</a>
               </div>
               <p>Strip trailing slash on the root unless _trailingSlash is true</p>
 
@@ -4718,11 +4914,11 @@ you wish to modify the current URL without adding an entry to the history.</p>
         </li>
         
         
-        <li id="section-158">
+        <li id="section-163">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-158">&#x00a7;</a>
+                <a class="ss" href="#section-163">&#x00a7;</a>
               </div>
               <p>Strip the fragment of the query and hash for matching.</p>
 
@@ -4733,11 +4929,11 @@ you wish to modify the current URL without adding an entry to the history.</p>
         </li>
         
         
-        <li id="section-159">
+        <li id="section-164">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-159">&#x00a7;</a>
+                <a class="ss" href="#section-164">&#x00a7;</a>
               </div>
               <p>Decode for matching.</p>
 
@@ -4751,11 +4947,11 @@ you wish to modify the current URL without adding an entry to the history.</p>
         </li>
         
         
-        <li id="section-160">
+        <li id="section-165">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-160">&#x00a7;</a>
+                <a class="ss" href="#section-165">&#x00a7;</a>
               </div>
               <p>If pushState is available, we use it to set the fragment as a real URL.</p>
 
@@ -4767,11 +4963,11 @@ you wish to modify the current URL without adding an entry to the history.</p>
         </li>
         
         
-        <li id="section-161">
+        <li id="section-166">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-161">&#x00a7;</a>
+                <a class="ss" href="#section-166">&#x00a7;</a>
               </div>
               <p>If hash changes haven’t been explicitly disabled, update the hash
 fragment to store history.</p>
@@ -4787,11 +4983,11 @@ fragment to store history.</p>
         </li>
         
         
-        <li id="section-162">
+        <li id="section-167">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-162">&#x00a7;</a>
+                <a class="ss" href="#section-167">&#x00a7;</a>
               </div>
               <p>Opening and closing the iframe tricks IE7 and earlier to push a
 history entry on hash-tag change.  When replace is true, we don’t
@@ -4809,11 +5005,11 @@ want this.</p>
         </li>
         
         
-        <li id="section-163">
+        <li id="section-168">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-163">&#x00a7;</a>
+                <a class="ss" href="#section-168">&#x00a7;</a>
               </div>
               <p>If you’ve told us that you explicitly don’t want fallback hashchange-
 based history, then <code>navigate</code> becomes a page refresh.</p>
@@ -4831,11 +5027,11 @@ based history, then <code>navigate</code> becomes a page refresh.</p>
         </li>
         
         
-        <li id="section-164">
+        <li id="section-169">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-164">&#x00a7;</a>
+                <a class="ss" href="#section-169">&#x00a7;</a>
               </div>
               <p>Update the hash location, either replacing the current entry, or adding
 a new one to the browser history.</p>
@@ -4852,11 +5048,11 @@ a new one to the browser history.</p>
         </li>
         
         
-        <li id="section-165">
+        <li id="section-170">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-165">&#x00a7;</a>
+                <a class="ss" href="#section-170">&#x00a7;</a>
               </div>
               <p>Some browsers require that <code>hash</code> contains a leading #.</p>
 
@@ -4871,11 +5067,11 @@ a new one to the browser history.</p>
         </li>
         
         
-        <li id="section-166">
+        <li id="section-171">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-166">&#x00a7;</a>
+                <a class="ss" href="#section-171">&#x00a7;</a>
               </div>
               <p>The default interval to poll for hash changes, if necessary, is
 twenty times a second.</p>
@@ -4887,11 +5083,11 @@ twenty times a second.</p>
         </li>
         
         
-        <li id="section-167">
+        <li id="section-172">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-167">&#x00a7;</a>
+                <a class="ss" href="#section-172">&#x00a7;</a>
               </div>
               <p>Throw an error when a URL is needed, and none is supplied.</p>
 
@@ -4904,11 +5100,11 @@ twenty times a second.</p>
         </li>
         
         
-        <li id="section-168">
+        <li id="section-173">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-168">&#x00a7;</a>
+                <a class="ss" href="#section-173">&#x00a7;</a>
               </div>
               <p>Wrap an optional error callback with a fallback error event.</p>
 
@@ -4927,26 +5123,26 @@ twenty times a second.</p>
         </li>
         
         
-        <li id="section-169">
+        <li id="section-174">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-169">&#x00a7;</a>
+                <a class="ss" href="#section-174">&#x00a7;</a>
               </div>
               <p>Current version of the library. Keep in sync with <code>package.json</code>.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">VERSION</span> = <span class="hljs-string">&#x27;1.7.8&#x27;</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-title class_">Ostov</span>.<span class="hljs-property">VERSION</span> = <span class="hljs-string">&#x27;1.8.0&#x27;</span>;</pre></div></div>
             
         </li>
         
         
-        <li id="section-170">
+        <li id="section-175">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-170">&#x00a7;</a>
+                <a class="ss" href="#section-175">&#x00a7;</a>
               </div>
               <p>Ostov.$ can be set to jQuery (or a compatible library) by the user if
 they want jQuery-powered DOM helpers. Ostov itself no longer requires it.</p>
@@ -4958,11 +5154,11 @@ they want jQuery-powered DOM helpers. Ostov itself no longer requires it.</p>
         </li>
         
         
-        <li id="section-171">
+        <li id="section-176">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-171">&#x00a7;</a>
+                <a class="ss" href="#section-176">&#x00a7;</a>
               </div>
               <p>Runs Ostov.js in <em>noConflict</em> mode, returning the <code>Ostov</code> variable
 to its previous owner. Returns a reference to this Ostov object.</p>
@@ -4977,11 +5173,11 @@ to its previous owner. Returns a reference to this Ostov object.</p>
         </li>
         
         
-        <li id="section-172">
+        <li id="section-177">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-172">&#x00a7;</a>
+                <a class="ss" href="#section-177">&#x00a7;</a>
               </div>
               <p>Turn on <code>emulateHTTP</code> to support legacy HTTP servers. Setting this option
 will fake <code>&quot;PATCH&quot;</code>, <code>&quot;PUT&quot;</code> and <code>&quot;DELETE&quot;</code> requests via the <code>_method</code> parameter and
@@ -4994,11 +5190,11 @@ set a <code>X-Http-Method-Override</code> header.</p>
         </li>
         
         
-        <li id="section-173">
+        <li id="section-178">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-173">&#x00a7;</a>
+                <a class="ss" href="#section-178">&#x00a7;</a>
               </div>
               <p>Turn on <code>emulateJSON</code> to support legacy servers that can’t deal with direct
 <code>application/json</code> requests … this will encode the body as
@@ -5012,11 +5208,11 @@ form param named <code>model</code>.</p>
         </li>
         
         
-        <li id="section-174">
+        <li id="section-179">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-174">&#x00a7;</a>
+                <a class="ss" href="#section-179">&#x00a7;</a>
               </div>
               <p>Events</p>
 
@@ -5027,11 +5223,11 @@ form param named <code>model</code>.</p>
         </li>
         
         
-        <li id="section-175">
+        <li id="section-180">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-175">&#x00a7;</a>
+                <a class="ss" href="#section-180">&#x00a7;</a>
               </div>
               <p>Allow the <code>Ostov</code> object to serve as a global event bus, for folks who
 want global “pubsub” in a convenient place.</p>
@@ -5043,11 +5239,11 @@ want global “pubsub” in a convenient place.</p>
         </li>
         
         
-        <li id="section-176">
+        <li id="section-181">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-176">&#x00a7;</a>
+                <a class="ss" href="#section-181">&#x00a7;</a>
               </div>
               <p>Ostov.sync</p>
 
@@ -5059,11 +5255,11 @@ want global “pubsub” in a convenient place.</p>
         </li>
         
         
-        <li id="section-177">
+        <li id="section-182">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-177">&#x00a7;</a>
+                <a class="ss" href="#section-182">&#x00a7;</a>
               </div>
               <p>Default options, unless specified.
 Must mutate (not replace) <code>options</code> so that <code>options.xhr</code> set below
@@ -5078,11 +5274,11 @@ is visible to callbacks that closed over the same object in sync callers.</p>
         </li>
         
         
-        <li id="section-178">
+        <li id="section-183">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-178">&#x00a7;</a>
+                <a class="ss" href="#section-183">&#x00a7;</a>
               </div>
               <p>Default JSON-request options.</p>
 
@@ -5093,11 +5289,11 @@ is visible to callbacks that closed over the same object in sync callers.</p>
         </li>
         
         
-        <li id="section-179">
+        <li id="section-184">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-179">&#x00a7;</a>
+                <a class="ss" href="#section-184">&#x00a7;</a>
               </div>
               <p>Ensure that we have a URL.</p>
 
@@ -5110,11 +5306,11 @@ is visible to callbacks that closed over the same object in sync callers.</p>
         </li>
         
         
-        <li id="section-180">
+        <li id="section-185">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-180">&#x00a7;</a>
+                <a class="ss" href="#section-185">&#x00a7;</a>
               </div>
               <p>Ensure that we have the appropriate request data.</p>
 
@@ -5128,11 +5324,11 @@ is visible to callbacks that closed over the same object in sync callers.</p>
         </li>
         
         
-        <li id="section-181">
+        <li id="section-186">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-181">&#x00a7;</a>
+                <a class="ss" href="#section-186">&#x00a7;</a>
               </div>
               <p>For older servers, emulate JSON by encoding the request into an HTML-form.</p>
 
@@ -5146,11 +5342,11 @@ is visible to callbacks that closed over the same object in sync callers.</p>
         </li>
         
         
-        <li id="section-182">
+        <li id="section-187">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-182">&#x00a7;</a>
+                <a class="ss" href="#section-187">&#x00a7;</a>
               </div>
               <p>For older servers, emulate HTTP by mimicking the HTTP method with <code>_method</code>
 And an <code>X-HTTP-Method-Override</code> header.</p>
@@ -5172,11 +5368,11 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
         </li>
         
         
-        <li id="section-183">
+        <li id="section-188">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-183">&#x00a7;</a>
+                <a class="ss" href="#section-188">&#x00a7;</a>
               </div>
               <p>Don’t process data on a non-GET request.</p>
 
@@ -5189,11 +5385,11 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
         </li>
         
         
-        <li id="section-184">
+        <li id="section-189">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-184">&#x00a7;</a>
+                <a class="ss" href="#section-189">&#x00a7;</a>
               </div>
               <p>Pass along <code>textStatus</code> and <code>errorThrown</code> from jQuery.</p>
 
@@ -5209,11 +5405,11 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
         </li>
         
         
-        <li id="section-185">
+        <li id="section-190">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-185">&#x00a7;</a>
+                <a class="ss" href="#section-190">&#x00a7;</a>
               </div>
               <p>Make the request, allowing the user to override any Ajax options.</p>
 
@@ -5227,11 +5423,11 @@ And an <code>X-HTTP-Method-Override</code> header.</p>
         </li>
         
         
-        <li id="section-186">
+        <li id="section-191">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-186">&#x00a7;</a>
+                <a class="ss" href="#section-191">&#x00a7;</a>
               </div>
               <p>Default implementation of <code>Ostov.ajax</code> using the native Fetch API.
 Override this function if you need custom request handling.
@@ -5253,11 +5449,11 @@ The options object follows the jQuery.ajax convention used by Ostov.sync:
         </li>
         
         
-        <li id="section-187">
+        <li id="section-192">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-187">&#x00a7;</a>
+                <a class="ss" href="#section-192">&#x00a7;</a>
               </div>
               <p>Encode as application/x-www-form-urlencoded.</p>
 
@@ -5279,11 +5475,11 @@ The options object follows the jQuery.ajax convention used by Ostov.sync:
         </li>
         
         
-        <li id="section-188">
+        <li id="section-193">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-188">&#x00a7;</a>
+                <a class="ss" href="#section-193">&#x00a7;</a>
               </div>
               <p>Allow beforeSend to set additional request headers.</p>
 
@@ -5299,11 +5495,11 @@ The options object follows the jQuery.ajax convention used by Ostov.sync:
         </li>
         
         
-        <li id="section-189">
+        <li id="section-194">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-189">&#x00a7;</a>
+                <a class="ss" href="#section-194">&#x00a7;</a>
               </div>
               <p>Provide a minimal xhr-like object (supports abort via AbortController).</p>
 
@@ -5339,11 +5535,11 @@ The options object follows the jQuery.ajax convention used by Ostov.sync:
         </li>
         
         
-        <li id="section-190">
+        <li id="section-195">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-190">&#x00a7;</a>
+                <a class="ss" href="#section-195">&#x00a7;</a>
               </div>
               <p>Create the default Ostov.history.</p>
 
@@ -5354,11 +5550,11 @@ The options object follows the jQuery.ajax convention used by Ostov.sync:
         </li>
         
         
-        <li id="section-191">
+        <li id="section-196">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-191">&#x00a7;</a>
+                <a class="ss" href="#section-196">&#x00a7;</a>
               </div>
               <p>Expose classes on Ostov namespace.</p>
 
@@ -5373,11 +5569,11 @@ The options object follows the jQuery.ajax convention used by Ostov.sync:
         </li>
         
         
-        <li id="section-192">
+        <li id="section-197">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-192">&#x00a7;</a>
+                <a class="ss" href="#section-197">&#x00a7;</a>
               </div>
               <p>Provide useful information when things go wrong. This method is not meant
 to be used directly; it merely provides the necessary introspection for the
@@ -5393,11 +5589,11 @@ Note: <code>_</code> is the built-in utils library (no underscore.js dependency)
         </li>
         
         
-        <li id="section-193">
+        <li id="section-198">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-193">&#x00a7;</a>
+                <a class="ss" href="#section-198">&#x00a7;</a>
               </div>
               <p>Set on globalThis for noConflict support</p>
 
@@ -5410,11 +5606,11 @@ Note: <code>_</code> is the built-in utils library (no underscore.js dependency)
         </li>
         
         
-        <li id="section-194">
+        <li id="section-199">
             <div class="annotation">
               
               <div class="sswrap ">
-                <a class="ss" href="#section-194">&#x00a7;</a>
+                <a class="ss" href="#section-199">&#x00a7;</a>
               </div>
               <h1 id="sourcemappingurlostovjsmap">sourceMappingURL=ostov.js.map</h1>
 
