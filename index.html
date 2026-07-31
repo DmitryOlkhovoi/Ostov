@@ -523,7 +523,7 @@
 
     <a class="toc_title toc_logo" href="#">
       <img src="docs/images/ostov-icon.svg" alt="" class="sidebar-icon" />
-      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.7.8)</span>
+      <span class="logo-text">Ostov<span class="logo-dot">.</span>js</span> <span class="version">(1.8.0)</span>
     </a>
     <ul class="toc_section">
       <li>&raquo; <a href="https://github.com/DmitryOlkhovoi/Ostov">GitHub Repository</a></li>
@@ -716,6 +716,9 @@
         <li data-name="events">– <a href="#View-events">events</a></li>
         <li data-name="delegateEvents">– <a href="#View-delegateEvents">delegateEvents</a></li>
         <li data-name="undelegateEvents">– <a href="#View-undelegateEvents">undelegateEvents</a></li>
+        <li data-name="bindings">– <a href="#View-bindings">bindings</a></li>
+        <li data-name="applyBindings">– <a href="#View-applyBindings">applyBindings</a></li>
+        <li data-name="removeBindings">– <a href="#View-removeBindings">removeBindings</a></li>
       </ul>
     </div>
 
@@ -797,11 +800,11 @@
 
     <table>
       <tr>
-        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Development Version (1.7.3)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.js">Development Version (1.8.0)</a></td>
         <td class="text"><i>Full source, tons of comments</i></td>
       </tr>
       <tr>
-        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js">Production Version (1.7.3)</a></td>
+        <td><a class="punch" href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js">Production Version (1.8.0)</a></td>
         <td class="text" style="line-height: 16px;">
           <i>Packed and gzipped</i><br />
           <small>(<a href="https://raw.githubusercontent.com/DmitryOlkhovoi/Ostov/master/dist/ostov.min.js.map">Source Map</a>)</small>
@@ -3614,6 +3617,79 @@ class DocumentView extends Ostov.View {
       or remove a view from the DOM temporarily.
     </p>
 
+    <p id="View-bindings">
+      <b class="header">bindings</b><code>view.bindings or view.bindings()</code>
+      <br />
+      The <b>bindings</b> hash (or method) declares fine-grained, signals-style
+      reactivity: it keeps individual DOM nodes in sync with the view's model,
+      without re-rendering the whole view. Bindings are written in the format
+      <tt>{"selector:target": source}</tt>, where <tt>source</tt> is a model
+      attribute name or a function <tt>(model) =&gt; value</tt> for computed
+      values. Current model values are painted as soon as the view binds; after
+      that, every model <tt>"change"</tt> repaints only what changed.
+    </p>
+
+<pre>
+class CounterView extends Ostov.View {
+
+  el = '#app';
+  model = new Ostov.Model({count: 0, busy: false});
+
+  bindings = {
+    "#counter:innerHTML" : "count",   // model attribute → DOM property
+    "#btn:disabled"      : "busy",    // boolean property
+    ":data-count"        : "count",   // empty selector → the view's root el
+    "#status:textContent": (m) => m.get("count") > 10 ? "high" : "low"
+  };
+
+  events = {
+    "click #btn": "increment"
+  };
+
+  increment() {
+    this.model.set("count", this.model.get("count") + 1); // the DOM updates itself
+  }
+}
+</pre>
+
+    <p>
+      The binding key splits on the <i>last</i> colon, so selectors with
+      pseudo-classes work: <tt>"li:first-child:textContent"</tt>. An empty
+      selector targets the view's root element, and every element matching the
+      selector is updated, not just the first one. The <tt>target</tt> is
+      written as a DOM <b>property</b> when the element has one
+      (<tt>innerHTML</tt>, <tt>textContent</tt>, <tt>value</tt>,
+      <tt>checked</tt>, <tt>disabled</tt> ...) and as an <b>attribute</b>
+      otherwise (<tt>class</tt>, <tt>data-*</tt>, <tt>aria-*</tt>). For
+      attributes, <tt>true</tt> sets an empty attribute
+      and <tt>false</tt>/<tt>null</tt> removes it; <tt>null</tt> and
+      <tt>undefined</tt> property values render as an empty string.
+    </p>
+
+    <p id="View-applyBindings">
+      <b class="header">applyBindings</b><code>applyBindings([bindings])</code>
+      <br />
+      Binds the view's model to the DOM. If a <b>bindings</b> hash is not
+      passed directly, uses <tt>this.bindings</tt> as the source. By default,
+      <b>applyBindings</b> is called within the View's constructor for you, and
+      again whenever <a href="#View-setElement">setElement</a> is called or a
+      model is assigned to the view — so if you have a simple <tt>bindings</tt>
+      hash, you will never have to call this function yourself. Bound elements
+      are re-queried on every repaint, so if your
+      <a href="#View-render">render</a> rebuilds the view's <tt>innerHTML</tt>,
+      call <tt>this.applyBindings()</tt> at the end of <b>render</b> and the
+      bindings attach to the fresh nodes.
+    </p>
+
+    <p id="View-removeBindings">
+      <b class="header">removeBindings</b><code>removeBindings()</code>
+      <br />
+      Stops repainting bindings on model changes. Called automatically
+      by <a href="#View-remove">remove</a>. The <tt>bindings</tt> hash itself
+      is kept, so <a href="#View-applyBindings">applyBindings</a> can
+      re-activate it later.
+    </p>
+
     <h2 id="Utility">Utility</h2>
 
     <p id="Utility-Ostov-$">
@@ -4009,6 +4085,23 @@ ActiveRecord::Base.include_root_in_json = false
     </p>
 
     <h2 id="changelog">Change Log</h2>
+
+    <b class="header" id="1.8.0">1.8.0</b> &mdash; <small><i>Jul. 31, 2026</i></small>
+    &mdash; <a href="https://github.com/DmitryOlkhovoi/Ostov/compare/1.7.0...1.8.0">Diff</a>
+    &mdash; <a href="https://cdn.statically.io/gh/DmitryOlkhovoi/Ostov/1.8.0/index.html">Docs</a>
+    <br />
+    <ul style="margin-top: 5px;">
+      <li>
+        Added declarative <a href="#View-bindings">bindings</a> to
+        <tt>Ostov.View</tt> — a <tt>{"selector:target": source}</tt> hash that
+        keeps individual DOM nodes in sync with the view's model, without
+        re-rendering the whole view. Supports DOM properties and attributes,
+        computed function values, and automatic
+        <a href="#View-applyBindings">applyBindings</a> /
+        <a href="#View-removeBindings">removeBindings</a> lifecycle wired into
+        <tt>setElement</tt>, <tt>remove</tt> and late model assignment.
+      </li>
+    </ul>
 
     <b class="header" id="1.7.3">1.7.3</b> &mdash; <small><i>2026</i></small>
     &mdash; <a href="https://github.com/DmitryOlkhovoi/Ostov/compare/1.6.1...1.7.3">Diff</a>
